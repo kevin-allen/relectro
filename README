@@ -1,1 +1,46 @@
 This is a R package to analysis electrophysiological data with R.
+
+The speed of the code is very good. Compare to the current way of doing things, it will eliminate having to read the files many times in a row. Should speed up things adn make it simpler to do analysis.
+
+I don't think it will be very long to build a decent R interface with the c code. On second day, it took me an hour to get the firing rate function to work.
+
+
+List of functions to implement in c:
+
+1 day:
+get_interval_res_index() <- 2 hours
+crosscorrelation() <- 2 hours
+crosscorrelation_events() <- 2 hours
+
+
+1 day:
+positrack class (all in cm) -> implement all of this as a S4 R class
+	  - x,y,hd,speed,px_per_cm
+          - intervals at a given speed
+	  - filter for speed
+	  - set outside intervals to -1
+	  - speed at given res values (for speed scores)
+
+1 day:
+session  R class
+	 - desen
+	 - intervals
+	 - time per trials
+	 - 
+
+3 days:
+firing_map_2d: -occupancy
+	       -maps
+	       -map stats
+	       -autocorrelation
+	       -grid score
+	       -border score
+
+2 days:
+firing_map_1d: -occupancy
+	       -maps
+	       -map stats
+
+
+1 day:
+SpikeTrain: -instantaneous firing rate.
