@@ -1,5 +1,4 @@
-useDynLib(relectro,autocorrelation_cwrap)
-
+useDynLib(relectro, autocorrelation_cwrap)
 exportPattern("^[[:alpha:]]+")
 exportMethods(
     "loadSpikeTrain",
