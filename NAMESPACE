@@ -1,0 +1,12 @@
+useDynLib(relectro,autocorrelation_cwrap)
+
+exportPattern("^[[:alpha:]]+")
+exportMethods(
+    "loadSpikeTrain",
+    "setSpikeTrain",
+    "show",
+    "spikeTimeAutocorrelation" 
+)
+exportClasses(
+    "SpikeTrain" 
+)
