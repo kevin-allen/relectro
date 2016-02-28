@@ -112,3 +112,4 @@ SEXP meanFiringRate_cwrap(SEXP cell_list_r,
   UNPROTECT(8);
   return(out);
 }
+

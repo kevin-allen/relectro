@@ -1,4 +1,4 @@
-useDynLib(relectro, autocorrelation_cwrap, meanFiringRate_cwrap)
+useDynLib(relectro, autocorrelation_cwrap, meanFiringRate_cwrap,resIndexForIntervals_cwrap)
 exportPattern("^[[:alpha:]]+")
 exportMethods(
     "loadSpikeTrain",

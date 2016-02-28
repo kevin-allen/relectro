@@ -6,7 +6,7 @@ SpikeTrain <- setClass(
   slots=c(session="character",samplingRate="numeric",res="numeric",time="numeric",clu="numeric",
           nCells="numeric",nSpikes="numeric",nSpikesPerCell="numeric",
           startInterval="numeric",endInterval="numeric", # to limit analysis to these intervals
-          startResIndex="numeric",endResIndex="numeric",
+          startResIndexc="numeric",endResIndexc="numeric",
           cellList="numeric"),  # cell list to limit the analysis to these cells
   prototype = list(session=""))
 
@@ -34,9 +34,9 @@ setMethod(f="spikeTimeAutocorrelation",
                         st@nSpikes,
                         n.bins,
                         window.size,
-                        st@startResIndex,
-                        st@endResIndex,
-                        length(st@startResIndex),
+                        st@startResIndexc,
+                        st@endResIndexc,
+                        length(st@startResIndexc),
                         probability)
             
             # return a data fram with clu time count
@@ -83,8 +83,8 @@ setMethod(f="loadSpikeTrain",
             st@cellList<-sort(unique(st@clu))
             st@startInterval<-0
             st@endInterval<-max(st@res)
-            st@startResIndex<-0
-            st@endResIndex<-length(st@res)
+            st@startResIndexc<-0
+            st@endResIndexc<-length(st@res)-1
             return(st)
           
           }
@@ -120,8 +120,8 @@ setMethod(f="setSpikeTrain",
             st@cellList<-sort(unique(st@clu))
             st@startInterval<-0
             st@endInterval<-max(st@res)
-            st@startResIndex<-0
-            st@endResIndex<-length(st@res)
+            st@startResIndexc<-0
+            st@endResIndexc<-length(st@res)-1
             return(st)
           }
 )
@@ -159,10 +159,54 @@ setMethod(f="meanFiringRate",
                             st@nSpikes,
                             st@startInterval,
                             st@endInterval,
-                            st@startResIndex,
-                            st@endResIndex,
-                            length(st@startResIndex),
+                            st@startResIndexc,
+                            st@endResIndexc,
+                            length(st@startResIndexc),
                             st@samplingRate)
             return(results)
           }
 )
+
+
+### setIntervals ###
+setGeneric(name="setIntervals",
+           def=function(st,start.intervals,end.intervals)
+           {standardGeneric("setIntervals")})
+
+setMethod(f="setIntervals",
+          signature = "SpikeTrain",
+          definition=function(st,start.intervals,end.intervals)
+          {
+            if(length(start.intervals)!=length(end.intervals))
+              stop("problem with length of start.intervals and end.intervals")
+            if(any(start.intervals>end.intervals))
+              stop("start.intervals>end.intervals")
+            if(any(diff(start.intervals)<0))
+              stop("problem with chonology within start.intervals")
+            if(any(diff(end.intervals)<0))
+              stop("problem with chonology within end.intervals")
+            if(any(start.intervals[-1]-end.intervals[-length(end.intervals)]<0))
+              stop("problem with chronology between intervals, from end to next start")
+            
+            
+            st@startInterval<-start.intervals
+            st@endInterval<-end.intervals
+            
+            # call cwrapper function
+            results<- .Call("resIndexForIntervals_cwrap",
+                            length(st@startInterval),
+                            st@startInterval,
+                            st@endInterval,
+                            st@nSpikes,
+                            st@res)
+
+          
+            st@startResIndexc<-results[,1]
+            st@endResIndexc<-results[,2]
+            st@startInterval<-st@startInterval[1:length(st@startResIndexc)]
+            st@endInterval<-st@endInterval[1:length(st@endResIndexc)]
+            print(paste(length(st@startInterval), "valid intervals"))
+            return(st)
+          }
+)
+
