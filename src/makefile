@@ -3,7 +3,7 @@ C = gcc
 OPTS = -c -fPIC
 LOADER = gcc
 
-OBJECTS = autocorrelation.c
+OBJECTS = autocorrelation.c firing_rate.c
 
  CalcMatrixAvg.so: $(OBJECTS)
 	R CMD SHLIB -o relectro.so $(OBJECTS)

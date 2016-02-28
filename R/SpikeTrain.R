@@ -80,18 +80,17 @@ setMethod(f="loadSpikeTrain",
             st@nCells<-length(unique(st@clu))
             st@nSpikesPerCell<-as.numeric(table(st@clu))
             # by default analysis on all cells and all recording period
-            st@cellList<-1:st@nCells
+            st@cellList<-sort(unique(st@clu))
             st@startInterval<-0
             st@endInterval<-max(st@res)
             st@startResIndex<-0
             st@endResIndex<-length(st@res)
             return(st)
+          
           }
 )
 
-
-
-### loadSpikeTrain ###
+### setSpikeTrain ###
 setGeneric(name="setSpikeTrain",
            def=function(st,...)
            {standardGeneric("setSpikeTrain")}
@@ -118,7 +117,7 @@ setMethod(f="setSpikeTrain",
             st@nCells<-length(unique(st@clu))
             st@nSpikesPerCell<-as.numeric(table(st@clu))
             # by default analysis on all cells and all recording period
-            st@cellList<-1:st@nCells
+            st@cellList<-sort(unique(st@clu))
             st@startInterval<-0
             st@endInterval<-max(st@res)
             st@startResIndex<-0
@@ -141,3 +140,29 @@ setMethod("show", "SpikeTrain",
             print(object@cellList)
             print(paste("nIntervals:",length(object@startInterval))) 
                   })
+
+### meanFiringRate ###
+setGeneric(name="meanFiringRate",
+           def=function(st)
+           {standardGeneric("meanFiringRate")})
+
+setMethod(f="meanFiringRate",
+          signature = "SpikeTrain",
+          definition=function(st)
+          {
+            # call cwrapper function
+            results<- .Call("meanFiringRate_cwrap",
+                            st@cellList,
+                            length(st@cellList),
+                            st@clu,
+                            st@res,
+                            st@nSpikes,
+                            st@startInterval,
+                            st@endInterval,
+                            st@startResIndex,
+                            st@endResIndex,
+                            length(st@startResIndex),
+                            st@samplingRate)
+            return(results)
+          }
+)

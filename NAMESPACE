@@ -1,10 +1,11 @@
-useDynLib(relectro, autocorrelation_cwrap)
+useDynLib(relectro, autocorrelation_cwrap, meanFiringRate_cwrap)
 exportPattern("^[[:alpha:]]+")
 exportMethods(
     "loadSpikeTrain",
     "setSpikeTrain",
     "show",
-    "spikeTimeAutocorrelation" 
+    "spikeTimeAutocorrelation",
+    "meanFiringRate"
 )
 exportClasses(
     "SpikeTrain" 
