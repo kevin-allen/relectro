@@ -1,5 +1,4 @@
-#include <R.h>
-#include <Rdefines.h>
+#include "relectro.h"
 
 // function from libelectro, remove all c++ components: 
 // 3 assert statements removed and histo is now int *

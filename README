@@ -7,12 +7,22 @@ I don't think it will be very long to build a decent R interface with the c code
 
 List of functions to implement in c:
 
-1 day:
-get_interval_res_index() <- 2 hours
-crosscorrelation() <- 2 hours
-crosscorrelation_events() <- 2 hours
+1/2 day:
+intervalRes()<- done
+crosscorrelation() done
+crosscorrelation_events() <- done
 
 
+1/2 day:
+session  R class
+	 - desen
+	 - intervals
+	 - time per trials
+   - return intervals for a given environment
+   - 
+
+
+	  
 1 day:
 positrack class (all in cm) -> implement all of this as a S4 R class
 	  - x,y,hd,speed,px_per_cm
@@ -20,14 +30,6 @@ positrack class (all in cm) -> implement all of this as a S4 R class
 	  - filter for speed
 	  - set outside intervals to -1
 	  - speed at given res values (for speed scores)
-
-1 day:
-session  R class
-	 - desen
-	 - intervals
-	 - time per trials
-	 - 
-
 3 days:
 firing_map_2d: -occupancy
 	       -maps
@@ -35,12 +37,10 @@ firing_map_2d: -occupancy
 	       -autocorrelation
 	       -grid score
 	       -border score
-
 2 days:
 firing_map_1d: -occupancy
 	       -maps
 	       -map stats
-
 
 1 day:
 SpikeTrain: -instantaneous firing rate.

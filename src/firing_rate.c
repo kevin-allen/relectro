@@ -1,5 +1,5 @@
-#include <R.h>
-#include <Rdefines.h>
+#include "relectro.h"
+
 
 void meanFiringRate(int* cells, // cells of interest
 		    int cell_lines,

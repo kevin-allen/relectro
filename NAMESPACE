@@ -1,12 +1,9 @@
-useDynLib(relectro, autocorrelation_cwrap, meanFiringRate_cwrap,resIndexForIntervals_cwrap)
+useDynLib(relectro, 
+          autocorrelation_cwrap, 
+          meanFiringRate_cwrap,
+          resIndexForIntervals_cwrap,
+          crosscorrelation_cwrap,
+          crosscorrelationEvents_cwrap)
+
 exportPattern("^[[:alpha:]]+")
-exportMethods(
-    "loadSpikeTrain",
-    "setSpikeTrain",
-    "show",
-    "spikeTimeAutocorrelation",
-    "meanFiringRate"
-)
-exportClasses(
-    "SpikeTrain" 
-)
+
