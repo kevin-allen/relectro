@@ -21,6 +21,7 @@ source("~/repo/r_packages/relectro/R/SpikeTrain.R")
 source("~/repo/r_packages/relectro/R/Math.R")
 source("~/repo/r_packages/relectro/R/JoinIntervals.R")
 source("~/repo/r_packages/relectro/R/RecSession.R")
+source("~/repo/r_packages/relectro/R/Positrack.R")
 dyn.load("~/repo/r_packages/relectro/src/relectro.so")
 
 
@@ -126,22 +127,51 @@ rs
 ## get intervals with a given environment
 getIntervalsEnvironment(rs,"lt")
 
-######################################################################
-## set intervals of SpikeTrain for a a given recording environment ###
-######################################################################
+#######################################
+## Using SpikeTrain with RecSession ###
+#######################################
 setwd("~/repo/r_packages/data")
 session="jp4298-15022016-0106"
-# get the SpikeTime
-st<-new("SpikeTrain")
-st@session=session
+st<-new("SpikeTrain",session=session)
 st<-loadSpikeTrain(st)
-# get the RecSession
-rs<-new("RecSession")
-rs@session<-session
+rs<-new("RecSession",session=session)
 rs<-loadRecSession(rs)
 # set the intervals in spike train using output matrix from recSession
-st<-setIntervals(st,s=getIntervalsEnvironment(rs,env="lt"))
+st<-setIntervals(st,s=getIntervalsEnvironment(rs,env="sqr70"))
 # print the information of the new spike train
-rs
+st
 rm(session,st,rs)
+
+
+###########################
+#### Positrack example ####
+###########################
+setwd("~/repo/r_packages/data")
+session="jp4298-15022016-0106"
+pt<-new("Positrack",session=session)
+pt<-loadPositrack(pt)
+m<-get.intervals.at.speed(pt,0,3)
+m[,1:10]
+
+######################################
+### use RecSession with Positrack  ###
+######################################
+setwd("~/repo/r_packages/data")
+session="jp4298-15022016-0106"
+pt<-new("Positrack",session=session)
+pt<-loadPositrack(pt)
+rs<-new("RecSession",session=session)
+rs<-loadRecSession(rs)
+pt1<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
+plot(pt1@x,pt1@y,xlab="x (cm)",ylab="y (cm)")
+
+
+####################################
+### get speed at some res values ###
+####################################
+setwd("~/repo/r_packages/data")
+session="jp4298-15022016-0106"
+pt<-new("Positrack",session=session)
+pt<-loadPositrack(pt)
+plot(get.speed.at.res.values(pt,res=seq(100000,300000,20)),type='l')
 

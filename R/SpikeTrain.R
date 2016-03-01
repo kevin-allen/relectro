@@ -368,7 +368,7 @@ setMethod("show", "SpikeTrain",
             print(object@cellList)
             print(paste("n cellPairList:",length(object@cellPairList[,1])))
             print(paste("nIntervals:",length(object@startInterval))) 
-            print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate*1000,"ms"))
+            print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))
             print(paste(object@startInterval,object@endInterval))
             print(paste("nIntervalsc:",length(object@startResIndexc)))
             print(paste(object@startResIndexc,object@endResIndexc))

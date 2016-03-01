@@ -222,3 +222,36 @@ SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
   return(ans);
 }
 
+SEXP resWithinIntervals(SEXP interval_lines_r,
+			SEXP start_r, 
+			SEXP end_r, 
+			SEXP res_lines_r, 
+			SEXP res_r)
+{
+
+  int interval_lines = INTEGER_VALUE(interval_lines_r); ;
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  int* start = INTEGER_POINTER(start_r);
+  int* end = INTEGER_POINTER(end_r);
+  int* res = INTEGER_POINTER(res_r);
+  SEXP results;
+
+  //  printf("res_lines: %d, interval_lines: %d\n",res_lines,interval_lines);
+  PROTECT(results = allocVector(INTSXP,res_lines));
+  
+  for(int i = 0; i < res_lines; i++){
+    INTEGER(results)[i]=0; // out by default
+  }
+
+  for(int i = 0; i < res_lines; i++)
+    for(int j = 0; j < interval_lines;j++){
+      //    printf("res index: %d, interval index: %d\n",i,j);
+      if(res[i]>=start[j]&&res[i]<=end[j])
+	{
+	  INTEGER(results)[i]=1;
+	  j=interval_lines;
+	}
+    }
+  UNPROTECT(1);
+  return(results);
+}

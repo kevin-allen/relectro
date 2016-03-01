@@ -1,7 +1,58 @@
 #include <R.h>
 #include <Rdefines.h>
 
+// math.c
 int find_max(int num_data, int* data);
+void gaussian_kernel(double* kernel,int size, double standard_deviation);
+void smooth_double_gaussian(double* array, int array_size, double smooth, double invalid);
+SEXP smooth_double_gaussian_cwrap(SEXP array_r, SEXP array_size_r, SEXP smooth_r, SEXP invalid_r);
+void smooth_double_gaussian_degrees(double* array, int array_size,double smooth, double invalid);
+SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
+
+
+
+// spatial.c
+SEXP speed_from_whl_cwrap(SEXP x_whl_r,
+			  SEXP y_whl_r,
+			  SEXP whl_lines_r,
+			  SEXP look_back_max_r,
+			  SEXP look_ahead_max_r,
+			  SEXP px_per_cm_r,
+			  SEXP res_sampling_rate_r, // ex 20 000
+			  SEXP res_samples_per_whl_sample_r); // ex 512
+void speed_from_whl(double* x_whl,
+		    double* y_whl,
+		    double* speed,
+		    int whl_lines,
+		    int look_back_max,
+		    int look_ahead_max,
+		    double px_per_cm,
+		    int res_sampling_rate, // ex 20 000
+		    int res_samples_per_whl_sample);
+SEXP angular_speed_from_hd_cwrap(SEXP hd_r,
+				 SEXP whl_lines_r,
+				 SEXP look_back_max_r,
+				 SEXP look_ahead_max_r,
+				 SEXP res_sampling_rate_r, 
+				 SEXP res_samples_per_whl_sample_r);
+void angular_speed_from_hd(double* hd, 
+			   double* angular_speed, 
+			   int whl_lines, 
+			   int look_back_max, 
+			   int look_ahead_max, 
+			   int res_sampling_rate, 
+			   int res_samples_per_whl_sample);
+
+SEXP speed_intervals_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_samples_per_whl_sample_r, SEXP min_speed_r, SEXP max_speed_r);
+int speed_intervals_count(double* speed, int whl_lines, int res_samples_per_whl_sample,double min_speed,double max_speed);
+void speed_intervals(double* speed, int whl_lines, int res_samples_per_whl_sample,double min_speed,double max_speed,int* start,int* end);
+
+void spike_position(double *x_whl,int whl_lines,int *res, int res_lines, double *x_spike, int res_samples_per_whl_sample);
+SEXP speed_at_res_values_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_r, SEXP res_lines_r, SEXP res_samples_per_whl_sample_r);
+
+
+
+
 int check_interval_chronology_between(int num_lines, 
 				      int* start, 
 				      int* end);
@@ -149,6 +200,8 @@ SEXP autocorrelation_cwrap(SEXP cell_list_r,
 			   SEXP interval_lines_r,
 			   SEXP probability_r); // flag: 0 = count, 1 = probability
 
+
+// intervals.c
 void res_index_for_intervals(int* interval_lines, // value passed by reference in c
 			     int* start, 
 			     int* end, 
@@ -162,6 +215,15 @@ SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
 				SEXP res_lines_r, 
 				SEXP res_r);
 
+SEXP resWithinIntervals(SEXP interval_lines_r,
+			SEXP start_r, 
+			SEXP end_r, 
+			SEXP res_lines_r, 
+			SEXP res_r);
+
+
+
+// firing_rate.c
 void meanFiringRate(int* cells, // cells of interest
 		    int cell_lines,
 		    int* clu,  
