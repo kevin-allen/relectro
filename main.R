@@ -22,6 +22,7 @@ source("~/repo/r_packages/relectro/R/Math.R")
 source("~/repo/r_packages/relectro/R/JoinIntervals.R")
 source("~/repo/r_packages/relectro/R/RecSession.R")
 source("~/repo/r_packages/relectro/R/Positrack.R")
+source("~/repo/r_packages/relectro/R/SpatialProperties2d.R")
 dyn.load("~/repo/r_packages/relectro/src/relectro.so")
 
 
@@ -152,6 +153,7 @@ pt<-new("Positrack",session=session)
 pt<-loadPositrack(pt)
 m<-get.intervals.at.speed(pt,0,3)
 m[,1:10]
+rm(session,pt,m)
 
 ######################################
 ### use RecSession with Positrack  ###
@@ -164,7 +166,7 @@ rs<-new("RecSession",session=session)
 rs<-loadRecSession(rs)
 pt1<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
 plot(pt1@x,pt1@y,xlab="x (cm)",ylab="y (cm)")
-
+rm(session,pt,rs,pt1)
 
 ####################################
 ### get speed at some res values ###
@@ -174,4 +176,27 @@ session="jp4298-15022016-0106"
 pt<-new("Positrack",session=session)
 pt<-loadPositrack(pt)
 plot(get.speed.at.res.values(pt,res=seq(100000,300000,20)),type='l')
+rm(pt)
 
+
+################################
+### SpatialProperties object ###
+################################
+
+setwd("~/repo/r_packages/data")
+session="jp4298-15022016-0106"
+rs<-new("RecSession",session=session) ## info about rec session
+rs<-loadRecSession(rs)
+pt<-new("Positrack",session=session) ## info about position
+pt<-loadPositrack(pt)
+st<-new("SpikeTrain",session=session) ## info about spike trains
+st<-loadSpikeTrain(st)
+sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
+
+pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
+sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
+
+## plot one map
+jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
+map<-sp@maps[,,7]
+image(t(map),zlim=c(0,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)

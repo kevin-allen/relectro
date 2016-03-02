@@ -218,7 +218,6 @@ void smooth_double_gaussian_degrees(double* array, int array_size,double smooth,
 }
 SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r)
 {
-
   // create the list of variable of correct c types
   double* array;
   int array_size;
@@ -244,4 +243,193 @@ SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP 
   
   UNPROTECT(1);
   return(out);
+}
+
+SEXP smooth_double_gaussian_2d_cwrap(SEXP array_r, SEXP x_size_r,SEXP y_size_r,SEXP smooth_r,SEXP invalid_r)
+{
+  double* array;
+  double* o;
+  int x_size;
+  int y_size;
+  SEXP out;
+  
+  array=REAL(array_r);
+  x_size=INTEGER_VALUE(x_size_r);
+  y_size=INTEGER_VALUE(y_size_r);
+  int total=x_size*y_size;
+  o=(double*)malloc(total*sizeof(double));
+
+  for(int i = 0;i<total;i++)
+    o[i]=array[i];
+
+  smooth_double_gaussian_2d(o,x_size,y_size,REAL(smooth_r)[0],REAL(invalid_r)[0]);
+  out = PROTECT(allocMatrix(REALSXP,y_size,x_size));
+  double* ans = REAL(out);
+  for(int i = 0; i < total; i++)
+    ans[i]=o[i];
+
+  free(o);
+  UNPROTECT(1);
+  return(out);
+}
+
+
+void smooth_double_gaussian_2d(double* array, int x_size,int y_size, double smooth, double invalid)
+{
+  /* Smooth a 2d array of size "x_size*y_size" using a Gaussian kernal
+     Arguments:
+        double *array         pointer to data to be smoothed (memory must be pre-allocated)
+        int x_size              number of x bins in original array
+        int y_size              number of y bins in original array
+        int smooth            standard deviation of the kernel
+        int invalid           invalid data value to be excluded from smoothing
+
+	the gaussian kernel has a size of 3 standard deviation on both side of the middle
+  */
+  if(x_size<=0 || y_size<=0)
+    {
+      printf("in smooth_double_gaussian_2d x_size or y_size of data <=0\n");
+      return;
+    }
+  if(smooth==0)
+    {
+      return; // do nothing 
+    }
+  if(smooth<=0)
+    {
+      printf("in smooth_double_gaussian_2d standard deviation of gaussian kernel is <= 0\n");
+      return;
+    }
+
+  int num_standard_deviations_in_kernel=3;
+
+  int kernel_size_x=((int)(smooth*num_standard_deviations_in_kernel*2))+1; // for both side
+  int kernel_size_y=((int)(smooth*num_standard_deviations_in_kernel*2))+1; // for both side
+  if (kernel_size_x%2!=1) // should be an odd number
+    { kernel_size_x++; }
+  if (kernel_size_y%2!=1) // should be an odd number
+    { kernel_size_y++; }
+  int kernel_size=kernel_size_x*kernel_size_y;
+  double* kernel; // for the gaussian kernel
+  double* results; // to store the temporary results 
+  double sum_weight;
+  double sum_value;
+  int x_index_value_for_kernel;
+  int y_index_value_for_kernel;
+  // make a gaussian kernel
+  kernel= (double*)malloc(kernel_size*sizeof(double));
+  results =  (double*)malloc(x_size*y_size*sizeof(double));
+
+  gaussian_kernel_2d(kernel,
+		     kernel_size_x,
+		     kernel_size_y,
+		     smooth);// standard deviation in kernel
+
+  // for each x bin
+  for(int x = 0; x < x_size; x++)
+    {
+      // for each y bin
+      for (int y = 0; y < y_size; y++)
+	{
+	  sum_weight=0;
+	  sum_value=0;
+	  // loop for all the bins in the kernel
+	  for (int xx = 0; xx < kernel_size_x; xx++)
+	    {
+	      for (int yy = 0; yy < kernel_size_y; yy++)
+		{                       
+		  // find the bin in the data that correspond for that bin in the kernel
+		  x_index_value_for_kernel=x-((kernel_size_x-1)/2)+xx;
+		  y_index_value_for_kernel=y-((kernel_size_y-1)/2)+yy;
+		  // check if that bin is within the original map
+		  if (x_index_value_for_kernel>=0 && x_index_value_for_kernel<x_size &&
+		      y_index_value_for_kernel>=0 && y_index_value_for_kernel<y_size)
+		    {
+		      if(array[x_index_value_for_kernel*y_size+y_index_value_for_kernel]!=invalid)
+			{
+			  sum_weight=sum_weight+kernel[(xx*kernel_size_y)+yy]; //total weigth from kernel that was used
+			  sum_value=sum_value+(array[x_index_value_for_kernel*y_size+y_index_value_for_kernel] *
+					       kernel[xx*kernel_size_y+yy]); // sum of weigthed value
+			}
+		    }
+		}
+	    }
+	  // we have looped for the entire kernel, now save the value in results array
+	  results[x*y_size+y]=sum_value/sum_weight;
+	}
+    }
+  // copy the results to array
+  for(int i = 0; i < x_size*y_size; i++)
+    {
+      // if the value was invalid, then leave as it is
+      if (array[i]!=invalid)
+	{
+	  array[i]=results[i];
+	}
+    }
+  free(kernel);
+  free(results);
+}
+
+
+void gaussian_kernel_2d(double* kernel,
+			int x_size,
+			int y_size,
+			double standard_deviation)
+{
+  /*function to make a 2d gaussian kernel*/
+  if (x_size%2==0)
+    {
+      printf("in gaussian_kernel_2d, x_size should be an odd number to get a 0 bin\n");
+      return;
+    }
+  if (y_size%2==0)
+    {
+      printf("in gaussian_kernel, y_size should be an odd number to get a 0 bin\n");
+      return;
+    }
+  if (standard_deviation<=0)
+    {
+      printf("standard deviation for gaussian_kernel is <= 0\n");
+      return;
+    }
+  int x,y;
+  double part_1;
+  double part_2;
+  double num_part_2;
+  double den_part_2;
+  part_1=1.0/(2*M_PI*pow(standard_deviation,2)); // should there be 2 pow?
+  for (int i = 0; i < x_size; i++)
+    {
+      for (int j = 0; j < y_size; j++)
+	{
+	  x=i-(x_size-1)/2; // distance from middle point x
+	  y=j-(y_size-1)/2; // distance from middle point y
+	  num_part_2=pow(x,2)+pow(y,2);
+	  den_part_2=2*pow(standard_deviation,2);
+	  part_2= exp(-(num_part_2/den_part_2));
+	  kernel[i*y_size+j]=part_1*part_2;
+	}
+    }
+}
+
+
+
+
+
+void set_array_to_value_int (int* array, int array_size, int value)
+{
+  /* set all the data of an array to a specific value */
+  for (int i = 0; i < array_size; i++)
+    {
+      array[i]=value;
+    }
+}
+void set_array_to_value_double (double* array, int array_size, double value)
+{
+  /* set all the data of an array to a specific value */
+  for (int i = 0; i < array_size; i++)
+    {
+      array[i]=value;
+    }
 }

@@ -16,8 +16,6 @@ Positrack <- setClass(
           speed="numeric",
           angular.speed="numeric",
           res="numeric",
-          start.interval.res="numeric",
-          end.interval.res="numeric",
           default.xy.smoothing="numeric"
           ),  # cell list to limit the analysis to these cells
   prototype = list(session="",default.xy.smoothing=2))
@@ -123,43 +121,6 @@ setMethod(f="loadPositrack",
 )
 
 
-
-### setIntervals ###
-setGeneric(name="setIntervals",
-           def=function(pt,s,e)
-           {standardGeneric("setIntervals")})
-
-setMethod(f="setIntervals",
-          signature = "Positrack",
-          definition=function(pt,s,e)
-          {
-            
-            ## if s is a matrix, then e is ignored
-            if(class(s)=="matrix"){
-              start.intervals<-as.numeric(s[,1])
-              end.intervals<-as.numeric(s[,2])
-              
-            }else{
-              start.intervals<-s
-              end.intervals<-e
-            }
-            
-            if(length(start.intervals)!=length(end.intervals))
-              stop("problem with length of start.intervals and end.intervals")
-            if(any(start.intervals>end.intervals))
-              stop("start.intervals>end.intervals")
-            if(any(diff(start.intervals)<0))
-              stop("problem with chonology within start.intervals")
-            if(any(diff(end.intervals)<0))
-              stop("problem with chonology within end.intervals")
-            if(any(start.intervals[-1]-end.intervals[-length(end.intervals)]<0))
-              stop("problem with chronology between intervals, from end to next start")
-            pt@start.interval.res<-start.intervals
-            pt@start.interval.res<-end.intervals
-            return(pt)
-          }
-)
-
 ### smoothxy ###
 setGeneric(name="smoothxy",
            def=function(pt,sd)
@@ -260,7 +221,6 @@ setMethod(f="set.invalid.outside.interval",
             if(any(start.interval[-1]-end.interval[-length(end.interval)]<0))
               stop("problem with chronology between intervals, from end to next start")
 
-            print(paste(start.interval,end.interval))
             ## slow, 1 sec for a list of 2 intervals
             #isin<-sapply(pt@res,function(x)any(x>=start.interval&x<=end.interval)) # takes seconds
             isin<-as.logical(.Call("resWithinIntervals", ## about 1000 times faster
@@ -327,10 +287,6 @@ setMethod("show", "Positrack",
             print(paste("time in data:", (length(object@x.whl)*object@res.samples.per.whl.sample)/object@samplingRateDat,"sec"))
             print(paste("min max x:",min(object@x,na.rm=T),"cm,", max(object@x,na.rm=T),"cm"))
             print(paste("min max y:",min(object@y,na.rm=T),"cm,",max(object@y,na.rm=T),"cm"))
-            print(paste("nIntervals:",length(object@start.interval.res))) 
-            print(paste("Interval time:", sum(object@end.interval.res-object@start.interval.res)/object@samplingRateDat*1000,"ms"))
-            if(length(object@start.interval.res)>0)
-              print(paste(object@start.interval.res,object@end.interval.res))
           })
 
 

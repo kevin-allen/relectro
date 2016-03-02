@@ -558,7 +558,7 @@ void cross_correlation_events(int* cells,
       for (int i = 0; i < cell_lines; i++)
 	{
 	  one_histo=histo+(histo_size*i);
-	  //  printf("Cell: %d, start_events_index[inter]:%d, end_events_index[inter]:%d\n",i,start_events_index[inter],end_events_index[inter]);
+
 	  for (int j = start_events_index[inter]; j <= end_events_index[inter]; j++) // for every spikes within events
 	    {
 	      // if cell of interest fires, and the res value is within intervals of interest (not -1)

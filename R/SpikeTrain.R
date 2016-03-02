@@ -3,8 +3,14 @@
 ###############################################
 SpikeTrain <- setClass(
   "SpikeTrain", ## name of the class
-  slots=c(session="character",samplingRate="numeric",res="numeric",time="numeric",clu="numeric",
-          nCells="numeric",nSpikes="numeric",nSpikesPerCell="numeric",
+  slots=c(session="character",
+          samplingRate="numeric",
+          res="numeric",
+          time="numeric",
+          clu="numeric",
+          nCells="numeric",
+          nSpikes="numeric",
+          nSpikesPerCell="numeric",
           startInterval="numeric",endInterval="numeric", # to limit analysis to these intervals
           startResIndexc="numeric",endResIndexc="numeric",
           events="numeric",
