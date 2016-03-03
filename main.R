@@ -195,6 +195,9 @@ sp<-new("SpatialProperties2d",session=session) ## object to get spatial properti
 
 pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
 sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
+sp<-get.map.stats(sp) ## get info score, sparsity from maps
+sp<-map.spatial.autocorrelation(sp) ## spatial autocorrelation from maps
+
 
 ## plot one map
 jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))

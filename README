@@ -4,8 +4,6 @@ The speed of the code is very good. Compare to the current way of doing things, 
 
 I don't think it will be very long to build a decent R interface with the c code.
 
-
-
 List of things to implement before it is usable:
 
 1/2 day: Monday
@@ -30,7 +28,7 @@ positrack class
 	  - speed at given res values <- done
 
 
-3 days: Wednesday
+2 days: Wednesday - Tuesday
 SpatialProperties2d: 
   Stay close to what firing_map_2d does to start with.
   Store maps in 3 d arrays (1/4 the size of data frames)
@@ -38,8 +36,27 @@ SpatialProperties2d:
 	      -maps (3d array)<-done
 	      -info score and sparsity <- done
 	      -autocorrelation (3d arrays) <- done
-	      -grid score, orientation, spacing (arrays)
-	      -border score (array)
+	      -grid score, orientation, spacing 
+	      -border score
+
+
+datFile: 1 day: Wednesday
+  -datFile strucutre
+  -read one channel
+  -read all channel
+  - detect up
+  - detect down
+  
+
+
+What about an object called Project, holding Mice and RecSession infomration?
+To do the looping, we could have an object called Project, containing an array of RecSession, 
+Project could be saved in a file, so that we don't need to load the data from many directories all the time
+ - buildProject (get all RecSession objects)
+ - saveProject to file
+ - loadProject from file
+
+
 
 2 days:
 firing_map_1d: -occupancy
