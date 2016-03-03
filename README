@@ -34,11 +34,11 @@ positrack class
 SpatialProperties2d: 
   Stay close to what firing_map_2d does to start with.
   Store maps in 3 d arrays (1/4 the size of data frames)
-        -occupancy (2d array)
-	      -maps (3d array)
-	      -map stats (arrays)
-	      -autocorrelation (3d arrays)
-	      -grid score (arrays)
+        -occupancy<- done
+	      -maps (3d array)<-done
+	      -info score and sparsity <- done
+	      -autocorrelation (3d arrays) <- done
+	      -grid score, orientation, spacing (arrays)
 	      -border score (array)
 
 2 days:

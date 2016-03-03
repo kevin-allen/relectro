@@ -13,7 +13,7 @@ void set_array_to_value_int (int* array, int array_size, int value);
 void set_array_to_value_double (double* array, int array_size, double value);
 void smooth_double_gaussian_2d(double* array, int x_size,int y_size, double smooth, double invalid);
 SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
-
+double correlation (double* x, double* y, int size, double invalid);
 
 // spatial.c
 SEXP speed_from_whl_cwrap(SEXP x_whl_r,
@@ -59,7 +59,12 @@ void occupancy_map(int x_bins, int y_bins,  double pixels_per_bin_x, double pixe
 SEXP occupancy_map_cwrap(SEXP x_bins_r, SEXP y_bins_r, SEXP pixels_per_bin_x_r, SEXP pixels_per_bin_y_r, SEXP x_whl_r,  SEXP y_whl_r, SEXP whl_lines_r,  SEXP ms_per_sample_r, SEXP start_interval_r, SEXP end_interval_r,  SEXP interval_lines_r, SEXP res_samples_per_whl_sample_r);
 void create_place_field( int x_bins, int y_bins, double pixels_per_bin_x, double pixels_per_bin_y, double *x_spike,  double *y_spike, int *clu, int res_lines, int target_cell, double *occupancy_map, double *place_field);
 SEXP firing_rate_map_2d_cwrap(SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP pixels_per_bin_x_r,SEXP pixels_per_bin_y_r, SEXP x_spike_r, SEXP y_spike_r, SEXP clu_r,SEXP res_lines_r, SEXP cells_r, SEXP num_cells_r, SEXP occ_map_r, SEXP smooth_map_sd_r);
-
+double information_score(double* fr_map, double* occ_map, int map_size);
+SEXP information_score_cwrap(SEXP cells_r,SEXP cell_lines_r, SEXP all_rate_maps_r,SEXP occupancy_map_r, SEXP map_size_r);
+double sparsity_score(double* fr_map, double* occ_map, int map_size);
+SEXP sparsity_score_cwrap(SEXP cells_r,SEXP cell_lines_r,SEXP all_rate_maps_r, SEXP occupancy_map_r, SEXP map_size_r);
+SEXP map_autocorrelation_cwrap(SEXP cells_r, SEXP cell_lines_r,SEXP maps_r, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r,SEXP min_bins_for_autocorrelation_r);
+void map_autocorrelation(double *one_place, double *one_auto, int x_bins_place_map, int y_bins_place_map, int x_bins_auto_map, int y_bins_auto_map, int min_for_correlation);
 
 
 

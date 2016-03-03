@@ -912,3 +912,312 @@ void create_place_field( int x_bins,
 	}
     }
 }
+SEXP information_score_cwrap(SEXP cells_r,
+			     SEXP cell_lines_r,
+			     SEXP all_rate_maps_r,
+			     SEXP occupancy_map_r,
+			     SEXP map_size_r)
+{
+  int cell_lines = INTEGER_VALUE(cell_lines_r);
+  int map_size = INTEGER_VALUE(map_size_r);
+  int* cells = INTEGER_POINTER(cells_r);
+  double* maps = REAL(all_rate_maps_r);
+  double* occ_map = REAL(occupancy_map_r);
+  double* one_map;
+  SEXP out = PROTECT(allocVector(REALSXP,cell_lines));
+  double* info = REAL(out);
+  
+
+  for(int i = 0; i < cell_lines; i++){
+    one_map=maps+(i*map_size);
+    info[i]=information_score(one_map,occ_map,map_size);
+  }
+
+  UNPROTECT(1);
+  return(out);
+}
+
+
+
+double information_score(double* fr_map,
+			 double* occ_map,
+			 int map_size)
+{
+  
+  /////////calculation for information score ////////////////
+  /// see Skaggs et al. 1996, hippocampus
+  double information_score=0;
+  double total_occupancy=0;
+  double* occupancy_probability;
+  double info_j;
+  double info_h;
+  double global_fr;
+  occupancy_probability = (double*)malloc(map_size*sizeof(double));
+  // sum occupancy map to create occupancy probability
+  for (int i = 0; i < map_size; i++)
+    {
+      if (occ_map[i]!=-1.0)
+	{
+	  total_occupancy += occ_map[i];
+	} 
+    }
+  for (int i = 0; i < map_size; i++)
+    {
+      if (occ_map[i] != -1.0)
+	{
+	  occupancy_probability[i] = occ_map[i]/ total_occupancy;
+  	} 
+    }
+  // calculate mean firing rate 
+  global_fr=0;
+  int valid = 0;
+  for (int i = 0; i < map_size; i++)
+    {
+      if (occ_map[i] != -1.0)
+	{
+	  valid++;
+	  global_fr+=fr_map[i]*occupancy_probability[i];
+	}
+    }
+
+  // information score formula
+  for (int i = 0; i < map_size; i++)
+    {
+      if(occ_map[i] != -1.0 && fr_map[i] !=-1.0)
+	{
+	  if (fr_map[i] == 0)
+	    {
+	      info_j = 0; 
+	      info_h = 0;
+	    }
+	  else
+	    { 
+	      info_j = occupancy_probability[i]*fr_map[i]/global_fr;
+	      info_h = log2(fr_map[i]/global_fr);
+	    }
+	  information_score += info_j*info_h;
+	}
+    }
+  free(occupancy_probability);
+  return information_score;
+}
+
+SEXP sparsity_score_cwrap(SEXP cells_r,
+			  SEXP cell_lines_r,
+			  SEXP all_rate_maps_r,
+			  SEXP occupancy_map_r,
+			  SEXP map_size_r)
+{
+  int cell_lines = INTEGER_VALUE(cell_lines_r);
+  int map_size = INTEGER_VALUE(map_size_r);
+  int* cells = INTEGER_POINTER(cells_r);
+  double* maps = REAL(all_rate_maps_r);
+  double* occ_map = REAL(occupancy_map_r);
+  double* one_map;
+  SEXP out = PROTECT(allocVector(REALSXP,cell_lines));
+  double* info = REAL(out);
+  
+
+  for(int i = 0; i < cell_lines; i++){
+    one_map=maps+(i*map_size);
+    info[i]=sparsity_score(one_map,occ_map,map_size);
+  }
+
+  UNPROTECT(1);
+  return(out);
+}
+
+
+
+double sparsity_score(double* fr_map,
+		      double* occ_map,
+		      int map_size)
+{
+  /////////calculation for sparsity score ////////////////
+  /// see Skaggs et al. 1996, hippocampus
+  /// reversed so that high score indicates high sparsity
+  
+  double sparsity_score=0;
+  double total_occupancy=0;
+  double* occupancy_probability;
+  double sparsity_den=0;
+  double sparsity_num=0;
+  double sparsity_den_sum=0;
+  double sparsity_num_sum=0;
+  occupancy_probability = (double*)malloc(map_size*sizeof(double));
+  // get a map with occupancy probability
+  for (int i = 0; i < map_size; i++)
+    {
+      if (occ_map[i] == -1.0)
+	{
+	  occupancy_probability[i] = -1.0;
+	}
+      else
+	{
+	  occupancy_probability[i] = occ_map[i];
+	  total_occupancy = total_occupancy + occ_map[i];
+	} 
+    }
+  for (int i = 0; i < map_size; i++)
+    {
+      if (occ_map[i] != -1.0)
+	{
+	  occupancy_probability[i] = occupancy_probability[i]/ total_occupancy;
+  	} 
+    }
+
+  for (int i = 0; i < map_size; i++)
+    {
+      if(occupancy_probability[i] != -1.0 && fr_map[i] !=-1.0)
+	{
+	  if (fr_map[i] == 0)
+	    {
+	      sparsity_num=0;
+	      sparsity_den=0;
+	    }
+	  else
+	    { 
+	      sparsity_num=occupancy_probability[i]*fr_map[i];
+	      sparsity_den=occupancy_probability[i]*(fr_map[i]*fr_map[i]);
+	    }
+	  sparsity_num_sum=sparsity_num_sum+sparsity_num;
+	  sparsity_den_sum=sparsity_den_sum+sparsity_den;
+	}
+      sparsity_score=(sparsity_num_sum*sparsity_num_sum)/sparsity_den_sum;
+    }
+  free(occupancy_probability);
+  return 1.0-sparsity_score;
+}
+
+
+SEXP map_autocorrelation_cwrap(SEXP cells_r,
+			       SEXP cell_lines_r,
+			       SEXP maps_r, 
+			       SEXP num_bins_x_r,
+			       SEXP num_bins_y_r,
+			       SEXP auto_num_bins_x_r,
+			       SEXP auto_num_bins_y_r,
+			       SEXP min_bins_for_autocorrelation_r)
+{
+  int* cells = INTEGER_POINTER(cells_r);
+  int cell_lines = INTEGER_VALUE(cell_lines_r);
+  double* maps = REAL(maps_r);
+  double* one_map;
+  int num_bins_x = INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y = INTEGER_VALUE(num_bins_y_r);
+  int auto_num_bins_x = INTEGER_VALUE(auto_num_bins_x_r);
+  int auto_num_bins_y = INTEGER_VALUE(auto_num_bins_y_r);
+  int min_bins_for_autocorrelation = INTEGER_VALUE(min_bins_for_autocorrelation_r);
+
+  int total_bins_auto= auto_num_bins_x*auto_num_bins_y;
+  SEXP out = PROTECT(allocVector(REALSXP,total_bins_auto*cell_lines));
+  double* all_auto = REAL(out);
+  double* one_auto;
+
+  
+  for(int i = 0; i < cell_lines; i++){
+    one_auto=all_auto+(i*total_bins_auto);
+    one_map=maps+(i*num_bins_x*num_bins_y);
+    map_autocorrelation(one_map, // pointer to one place field map
+			one_auto, // pointer to one spatial autocorrelation map
+			num_bins_x, // x size of the place field map (num bins)
+			num_bins_y, // y size of the place field map
+			auto_num_bins_x, // x size of the autocorrelation map
+			auto_num_bins_y, // y size of the autocorreltion map
+			min_bins_for_autocorrelation); // minimum of valid values to do the correlation
+  }
+
+  UNPROTECT(1);
+  return (out);
+}
+
+
+void map_autocorrelation(double *one_place, // pointer to one place field map
+			 double *one_auto, // pointer to one spatial autocorrelation map
+			 int x_bins_place_map, // x size of the place field map (num bins)
+			 int y_bins_place_map, // y size of the place field map
+			 int x_bins_auto_map, // x size of the autocorrelation map
+			 int y_bins_auto_map, // y size of the autocorreltion map
+			 int min_for_correlation) // minimum of valid values to do the correlation
+{
+/*************************************************************
+ funciton to do the spatial autocorrelation for a place firing
+map. 
+ one_place should have a size = x_bins_place_map*y_bins_place_map
+ x_bins_auto_map should = (x_bins_place_map*2)+1
+ y_bins_auto_map should = (y_bins_place_map*2)+1
+ one_auto should have a size =  x_bins_auto_map * y_bins_auto_map
+*************************************************************/
+  int min_x_offset = 0 - x_bins_place_map;
+  int max_x_offset = x_bins_place_map;
+  int min_y_offset = 0 - y_bins_place_map;
+  int max_y_offset = y_bins_place_map;
+  int mid_x = x_bins_place_map; // mid x value in autocorrelation
+  int mid_y = y_bins_place_map; // min y value in autocorrelation
+  int auto_x;
+  int auto_y;
+  int index_1;
+  int index_2;
+  int index_auto;
+  int total_bins_place_map = x_bins_place_map * y_bins_place_map;
+  int total_bins_auto_map = x_bins_auto_map * y_bins_auto_map;
+  int offset_x;
+  int offset_y;
+ 
+  int n;
+  double r;
+
+  double* value_1_correlation;
+  double* value_2_correlation;
+  value_1_correlation = (double*)malloc(total_bins_place_map*sizeof(double));
+  value_2_correlation = (double*)malloc(total_bins_place_map*sizeof(double));
+  // set the auto_place map to -2, this is the invalid value, correlation range from -1 to 1
+  for (int i = 0; i < total_bins_auto_map ; i++)
+    {
+      one_auto[i] = -2;
+    }
+  // loop for all possible lags in the x axis
+  for (int x_off = min_x_offset; x_off <= max_x_offset; x_off++)
+    {
+      // loop for all possible lags in the y axis
+      for (int y_off = min_y_offset; y_off <= max_y_offset; y_off++ )
+	{
+	  // for all the possible lags, calculate the following values
+	  n = 0;  // number of valid lags to do the correlation for this offset
+	  r = 0;  // r value of the correlation
+	  // loop for all bins in the place map
+	  for(int x = 0; x < x_bins_place_map; x++)
+	    {
+	      for(int y = 0; y < y_bins_place_map; y++)
+		{
+		  offset_x = x+x_off;
+		  offset_y = y+y_off;
+		  if ((offset_x >=0 && offset_x < x_bins_place_map) && (offset_y >= 0 && offset_y < y_bins_place_map))
+		    {
+		      index_1 = (x*y_bins_place_map) + y; // that is the index for the current bin in the place firing rate map
+		      index_2 = ((offset_x)*y_bins_place_map)+(offset_y); // that is the index in the offset bin relative to the current bin
+		      if (one_place[index_1]!=-1.0 &&one_place[index_2]!=-1.0) // -1 is the invalid value in the place firing rate map, only take into account the data if not invalid value 
+			{
+			  // copy the value into 2 vectors for the correlation
+			  value_1_correlation[n]=one_place[index_1];
+			  value_2_correlation[n]=one_place[index_2];
+			  n++; 
+			}
+		    }
+		}   
+	    }
+	  // if enough valid data to calculate the r value, if not the value for this lag will stay -2 
+	  if ( n > min_for_correlation)
+	    {
+	      // calculate a correlation
+	      r = correlation(value_1_correlation,value_2_correlation,n,-1.0);
+	      auto_x = mid_x + x_off;
+	      auto_y = mid_y + y_off;
+	      index_auto= (auto_x*y_bins_auto_map)+auto_y;
+	      one_auto[index_auto]=r;
+	    }
+	}
+    }
+  free(value_1_correlation);
+  free(value_2_correlation);
+}

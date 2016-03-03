@@ -9,14 +9,22 @@ SpatialProperties2d<- setClass(
             smooth.rate.map.sd="numeric", ## in cm
             ncol.map="integer",
             nrow.map="integer",
+            ncol.auto="integer",
+            nrow.auto="integer",
             x.spikes="numeric",
             y.spikes="numeric",
             maps="array",
             occupancy="matrix",
+            auto="array",
             spatial.autocorrelation="numeric",
             cell.list="numeric",
-            reduce.size="logical"),
-  prototype = list(session="",cm.per.bin=2,smooth.occupancy.sd=3,smooth.rate.map.sd=3,reduce.size=T))
+            reduce.size="logical",
+            min.valid.bins.auto="numeric",
+            peak.rates="numeric",
+            info.score="numeric",
+            sparsity="numeric"),
+      
+  prototype = list(session="",cm.per.bin=2,smooth.occupancy.sd=3,smooth.rate.map.sd=3,min.valid.bins.auto=20,reduce.size=T))
 
 
 ### show ###
@@ -35,9 +43,6 @@ setMethod("show", "SpatialProperties2d",
             }
               
           })
-
-
-
 
 #### make firing rate maps 
 setGeneric(name="firing.rate.map.2d",
@@ -131,7 +136,107 @@ setMethod(f="firing.rate.map.2d",
                             length(sp@cell.list),
                             as.numeric(sp@occupancy),
                             sp@smooth.rate.map.sd/sp@cm.per.bin)
-            sp@maps<-array(data=results,dim=(c(sp@nrow.map,sp@ncol.map,length(sp@cell.list))), )
+            sp@maps<-array(data=results,dim=(c(sp@nrow.map,sp@ncol.map,length(sp@cell.list))))
+            
+            
             return(sp)
           }
 )
+
+
+
+#### get.map.stats
+setGeneric(name="get.map.stats",
+           def=function(sp)
+           {standardGeneric("get.map.stats")}
+)
+setMethod(f="get.map.stats",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            
+            if(length(sp@maps)==0)
+              stop("Need to call firing.rate.map.2d first to run get.map.stats")
+            if(length(sp@occupancy)==0)
+              stop("sp@occupancy length ==0")
+          
+            ### get peak rates
+            sp@peak.rates<-apply(sp@maps,3,max)
+
+            ### get info scores
+            sp@info.score<- .Call("information_score_cwrap",
+                as.integer(sp@cell.list),
+                length(sp@cell.list),
+                as.numeric(sp@maps),
+                as.numeric(sp@occupancy),
+                as.integer(sp@ncol.map*sp@nrow.map))
+            
+            ### get sparsity scores
+            sp@sparsity<- .Call("sparsity_score_cwrap",
+                                as.integer(sp@cell.list),
+                                length(sp@cell.list),
+                                as.numeric(sp@maps),
+                                as.numeric(sp@occupancy),
+                                as.integer(sp@ncol.map*sp@nrow.map))
+            
+          return(sp)
+          }
+)
+
+setGeneric(name="map.spatial.autocorrelation",
+           def=function(sp)
+           {standardGeneric("map.spatial.autocorrelation")}
+)
+setMethod(f="map.spatial.autocorrelation",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            
+            if(length(sp@maps)==0)
+              stop("Need to call firing.rate.map.2d first to run get.map.stats")
+            if(length(sp@occupancy)==0)
+              stop("sp@occupancy length ==0")
+            
+            sp@ncol.auto = as.integer((sp@ncol.map*2)+1)
+            sp@nrow.auto = as.integer((sp@nrow.map*2)+1)
+            
+            results<- .Call("map_autocorrelation_cwrap",
+                  sp@cell.list,
+                  length(sp@cell.list),
+                  as.numeric(sp@maps),
+                  sp@ncol.map,
+                  sp@nrow.map,
+                  sp@ncol.auto,
+                  sp@nrow.auto,
+                  sp@min.valid.bins.auto)
+                  
+            sp@auto<-array(data=results,dim=(c(sp@nrow.auto,sp@ncol.auto,length(sp@cell.list))))
+            
+            return(sp)
+          }
+)
+
+
+dyn.load("~/repo/r_packages/relectro/src/relectro.so")
+
+setwd("~/repo/r_packages/data")
+session="jp4298-15022016-0106"
+rs<-new("RecSession",session=session) ## info about rec session
+rs<-loadRecSession(rs)
+pt<-new("Positrack",session=session) ## info about position
+pt<-loadPositrack(pt)
+st<-new("SpikeTrain",session=session) ## info about spike trains
+st<-loadSpikeTrain(st)
+
+sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
+pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
+sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
+sp<-get.map.stats(sp)
+sp<-map.spatial.autocorrelation(sp)
+
+?benchmark
+
+## plot one map
+jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
+map<-sp@auto[,,7]
+image(t(map),zlim=c(-1,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)

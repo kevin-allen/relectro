@@ -6,7 +6,7 @@
 ##
 ## NAMESPACE
 
-##library(rbenchmark)
+library(rbenchmark)
 #library("devtools")
 
 ## load the package
