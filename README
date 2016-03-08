@@ -36,8 +36,10 @@ SpatialProperties2d:
 	      -maps (3d array)<-done
 	      -info score and sparsity <- done
 	      -autocorrelation (3d arrays) <- done
-	      -grid score, orientation, spacing 
-	      -border score
+	      -grid score, orientation, spacing <- done
+	      -border score <- done
+
+Need to take a break to try to reject a rejection at Neuron. See you later.
 
 
 datFile: 1 day: Wednesday

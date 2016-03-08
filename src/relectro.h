@@ -2,7 +2,10 @@
 #include <Rdefines.h>
 
 // math.c
+double sum_double(int num_data, double* data, double invalid);
 int find_max(int num_data, int* data);
+double find_max_double_index(int num_data,double* data, int* index);
+double find_max_double(int num_data,double* data);
 void gaussian_kernel(double* kernel,int size, double standard_deviation);
 void gaussian_kernel_2d(double* kernel,int x_size,int y_size,double standard_deviation);
 void smooth_double_gaussian(double* array, int array_size, double smooth, double invalid);
@@ -14,6 +17,11 @@ void set_array_to_value_double (double* array, int array_size, double value);
 void smooth_double_gaussian_2d(double* array, int x_size,int y_size, double smooth, double invalid);
 SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
 double correlation (double* x, double* y, int size, double invalid);
+void get_x_and_y_bin_from_index(int x_bins,int y_bins,int index,int* x_bin,int* y_bin);
+int get_index_from_x_and_y_bin(int x_bins,int y_bins,int x_bin,int y_bin);
+double distance(double x1, double y1, double x2, double y2);
+
+
 
 // spatial.c
 SEXP speed_from_whl_cwrap(SEXP x_whl_r,
@@ -65,6 +73,22 @@ double sparsity_score(double* fr_map, double* occ_map, int map_size);
 SEXP sparsity_score_cwrap(SEXP cells_r,SEXP cell_lines_r,SEXP all_rate_maps_r, SEXP occupancy_map_r, SEXP map_size_r);
 SEXP map_autocorrelation_cwrap(SEXP cells_r, SEXP cell_lines_r,SEXP maps_r, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r,SEXP min_bins_for_autocorrelation_r);
 void map_autocorrelation(double *one_place, double *one_auto, int x_bins_place_map, int y_bins_place_map, int x_bins_auto_map, int y_bins_auto_map, int min_for_correlation);
+void map_rotate(double* map,int x_bins,int y_bins,double deg,double invalid);
+void detect_one_field_with_field( double* map, int x_bins, int y_bins, int min_num_bins_fields,double threshold, double* mean_x_field, double* mean_y_field, double* max_radius_field, int* num_bins_field,  double invalid,  double* field);
+void detect_one_field( double* map, int x_bins, int y_bins, int min_num_bins_fields, double threshold, double* mean_x_field, double* mean_y_field, double* max_radius_field, int* num_bins_field, double invalid);
+double hux_heading(double delta_x, double delta_y);
+double degree_to_radian(double degree);
+SEXP gridness_score_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r, SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
+double gridness_score(double* one_auto_map, int auto_num_bins_x,int auto_num_bins_y, double pixels_per_bin, int number_fields_to_detect,int min_num_bins_per_field, double field_threshold, double invalid);
+double grid_orientation(double *map, int x_bins, int y_bins, double pixels_per_bin, int num_fields_to_detect, int min_num_bins_fields, float threshold, double invalid);
+SEXP grid_orientation_cwrap(SEXP cells_r, SEXP cell_lines_r,SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r,SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
+SEXP grid_spacing_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r, SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
+double grid_spacing(double *map, int x_bins, int y_bins, double pixels_per_bin, int num_fields_to_detect, int min_num_bins_fields, float threshold, double invalid);
+int identify_border_pixels_in_occupancy_map(double* occ_map, int num_bins_x, int num_bins_y,int* border_map, int* border_x, int* border_y, int* num_bins_border);
+int find_border_starting_point(double* occ_map, int num_bins_x, int num_bins_y,int*border_map,int*border_x,int* border_y,int* num_bins_border);
+int find_an_adjacent_border_pixel(double* occ_map, int num_bins_x, int num_bins_y,int*border_map,int*border_x,int* border_y,int* num_bins_border);
+void border_score_rectangular_environment(int* cells, int cell_lines, int num_bins_x, int num_bins_y, double* occ_map, double* maps, double percent_threshold_field, int min_bins_in_field, double* border_score, double* cm, double* dm, int* num_fields_detected);
+SEXP border_score_rectangular_environment_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP num_bins_x_r,SEXP num_bins_y_r,SEXP occ_map_r,SEXP maps_r,SEXP percent_threshold_field_r,	SEXP min_bins_in_field_r);
 
 
 

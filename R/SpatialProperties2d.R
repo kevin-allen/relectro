@@ -22,9 +22,23 @@ SpatialProperties2d<- setClass(
             min.valid.bins.auto="numeric",
             peak.rates="numeric",
             info.score="numeric",
-            sparsity="numeric"),
+            border.score="numeric",
+            border.cm="numeric",
+            border.dm="numeric",
+            border.num.field.detected="numeric",
+            sparsity="numeric",
+            grid.score="numeric",
+            grid.orientation="numeric",
+            grid.spacing="numeric",
+            grid.score.number.fields.to.detect="numeric",
+            grid.score.min.num.bins.per.field="numeric",
+            grid.score.field.threshold="numeric",
+            border.percentage.threshold.field="numeric",
+            border.min.bins.in.field="numeric"),
       
-  prototype = list(session="",cm.per.bin=2,smooth.occupancy.sd=3,smooth.rate.map.sd=3,min.valid.bins.auto=20,reduce.size=T))
+  prototype = list(session="",cm.per.bin=2,smooth.occupancy.sd=3,smooth.rate.map.sd=3,min.valid.bins.auto=20,reduce.size=T,
+                   grid.score.number.fields.to.detect=40,grid.score.min.num.bins.per.field=10,grid.score.field.threshold=0.1,
+                   border.percentage.threshold.field=20,border.min.bins.in.field=10))
 
 
 ### show ###
@@ -191,15 +205,12 @@ setMethod(f="map.spatial.autocorrelation",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
-            
             if(length(sp@maps)==0)
               stop("Need to call firing.rate.map.2d first to run get.map.stats")
             if(length(sp@occupancy)==0)
               stop("sp@occupancy length ==0")
-            
             sp@ncol.auto = as.integer((sp@ncol.map*2)+1)
             sp@nrow.auto = as.integer((sp@nrow.map*2)+1)
-            
             results<- .Call("map_autocorrelation_cwrap",
                   sp@cell.list,
                   length(sp@cell.list),
@@ -209,12 +220,125 @@ setMethod(f="map.spatial.autocorrelation",
                   sp@ncol.auto,
                   sp@nrow.auto,
                   sp@min.valid.bins.auto)
-                  
             sp@auto<-array(data=results,dim=(c(sp@nrow.auto,sp@ncol.auto,length(sp@cell.list))))
-            
             return(sp)
           }
 )
+
+
+
+setGeneric(name="grid.score",
+           def=function(sp)
+           {standardGeneric("grid.score")}
+)
+setMethod(f="grid.score",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@auto)==0)
+              stop("Need to call map.spatial.autocorrelation first to run grid.score()")
+            
+            dyn.load("~/repo/r_packages/relectro/src/relectro.so")
+            
+            sp@grid.score<-.Call("grid_score_cwrap",
+                  sp@cell.list,
+                  length(sp@cell.list),
+                  sp@auto,
+                  sp@ncol.auto,
+                  sp@nrow.auto,
+                  sp@cm.per.bin,
+                  sp@grid.score.number.fields.to.detect,
+                  sp@grid.score.min.num.bins.per.field,
+                  sp@grid.score.field.threshold,
+                  -1.0) #invalid
+            return(sp)
+          }
+)
+setGeneric(name="grid.orientation",
+           def=function(sp)
+           {standardGeneric("grid.orientation")}
+)
+setMethod(f="grid.orientation",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@auto)==0)
+              stop("Need to call map.spatial.autocorrelation first to run grid.orientation()")
+            
+
+            sp@grid.orientation<- .Call("grid_orientation_cwrap",
+                                 sp@cell.list,
+                                 length(sp@cell.list),
+                                 sp@auto,
+                                 sp@ncol.auto,
+                                 sp@nrow.auto,
+                                 sp@cm.per.bin,
+                                 sp@grid.score.number.fields.to.detect,
+                                 sp@grid.score.min.num.bins.per.field,
+                                 sp@grid.score.field.threshold,
+                                 -1.0)
+            return(sp)
+          }
+)
+setGeneric(name="grid.spacing",
+           def=function(sp)
+           {standardGeneric("grid.spacing")}
+)
+setMethod(f="grid.spacing",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@auto)==0)
+              stop("Need to call map.spatial.autocorrelation first to run grid.spacing()")
+            
+            sp@grid.spacing<- .Call("grid_spacing_cwrap",
+                                        sp@cell.list,
+                                        length(sp@cell.list),
+                                        sp@auto,
+                                        sp@ncol.auto,
+                                        sp@nrow.auto,
+                                        sp@cm.per.bin,
+                                        sp@grid.score.number.fields.to.detect,
+                                        sp@grid.score.min.num.bins.per.field,
+                                        sp@grid.score.field.threshold,
+                                        -1.0)
+            return(sp)
+          }
+)
+
+
+setGeneric(name="border.score",
+           def=function(sp)
+           {standardGeneric("border.score")}
+)
+setMethod(f="border.score",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@maps)==0)
+              stop("Need to call firing.rate.map.2d first to run border.score()")
+            
+            results<-.Call("border_score_rectangular_environment_cwrap",
+                    sp@cell.list,
+                    length(sp@cell.list),
+                    sp@ncol.map,
+                    sp@nrow.map,
+                    sp@occupancy,
+                    sp@maps,
+                    sp@border.percentage.threshold.field,
+                    sp@border.min.bins.in.field)
+            
+            sp@border.score<-results[1,]
+            sp@border.cm<-results[2,]
+            sp@border.dm<-results[3,]
+            sp@border.num.field.detected<-results[4,]
+            return(sp)
+          }
+)
+
+
+
+
 
 
 dyn.load("~/repo/r_packages/relectro/src/relectro.so")
@@ -233,10 +357,16 @@ pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) #
 sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
 sp<-get.map.stats(sp)
 sp<-map.spatial.autocorrelation(sp)
+sp<-grid.score(sp)
+sp<-grid.orientation(sp)
+sp<-grid.spacing(sp)
+sp<-border.score(sp)
 
-?benchmark
+paste(sp@grid.score,sp@cell.list,sp@grid.orientation,sp@grid.spacing,sp@border.score)
+
+
 
 ## plot one map
 jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
-map<-sp@auto[,,7]
+map<-sp@maps[,,8]
 image(t(map),zlim=c(-1,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)

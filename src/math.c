@@ -1,6 +1,19 @@
 #include <math.h>
 #include "relectro.h"
 
+double sum_double(int num_data, double* data, double invalid)
+{
+  /* calculate the sum of an array */
+  double sum = 0;
+  for(int i = 0; i < num_data; i++)
+    {
+      if(data[i]!=invalid)
+	{
+	  sum = sum + data[i];
+	}
+    }
+  return sum;
+}
 int find_max(int num_data, int* data)
 {
   /* returns the maximum value in an array */
@@ -13,6 +26,74 @@ int find_max(int num_data, int* data)
 	}
     }
   return max;
+}
+double find_max_double(int num_data,double* data)
+{
+  /* returns the maximum value in an array */
+  double max=data[0];
+  for (int i =1; i < num_data; i++)
+    {
+      if (data[i]>max)
+	{
+	  max=data[i];
+	}
+    }
+  return max;
+}
+double find_max_double_index(int num_data,double* data, int* index)
+{
+  /* returns the maximum value in an array */
+  double max;
+  if(num_data<=0)
+    {
+      printf("find_max: size of array is %d\n", num_data);
+      max=-1;
+      *index=0;
+    }
+  for (int i =0; i < num_data; i++)
+    {
+      if (i==0)
+	{
+	  max=data[i];
+	  *index=i;
+	}
+      else
+	{
+	  if (data[i]>max)
+	    {
+	      max=data[i];
+	      *index=i;
+	    }
+	}
+    }
+  return max;
+}
+double distance(double x1, double y1, double x2, double y2)
+{
+  /* returns the distance between two points: a2 + b2 = c2 */
+  double diff_x_2, diff_y_2;
+  diff_x_2=(x1-x2)*(x1-x2);
+  diff_y_2=(y1-y2)*(y1-y2);
+  return sqrt(diff_x_2+diff_y_2);
+}
+double degree_to_radian(double degree)
+{
+   /* return radian
+      warning: -1 is invalid*/
+  if ( (degree <0 || degree>=360) && (degree != -1))
+    {
+      printf("function degree_to_radian(double)\n");
+      printf("(degree<0|| degree>=360)&&degree!=-1: %lf\n", degree);
+      return -1;
+    }
+  if (degree == -1)
+    {
+      return -1;
+    }
+  else
+    {  
+      return degree/180*M_PI;
+    }
 }
 void gaussian_kernel(double* kernel,
 		     int size,

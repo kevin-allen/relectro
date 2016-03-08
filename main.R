@@ -191,12 +191,19 @@ pt<-new("Positrack",session=session) ## info about position
 pt<-loadPositrack(pt)
 st<-new("SpikeTrain",session=session) ## info about spike trains
 st<-loadSpikeTrain(st)
+## now do some spatial analysis with spike trains and positrack data
 sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
-
 pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
 sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
 sp<-get.map.stats(sp) ## get info score, sparsity from maps
 sp<-map.spatial.autocorrelation(sp) ## spatial autocorrelation from maps
+sp<-grid.score(sp)
+sp<-grid.orientation(sp)
+sp<-grid.spacing(sp)
+sp<-border.score(sp)
+
+
+
 
 
 ## plot one map
