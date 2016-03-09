@@ -130,6 +130,8 @@ setMethod("show", "RecSession",
             print(paste("n.electrodes:",object@n.electrodes))
             print(paste("electrode.location:"))
             print(paste(object@electrode.location))
+            print(paste("trial.names:"))
+            print(paste(object@trial.names))
             print(paste("trial.duration.sec:"))
             print(paste(object@trial.duration.sec,"sec"))
             print(paste("session duration:",object@session.duration.sec,"sec"))
