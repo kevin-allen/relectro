@@ -1,0 +1,66 @@
+---
+title: "relectro"
+author: "Kevin Allen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{relectro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+This vignette document the use of the package relectro. relectro was developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow me to do all my data analysis without leaving the R interface. The package makes extensive use of C functions to speed up some analysis that would take too much time if performed directly with the R language. 
+
+Below is an introduction to the principal S4 objects within the package and how you can use them. More details regarding individual function (e.g. arguments and returned values) can be found within R with the command `?function.name`
+
+## SpikeTrain
+
+This object represent the spike trains of a group of neurons recorded together. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. By default, you set the slot `session` within a SpikeTrain object. This is used as main name of the files.  Then call the function `loadSpikeTrain()`. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains.
+
+Once a SpikeTrain object is set, you can use different functions to do analysis on the spike trains. For example you can calculate spike-train autocorrelations using the function `spikeTimeAutocorrelation()`. You can also calculate the firing rate using `meanFiringRate()`.
+
+If you want to calculate a spike-time crosscorrelation between the spikes and some events, you need to set some events within you SpikeTrain object with the function `setEvents()` and then call `spikeTimeCrosscorrelationEvents()`.
+
+Most computations on neuronal activity need to be performed on a limited time period. This is acheived by setting some intervals in the SpikeTime object. You can do this with the function `setIntervals()`. The intervals of the SpikeTrain object are used when analyzing the spatial properties of neurons.
+
+## RecSession
+
+
+
+
+## Styles
+
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+
+    output: 
+      rmarkdown::html_vignette:
+        css: mystyles.css
+
+## Figures
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## More Examples
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))
