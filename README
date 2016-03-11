@@ -11,7 +11,7 @@ crosscorrelation() done
 crosscorrelation_events() <- done
 
 1/2 day: Monday
-session  R class <- done
+RecSession  R class <- done
 	 - desen <- done
 	 - intervals <- done
 	 - time per trials <-done
@@ -19,13 +19,12 @@ session  R class <- done
 
 
 1 day: Tuesday
-positrack class 
+Positrack class 
 	  - x,y,hd,speed,px_per_cm <- done
     - filter for speed in R <- done
 	  - set outside intervals to -1, keep -1 for now. <- done
 	  - intervals at a given speed  <- done
 	  - speed at given res values <- done
-
 
 2 days: Wednesday - Tuesday
 SpatialProperties2d: 
@@ -38,16 +37,13 @@ SpatialProperties2d:
 	      -grid score, orientation, spacing <- done
 	      -border score <- done
 
-Need to take a break to try to reject a rejection at Neuron. See you later.
-
-datFile: 1 day: Wednesday
+datFile: 1 day: 
   -datFile strucutre
   -read one channel
   -detect up
   -detect down
   -detect ttl pulses
   
-
 
 ElectroProject holding Mice and RecSession infomration?
 To do the looping, we could have an object called Project, containing an array of RecSession, 
@@ -56,9 +52,8 @@ ElectroProject could be saved in a file and loaded, so that we don't need to sea
  - saveProject to file
  - loadProject from file
 
+Think about plotting common objects: maps, maps autocorrelations, etc.
 
-2 days:
-Write a vignette to explain the package so far.
 
 
 2 days:
@@ -72,3 +67,6 @@ SpikeTrain: -instantaneous firing rate.
 
 
 Add documentation
+
+2 days:
+Write a vignette to explain the package so far and name most usefull functions.

@@ -8,7 +8,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-This vignette document the use of the package relectro. relectro was developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow me to do all my data analysis without leaving the R interface. The package makes extensive use of C functions to speed up some analysis that would take too much time if performed directly with the R language. 
+This vignette document the use of the package relectro. relectro was developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow me to do all my data analysis without leaving the R interface. I want the user to get most things done we just few lines of code.   The package makes extensive use of C functions to speed up some analysis that would take too much time if performed directly with the R language. In some instance, it will depend on shell scripts from the `allen_mouse_electrophysiology` repository. 
 
 Below is an introduction to the principal S4 objects within the package and how you can use them. More details regarding individual function (e.g. arguments and returned values) can be found within R with the command `?function.name`
 
