@@ -1,7 +1,6 @@
 This is a R package to analysis electrophysiological data with R.
 
-The speed of the code is very good. Compare to the current way of doing things, it will eliminate having to read the files many times in a row. Should speed up things and make it simpler to do analysis.
-
+If you want to start with example, go to main.R
 
 List of things to implement before it is usable:
 
@@ -16,7 +15,6 @@ session  R class <- done
 	 - intervals <- done
 	 - time per trials <-done
    - return intervals for a given environment <-done
-
 
 1 day: Tuesday
 positrack class 
@@ -38,21 +36,22 @@ SpatialProperties2d:
 	      -grid score, orientation, spacing <- done
 	      -border score <- done
 
-Need to take a break to try to reject a rejection at Neuron. See you later.
 
 datFile: 1 day: Wednesday
-  -datFile strucutre
-  -read one channel
-  -detect up
-  -detect down
-  -detect ttl pulses
-  
+  -datFile strucutre <- done
+  -read one channel <- done
 
+functions: to detect up in dat files
+  -detect up <- done
+  -detect down <- done
+
+
+DEVELOPMENT SO FAR STOP HERE
 
 ElectroProject holding Mice and RecSession infomration?
 To do the looping, we could have an object called Project, containing an array of RecSession, 
 ElectroProject could be saved in a file and loaded, so that we don't need to search the directories everytime
- - buildProject (find clustered sessions, get all RecSession objects)
+ - buildProject (use list_sessions to find clustered sessions, get all RecSession objects)
  - saveProject to file
  - loadProject from file
 
