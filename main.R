@@ -2,27 +2,32 @@
 ### create a skeleton for the package
 ###
 ###package.skeleton(name="relectro", code_files=c("~/repo/r_packages/my_src/SpikeTrain.R","~/repo/r_packages/my_src/JoinIntervals.R"),path=c("~/repo/r_packages/"))
-## copy the .c and makefile files in a src directory 
+### copy the .c and makefile files in a src directory 
+###
+### NAMESPACE
 ##
-## NAMESPACE
+## to install from source, go in the directory where the relectro directory is located
+## R CMD build relectro
+## R CMD INSTALL relectro
+##
 
-library(rbenchmark)
+library(rbenchmark) # useful to test speed, or system.time
 #library("devtools")
 
-## load the package
+
+### choose one of the two options
+## option 1
+## if loading the package
 library(relectro)
-
-
-## to reload a modified package, restart R session and call library again
-#load_all("relectro",recompile=T)
-
-## when working directly from source files, load all you need, dyn.load to get the c files.
+# option 2
+## if working directly from source files, load all you need, dyn.load to get the c files.
 source("~/repo/r_packages/relectro/R/SpikeTrain.R")
 source("~/repo/r_packages/relectro/R/Math.R")
 source("~/repo/r_packages/relectro/R/JoinIntervals.R")
 source("~/repo/r_packages/relectro/R/RecSession.R")
 source("~/repo/r_packages/relectro/R/Positrack.R")
 source("~/repo/r_packages/relectro/R/SpatialProperties2d.R")
+source("~/repo/r_packages/relectro/R/DatFiles.R")
 dyn.load("~/repo/r_packages/relectro/src/relectro.so")
 
 
@@ -201,12 +206,29 @@ sp<-grid.score(sp)
 sp<-grid.orientation(sp)
 sp<-grid.spacing(sp)
 sp<-border.score(sp)
-
-
-
-
-
 ## plot one map
 jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
 map<-sp@maps[,,7]
 image(t(map),zlim=c(0,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+rm(sp,pt,jet.colors,map,st,session,rs)
+
+
+
+########################
+### DatFiles object ####
+########################
+## get session information
+rs<-new("RecSession")
+setwd("/data/processing/jp4298/jp4298-12022016-0104/")
+rs@session="jp4298-12022016-0104"
+rs<-loadRecSession(rs)
+## get data from files, use rs to get info we need
+df<-new("DatFiles")
+df<-dat.files.set(df,file.names=paste(rs@trial.names,"dat",sep="."),num.channels=rs@n.channels)
+data<-dat.files.get.one.channel(df,channel.no=df@num.channels-1,first.sample=0,last.sample=rs@trial.end.res[length(rs@trial.end.res)]) # get data one channel
+## detect ttl ups or down in signal
+ups<-detect.ups(x=data)
+downs<-detect.downs(x=data)
+plot(ups[1:50],downs[1:50])
+lines(c(0,120000),c(0,120000))
+rm(rs,df,downs,ups,session,data)

@@ -561,3 +561,53 @@ double correlation (double* x, double* y, int size, double invalid)
     }
   return r;
 }
+
+
+SEXP detect_ttl_ups_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r)
+{
+  int n=INTEGER_VALUE(n_r);
+  int* data = INTEGER_POINTER(data_r);
+  int* indices = (int*) malloc(n*sizeof(int));
+  int nUp = 0;
+  int threshold = INTEGER_VALUE(threshold_r);
+  for(int i = 0; i < n-1;i++)
+    if(data[i+1]-data[i]>threshold){
+	indices[nUp]=i+1;
+	nUp++;
+      }
+  if(nUp==0)
+    return(R_NilValue);
+  SEXP out = PROTECT(allocVector(INTSXP,nUp));
+  int* ptr = INTEGER_POINTER(out);
+  for(int i = 0; i < nUp; i++){
+    ptr[i]=indices[i];  
+  }
+  free(indices);
+  UNPROTECT(1);
+  return(out);
+}
+
+SEXP detect_ttl_downs_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r)
+{
+  int n=INTEGER_VALUE(n_r);
+  int* data = INTEGER_POINTER(data_r);
+  int* indices = (int*) malloc(n*sizeof(int));
+  int nDown = 0;
+  int threshold = INTEGER_VALUE(threshold_r);
+  threshold=0-threshold;
+  for(int i = 0; i < n-1;i++)
+    if(data[i+1]-data[i]<threshold){
+	indices[nDown]=i+1;
+	nDown++;
+      }
+  if(nDown==0)
+    return(R_NilValue);
+  SEXP out = PROTECT(allocVector(INTSXP,nDown));
+  int* ptr = INTEGER_POINTER(out);
+  for(int i = 0; i < nDown; i++){
+    ptr[i]=indices[i];  
+  }
+  free(indices);
+  UNPROTECT(1);
+  return(out);
+}

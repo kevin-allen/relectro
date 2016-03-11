@@ -35,10 +35,10 @@ int data_file_si_load_block(struct data_file_si* df, long int start_index, long 
 int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, short int* one_channel, long int start_index, long int end_index);
 int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data, long int start_index, long int end_index);
 
-int init_group_data_file_si(struct group_data_file_si* gdf, char* file_names,int num_files,int num_channels);
+int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,int num_files,int num_channels);
 int group_data_file_si_get_data_one_channel(struct group_data_file_si* gf,int channel_no, short int* one_channel, long int start_index, long int end_index);
 int clean_group_data_file_si(struct group_data_file_si* gdf);
-
+SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r);
 
 
 
@@ -52,18 +52,20 @@ double find_max_double(int num_data,double* data);
 void gaussian_kernel(double* kernel,int size, double standard_deviation);
 void gaussian_kernel_2d(double* kernel,int x_size,int y_size,double standard_deviation);
 void smooth_double_gaussian(double* array, int array_size, double smooth, double invalid);
-SEXP smooth_double_gaussian_cwrap(SEXP array_r, SEXP array_size_r, SEXP smooth_r, SEXP invalid_r);
+SEXP smooth_double_gaussian_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
 void smooth_double_gaussian_degrees(double* array, int array_size,double smooth, double invalid);
 SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
 void set_array_to_value_int (int* array, int array_size, int value);
 void set_array_to_value_double (double* array, int array_size, double value);
 void smooth_double_gaussian_2d(double* array, int x_size,int y_size, double smooth, double invalid);
+
 SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
 double correlation (double* x, double* y, int size, double invalid);
 void get_x_and_y_bin_from_index(int x_bins,int y_bins,int index,int* x_bin,int* y_bin);
 int get_index_from_x_and_y_bin(int x_bins,int y_bins,int x_bin,int y_bin);
 double distance(double x1, double y1, double x2, double y2);
-
+SEXP detect_ttl_ups_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
+SEXP detect_ttl_downs_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
 
 
 // spatial.c

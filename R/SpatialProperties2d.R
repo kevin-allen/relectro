@@ -340,33 +340,3 @@ setMethod(f="border.score",
 
 
 
-
-dyn.load("~/repo/r_packages/relectro/src/relectro.so")
-
-setwd("~/repo/r_packages/data")
-session="jp4298-15022016-0106"
-rs<-new("RecSession",session=session) ## info about rec session
-rs<-loadRecSession(rs)
-pt<-new("Positrack",session=session) ## info about position
-pt<-loadPositrack(pt)
-st<-new("SpikeTrain",session=session) ## info about spike trains
-st<-loadSpikeTrain(st)
-
-sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
-pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
-sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
-sp<-get.map.stats(sp)
-sp<-map.spatial.autocorrelation(sp)
-sp<-grid.score(sp)
-sp<-grid.orientation(sp)
-sp<-grid.spacing(sp)
-sp<-border.score(sp)
-
-paste(sp@grid.score,sp@cell.list,sp@grid.orientation,sp@grid.spacing,sp@border.score)
-
-
-
-## plot one map
-jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
-map<-sp@maps[,,8]
-image(t(map),zlim=c(-1,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
