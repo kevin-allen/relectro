@@ -16,8 +16,76 @@
 // detect down
 
 
+SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r)
+{
+  // get the name of the first file
+  char* data_file_names[MAXNUMBERFILES];
+  int i, file_lines;
+  struct group_data_file_si gdf;
+  long int num_samples;
+  long int needed_samples;
+  short int* data;
 
-int init_group_data_file_si(struct group_data_file_si* gdf, char* file_names,int num_files,int num_channels)
+  PROTECT(file_names_r = AS_CHARACTER(file_names_r));
+  file_lines = LENGTH(file_names_r);
+  if(file_lines>MAXNUMBERFILES)
+    {
+      printf("Number of files is larger than %d\n",MAXNUMBERFILES);
+      UNPROTECT(1);
+      return(R_NilValue);
+    }
+
+  //copy the file names into a x-element array of pointer */
+  for (i=0; i<file_lines; i++) {
+    data_file_names[i]=malloc(strlen( CHAR(STRING_ELT(file_names_r, i))) + 1);
+    strcpy(data_file_names[i],CHAR(STRING_ELT(file_names_r, i)));
+  }
+  
+  if(init_group_data_file_si(&gdf,data_file_names,file_lines,INTEGER_VALUE(num_channels_r))!=0)
+    {
+      printf("problem with init_group_data_file_si\n");
+      UNPROTECT(1);
+      return (R_NilValue);
+    }
+  
+  num_samples=gdf.num_samples_all_files;
+  
+  if(INTEGER_VALUE(end_index_r) > num_samples)
+    {
+      printf("end_index_r > num_samples\n");
+      UNPROTECT(1);
+      return (R_NilValue);
+    }
+  
+  needed_samples=INTEGER_VALUE(end_index_r)-INTEGER_VALUE(start_index_r);
+  SEXP out = PROTECT(allocVector(INTSXP,needed_samples));
+  int* ptr = INTEGER_POINTER(out);
+  data = (short*) malloc(needed_samples*sizeof(short));
+  
+  if ((group_data_file_si_get_data_one_channel(&gdf,
+						INTEGER_VALUE(channel_no_r),
+					       data,
+					       INTEGER_VALUE(start_index_r),
+					       INTEGER_VALUE(end_index_r)))!=0)
+    {
+      printf("error reading from data file\n");
+      UNPROTECT(2);
+      return (R_NilValue);
+    }
+  // copy the data to R object
+  for(int i = 0 ; i < needed_samples;i++)
+    ptr[i]=data[i];
+  
+  // free memory
+  for (i=0; i<file_lines; i++)
+    free(data_file_names[i]);
+  free(data);
+  UNPROTECT(2);
+  return(out);
+}
+
+
+int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,int num_files,int num_channels)
 {
   // function to initialize the variable and allocate memory
   int i;
@@ -33,9 +101,9 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char* file_names,int
   // initiate all the individual files
   for (i=0; i < gdf->num_files;i++)
     {
-      if((init_data_file_si(&gdf->file_group[i],&file_names[i], gdf->num_channels))!=0)
+      if((init_data_file_si(&gdf->file_group[i],file_names[i], gdf->num_channels))!=0)
   	{
-  	  fprintf(stderr,"init_group_data_file_si(): problem init_data_file_si for %s\n",&file_names[i]); // is this correct???????
+  	  fprintf(stderr,"init_group_data_file_si(): problem init_data_file_si for %s\n",file_names[i]); // is this correct???????
   	  return 1;
   	}
     }

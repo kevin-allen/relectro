@@ -1,9 +1,4 @@
-useDynLib(relectro, 
-          autocorrelation_cwrap, 
-          meanFiringRate_cwrap,
-          resIndexForIntervals_cwrap,
-          crosscorrelation_cwrap,
-          crosscorrelationEvents_cwrap)
+useDynLib(relectro)
 
 exportPattern("^[[:alpha:]]+")
 
