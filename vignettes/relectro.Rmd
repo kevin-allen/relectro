@@ -14,9 +14,44 @@ Below is an introduction to the principal S4 objects within the package and how 
 
 ## SpikeTrain
 
-This object represent the spike trains of a group of neurons recorded together. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. By default, you set the slot `session` within a SpikeTrain object. This is used as main name of the files.  Then call the function `loadSpikeTrain()`. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains.
+This object represent the spike trains of a group of neurons recorded together. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. By default, you set the slot `session` within a SpikeTrain object. This is used as main name of the files.  Then call the function `loadSpikeTrain()`. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains. 
 
 Once a SpikeTrain object is set, you can use different functions to do analysis on the spike trains. For example you can calculate spike-train autocorrelations using the function `spikeTimeAutocorrelation()`. You can also calculate the firing rate using `meanFiringRate()`.
+
+Here is an example with simulated spike trains
+
+
+```{r simulate_spike_train}
+library(relectro)
+## generate spikes for 3 neurons  
+res1<-cumsum(rpois(n=100,lambda=10))
+res2<-cumsum(rpois(n=200,lambda=15))
+res3<-cumsum(rpois(n=300,lambda=10))
+clu<-c(rep(1,100),rep(2,200),rep(3,300))
+df<-data.frame(res=c(res1,res2,res3),clu=clu)
+df<-df[order(df$res),] # sort according to res values
+## create a SpikeTrain object from random spikes ###
+st<-new("SpikeTrain")
+## set the spike trains in the object
+st<-setSpikeTrain(st=st,res=df$res,clu=df$clu,sampling.rate=20000)
+## get the spike-time autocorrelation
+auto<-spikeTimeAutocorrelation(st,bin.size.ms=1,window.size.ms=200)
+## plot the autocorrelation
+plot(auto$count,type='l',ylab="Spike count", xlab="time (ms)")
+## get the mean firing rate
+meanFiringRate(st)
+## set time intervals to work on
+st<-setIntervals(st,s=c(0,2000),e=c(1000,3000))
+## get the mean firing rate within these intervals
+meanFiringRate(st)
+## set some events, spikes of clu 2
+st<-setEvents(st,events=st@res[which(st@clu==2)])
+cc<-spikeTimeCrosscorrelationEvents(st)
+plot(cc$count[which(cc$clu==2)],type='l',ylab="Spike count",xlab="time (ms)")
+rm(clu,res1,res2,res3,df,auto,st,cc)
+
+```
+
 
 If you want to calculate a spike-time crosscorrelation between the spikes and some events, you need to set some events within you SpikeTrain object with the function `setEvents()` and then call `spikeTimeCrosscorrelationEvents()`.
 
@@ -42,6 +77,11 @@ The figure sizes have been customised so that you can easily put two images side
 ```{r, fig.show='hold'}
 plot(1:10)
 plot(10:1)
+```
+
+```{r, fig.show='hold'}
+a<-rnorm(100)
+plot(a)
 ```
 
 You can enable figure captions by `fig_caption: yes` in YAML:

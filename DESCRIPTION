@@ -10,4 +10,4 @@ License: GLP-2
 Depends: methods
 Suggests: knitr,
     rmarkdown
-VignetteBuilder: knitr
+VignetteBuilder: rmarkdown

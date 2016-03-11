@@ -34,7 +34,7 @@ dyn.load("~/repo/r_packages/relectro/src/relectro.so")
 #########################################
 #### EXAMPLES RANDOM DATA SpikeTrain ####
 ########################################
-## generate spikes for 2 neurons  
+## generate spikes for 3 neurons  
 res1<-cumsum(rpois(n=100,lambda=10))
 res2<-cumsum(rpois(n=200,lambda=15))
 res3<-cumsum(rpois(n=300,lambda=10))
@@ -50,7 +50,7 @@ st
 ## get the spike-time autocorrelation
 auto<-spikeTimeAutocorrelation(st,bin.size.ms=1,window.size.ms=200)
 ## plot the autocorrelation
-plot(auto$count,type='l')
+plot(auto$count,type='l',ylab="Spike count", xlab="time (ms)")
 ## get the mean firing rate
 meanFiringRate(st)
 ## set time intervals to work on
