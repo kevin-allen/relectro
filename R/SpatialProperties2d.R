@@ -15,7 +15,7 @@ SpatialProperties2d<- setClass(
             y.spikes="numeric",
             maps="array",
             occupancy="matrix",
-            auto="array",
+            autos="array",
             spatial.autocorrelation="numeric",
             cell.list="numeric",
             reduce.size="logical",
@@ -220,7 +220,7 @@ setMethod(f="map.spatial.autocorrelation",
                   sp@ncol.auto,
                   sp@nrow.auto,
                   sp@min.valid.bins.auto)
-            sp@auto<-array(data=results,dim=(c(sp@nrow.auto,sp@ncol.auto,length(sp@cell.list))))
+            sp@autos<-array(data=results,dim=(c(sp@nrow.auto,sp@ncol.auto,length(sp@cell.list))))
             return(sp)
           }
 )
@@ -235,7 +235,7 @@ setMethod(f="grid.score",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
-            if(length(sp@auto)==0)
+            if(length(sp@autos)==0)
               stop("Need to call map.spatial.autocorrelation first to run grid.score()")
             
             dyn.load("~/repo/r_packages/relectro/src/relectro.so")
@@ -243,7 +243,7 @@ setMethod(f="grid.score",
             sp@grid.score<-.Call("grid_score_cwrap",
                   sp@cell.list,
                   length(sp@cell.list),
-                  sp@auto,
+                  sp@autos,
                   sp@ncol.auto,
                   sp@nrow.auto,
                   sp@cm.per.bin,
@@ -262,14 +262,14 @@ setMethod(f="grid.orientation",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
-            if(length(sp@auto)==0)
+            if(length(sp@autos)==0)
               stop("Need to call map.spatial.autocorrelation first to run grid.orientation()")
             
 
             sp@grid.orientation<- .Call("grid_orientation_cwrap",
                                  sp@cell.list,
                                  length(sp@cell.list),
-                                 sp@auto,
+                                 sp@autos,
                                  sp@ncol.auto,
                                  sp@nrow.auto,
                                  sp@cm.per.bin,
@@ -288,13 +288,13 @@ setMethod(f="grid.spacing",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
-            if(length(sp@auto)==0)
+            if(length(sp@autos)==0)
               stop("Need to call map.spatial.autocorrelation first to run grid.spacing()")
             
             sp@grid.spacing<- .Call("grid_spacing_cwrap",
                                         sp@cell.list,
                                         length(sp@cell.list),
-                                        sp@auto,
+                                        sp@autos,
                                         sp@ncol.auto,
                                         sp@nrow.auto,
                                         sp@cm.per.bin,

@@ -12,15 +12,21 @@
 ##
 
 library(rbenchmark) # useful to test speed, or system.time
-#library("devtools")
+library(devtools) # to develop the package
+library(roxygen2) # to make the documentation, etc.
 
 
-### choose one of the two options
+
+
+### choose one of the 3 options
 ## option 1
-## if loading the package
+## loading the installed package
 library(relectro)
 # option 2
-## if working directly from source files, load all you need, dyn.load to get the c files.
+## loading the files as in the repository
+devtools::load_all("~/repo/r_packages/relectro/")
+#option 3
+## working directly from source files, load all you need, dyn.load to get the c files.
 source("~/repo/r_packages/relectro/R/SpikeTrain.R")
 source("~/repo/r_packages/relectro/R/Math.R")
 source("~/repo/r_packages/relectro/R/JoinIntervals.R")
@@ -29,6 +35,7 @@ source("~/repo/r_packages/relectro/R/Positrack.R")
 source("~/repo/r_packages/relectro/R/SpatialProperties2d.R")
 source("~/repo/r_packages/relectro/R/DatFiles.R")
 dyn.load("~/repo/r_packages/relectro/src/relectro.so")
+
 
 
 #########################################
@@ -99,18 +106,24 @@ rm(s1,s2,e1,e2)
 #######################################
 #### EXAMPLE SPIKE TRAINS FROM FILE ###
 #######################################
-setwd("~/repo/r_packages/data")
-session="jp4298-15022016-0106"
+
+
+## find the data provided with the package as example
+clufile<-unlist(strsplit(x=system.file("extdata", "jp4298-15022016-0106.clu", package = "relectro"), split="/"))
+datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
+session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
+setwd(datadir)
+
 st<-new("SpikeTrain") # create SpikeTrain object
 st@session=session # set session name
 st<-loadSpikeTrain(st) # load res clu and sampling rate
 cross<-spikeTimeCrosscorrelation(st,bin.size.ms=1,window.size.ms = 200,probability = T) ## calculate spike-time crosscorrelation
-plot(cross$prob[which(cross$clu1==2&cross$clu2==5)],ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),type='l') ## plot one crosscorrelation
+plot(cross$time[which(cross$clu1==2&cross$clu2==5)],cross$prob[which(cross$clu1==2&cross$clu2==5)],ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5") ## plot one crosscorrelation
 ## set some events, in this case the spikes of clu 2
 st<-setEvents(st,events=st@res[which(st@clu==2)])
 cc<-spikeTimeCrosscorrelationEvents(st)
-plot(cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[which(cc$clu==6)])),type='l')
-rm(session,st,cross,cc)
+plot(cc$time[which(cc$clu==6)],cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[which(cc$clu==6)])),ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
+rm(cross,cc,clufile)
 
 
 ################################
@@ -122,8 +135,6 @@ make.pairs(1:5)
 #############################
 #### EXAMPLE RecSession #####
 #############################
-setwd("~/repo/r_packages/data")
-session="jp4298-15022016-0106"
 rs<-new("RecSession")
 rs@session<-session
 ## load configuration data from file

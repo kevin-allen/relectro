@@ -12,17 +12,22 @@ This vignette document the use of the package relectro. relectro was developped 
 
 Below is an introduction to the principal S4 objects within the package and how you can use them. More details regarding individual function (e.g. arguments and returned values) can be found within R with the command `?function.name`
 
+You can also learn more about the internal organisation of an object with the attributes function.
+```{r attr}
+library(relectro)
+st<-new("SpikeTrain")
+attributes(st)
+```
 ## SpikeTrain
 
 This object represent the spike trains of a group of neurons recorded together. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. By default, you set the slot `session` within a SpikeTrain object. This is used as main name of the files.  Then call the function `loadSpikeTrain()`. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains. 
 
 Once a SpikeTrain object is set, you can use different functions to do analysis on the spike trains. For example you can calculate spike-train autocorrelations using the function `spikeTimeAutocorrelation()`. You can also calculate the firing rate using `meanFiringRate()`.
 
-Here is an example with simulated spike trains
+Here is an example with simulated spike trains.
 
 
 ```{r simulate_spike_train}
-library(relectro)
 ## generate spikes for 3 neurons  
 res1<-cumsum(rpois(n=100,lambda=10))
 res2<-cumsum(rpois(n=200,lambda=15))
@@ -40,67 +45,115 @@ auto<-spikeTimeAutocorrelation(st,bin.size.ms=1,window.size.ms=200)
 plot(auto$count,type='l',ylab="Spike count", xlab="time (ms)")
 ## get the mean firing rate
 meanFiringRate(st)
-## set time intervals to work on
-st<-setIntervals(st,s=c(0,2000),e=c(1000,3000))
-## get the mean firing rate within these intervals
-meanFiringRate(st)
-## set some events, spikes of clu 2
-st<-setEvents(st,events=st@res[which(st@clu==2)])
-cc<-spikeTimeCrosscorrelationEvents(st)
-plot(cc$count[which(cc$clu==2)],type='l',ylab="Spike count",xlab="time (ms)")
-rm(clu,res1,res2,res3,df,auto,st,cc)
+rm(clu,res1,res2,res3,df,auto,st)
 
 ```
 
 
-If you want to calculate a spike-time crosscorrelation between the spikes and some events, you need to set some events within you SpikeTrain object with the function `setEvents()` and then call `spikeTimeCrosscorrelationEvents()`.
+If you want to calculate a spike-time crosscorrelation between the spikes and some events, you need to set some events within you SpikeTrain object with the function `setEvents()` and then call `spikeTimeCrosscorrelationEvents()`. This could be usefull to see if a cell react to some sort of stimulation or some behavioural events.
 
 Most computations on neuronal activity need to be performed on a limited time period. This is acheived by setting some intervals in the SpikeTime object. You can do this with the function `setIntervals()`. The intervals of the SpikeTrain object are used when analyzing the spatial properties of neurons.
 
+Now here is an example from data files that are provided with the package.
+
+```{r real_spike_trains}
+## find the data provided with the package as example
+clufile<-unlist(strsplit(x=system.file("extdata", "jp4298-15022016-0106.clu", package = "relectro"), split="/"))
+datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
+session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
+setwd(datadir)
+
+st<-new("SpikeTrain") # create SpikeTrain object
+st@session=session # set session name
+st<-loadSpikeTrain(st) # load res clu and sampling rate
+#cross<-spikeTimeCrosscorrelation(st,bin.size.ms=1,window.size.ms = 200,probability = T) ## calculate spike-time crosscorrelation
+#plot(cross$time[which(cross$clu1==2&cross$clu2==5)],cross$prob[which(cross$clu1==2&cross$clu2==5)],ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5") ## plot one crosscorrelation
+## set some events, in this case the spikes of clu 2
+#st<-setEvents(st,events=st@res[which(st@clu==2)])
+#cc<-spikeTimeCrosscorrelationEvents(st)
+#plot(cc$time[which(cc$clu==6)],cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[which(cc$clu==6)])),ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
+#rm(cross,cc,clufile)
+
+```
+
 ## RecSession
 
+This object read few text files (.par, .desen, .desel, etc) and get the information regarding what was done during the recording session. You can use the RecSession object to get intervals for a given recording environment for example.
 
-
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r recording_session}
+setwd(datadir)
+rs<-new("RecSession")
+rs@session<-session
+## load configuration data from file
+rs<-loadRecSession(rs)
+## print session
+rs
+## get intervals with a given environment
+getIntervalsEnvironment(rs,"lt")
 ```
 
-```{r, fig.show='hold'}
-a<-rnorm(100)
-plot(a)
+
+You can use the intervals provided by the RecSession to limit your analysis of the spike trains to this period. Let say we want to limit an analysis of the spike train to the time the animal was in the environment called sqr70.
+```{r recording_session_intervals}
+# set the intervals in spike train using output matrix from recSession
+st<-setIntervals(st,s=getIntervalsEnvironment(rs,env="sqr70"))
+# print the information of the new spike train
+st
+```
+Now the spike train intervals are set to the trial with the sqr70 environment.
+
+
+## Positrack
+
+Positrack objects are used to represent the path of the animal during a recording session. The data are loaded from the .whl and .whd files. The example below gives us time intervals for which the animal running speed was between 0 and 3 cm/sec. 
+
+```{r positrack1}
+setwd(datadir)
+pt<-new("Positrack",session=session)
+pt<-loadPositrack(pt)
+m<-get.intervals.at.speed(pt,0,3)
+m[,1:10]
+rm(m)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+One can also use the intervals given by the RecSession object to limit the analysis of the path to these intervals.
+```{r positrack2}
+pt1<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
+plot(pt1@x[1:10000],pt1@y[1:10000],xlab="x (cm)",ylab="y (cm)")
+rm(pt1)
 ```
 
-Also a quote using `>`:
+You can see that the path is limited to the sqr70 environment.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+You can get the speed of the animal at some define time points
+```{r positrack3}
+plot(get.speed.at.res.values(pt,res=seq(100000,300000,20)),type='l',xlab="res index",ylab="Running speed (cm/sec)")
+```
+
+## SpatialProperties2d
+
+Now that you have a recording session, spike trains, and the position data, you can get the spatial properties of the neurons. This is done with the SpatialProperties2d object. Note that the analysis will be limited to the data points that are valid in the Positrack object and within the intervals set in the SpikeTrain object.
+
+
+```{r spatial_properties1}
+
+sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
+pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
+sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
+sp<-get.map.stats(sp) ## get info score, sparsity from maps
+sp<-map.spatial.autocorrelation(sp) ## spatial autocorrelation from maps
+sp<-grid.score(sp)
+sp<-grid.orientation(sp)
+sp<-grid.spacing(sp)
+sp<-border.score(sp)
+sp
+## plot one firing rate map
+jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
+map<-sp@maps[,,7]
+image(t(map),zlim=c(0,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+## plot one spatial autocorrelation
+map<-sp@autos[,,7]
+image(t(map),zlim=c(-1,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+rm(jet.colors,map)
+```
+
