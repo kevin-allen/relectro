@@ -38,6 +38,7 @@ dyn.load("~/repo/r_packages/relectro/src/relectro.so")
 
 
 
+
 #########################################
 #### EXAMPLES RANDOM DATA SpikeTrain ####
 ########################################
