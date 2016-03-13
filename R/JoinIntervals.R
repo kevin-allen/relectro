@@ -1,4 +1,4 @@
-join.intervals<-function(s1,e1,s2,e2){
+joinIntervals<-function(s1,e1,s2,e2){
   ## check args
   if(length(s1)!=length(e1))
     stop("unequal length of first intervals")

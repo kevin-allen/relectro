@@ -1,51 +1,32 @@
 This is a R package to analysis electrophysiological data with R.
 
-If you want to start with example, go to main.R
+If you are starting you might want to look at the vignette or have a look at main.R
 
-List of things to implement before it is usable:
+To build and install the package
+R CMD build relectro
+R CMD INSTALL relectro
 
-1/2 day: Monday
-intervalRes()<- done
-crosscorrelation() done
-crosscorrelation_events() <- done
+##### naming convention to be used in the package #####
 
-1/2 day: Monday
-RecSession  R class <- done
-	 - desen <- done
-	 - intervals <- done
-	 - time per trials <-done
-   - return intervals for a given environment <-done
+Variable names
 
-1 day: Tuesday
-Positrack class 
-	  - x,y,hd,speed,px_per_cm <- done
-    - filter for speed in R <- done
-	  - set outside intervals to -1, keep -1 for now. <- done
-	  - intervals at a given speed  <- done
-	  - speed at given res values <- done
+    Use camelCaps: initial lowercase, then alternate case between words.
 
-2 days: Wednesday - Tuesday
-SpatialProperties2d: 
-  Stay close to what firing_map_2d does to start with.
-  Store maps in 3 d arrays (1/4 the size of data frames)
-        -occupancy<- done
-	      -maps (3d array)<-done
-	      -info score and sparsity <- done
-	      -autocorrelation (3d arrays) <- done
-	      -grid score, orientation, spacing <- done
-	      -border score <- done
+Function names
 
+    Use camelCaps: initial lower case, then alternate case between words.
+    Do not use ‘.’ (in the S3 class system, some(x) where x is class A will dispatch to some.A).
+    Prefix non-exported functions with a ‘.’.
 
-datFile: 1 day: Wednesday
-  -datFile strucutre <- done
-  -read one channel <- done
+Class names
 
-functions: to detect up in dat files
-  -detect up <- done
-  -detect down <- done
+    Use CamelCaps: initial upper case, then alternate case between words.
 
+File names
 
-DEVELOPMENT SO FAR STOP HERE
+    Filename extension for R code should be ‘.R’. Use the prefix ‘methods-‘ for S4 class methods, e.g., ‘methods-coverage.R’. Generic definitions can be listed in a single file, ‘AllGenerics.R’, and class definitions in ‘AllClasses.R’.
+    Filename extension for man pages should be ‘.Rd’.
+
 
 
 ElectroProject holding Mice and RecSession infomration?
@@ -55,21 +36,17 @@ ElectroProject could be saved in a file and loaded, so that we don't need to sea
  - saveProject to file
  - loadProject from file
 
+
+
 Think about plotting common objects: maps, maps autocorrelations, etc.
-
-
 
 2 days:
 firing_map_1d: -occupancy
 	       -maps
 	       -map stats
 
-
 1 day:
 SpikeTrain: -instantaneous firing rate.
 
+Add documentation for all classes, methods and functions
 
-Add documentation
-
-2 days:
-Write a vignette to explain the package so far and name most usefull functions.

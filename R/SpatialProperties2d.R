@@ -4,66 +4,66 @@
 SpatialProperties2d<- setClass(
   "SpatialProperties2d", ## name of the class
     slots=c(session="character",
-            cm.per.bin="numeric",
-            smooth.occupancy.sd="numeric", ## in cm
-            smooth.rate.map.sd="numeric", ## in cm
-            ncol.map="integer",
-            nrow.map="integer",
-            ncol.auto="integer",
-            nrow.auto="integer",
-            x.spikes="numeric",
-            y.spikes="numeric",
+            cmPerBin="numeric",
+            smoothOccupancySd="numeric", ## in cm
+            smoothRateMapSd="numeric", ## in cm
+            nColMap="integer",
+            nRowMap="integer",
+            nColAuto="integer",
+            nRowAuto="integer",
+            xSpikes="numeric",
+            ySpikes="numeric",
             maps="array",
             occupancy="matrix",
             autos="array",
-            spatial.autocorrelation="numeric",
-            cell.list="numeric",
-            reduce.size="logical",
-            min.valid.bins.auto="numeric",
-            peak.rates="numeric",
-            info.score="numeric",
-            border.score="numeric",
-            border.cm="numeric",
-            border.dm="numeric",
-            border.num.field.detected="numeric",
+            spatialAutocorrelation="numeric",
+            cellList="numeric",
+            reduceSize="logical",
+            minValidBinsAuto="numeric",
+            peakRates="numeric",
+            infoScore="numeric",
+            borderScore="numeric",
+            borderCM="numeric",
+            borderDM="numeric",
+            borderNumFieldsDetected="numeric",
             sparsity="numeric",
-            grid.score="numeric",
-            grid.orientation="numeric",
-            grid.spacing="numeric",
-            grid.score.number.fields.to.detect="numeric",
-            grid.score.min.num.bins.per.field="numeric",
-            grid.score.field.threshold="numeric",
-            border.percentage.threshold.field="numeric",
-            border.min.bins.in.field="numeric"),
+            gridScore="numeric",
+            gridOrientation="numeric",
+            gridSpacing="numeric",
+            gridScoreNumberFieldsToDetect="numeric",
+            gridScoreMinNumBinsPerField="numeric",
+            gridScoreFieldThreshold="numeric",
+            borderPercentageThresholdField="numeric",
+            borderMinBinsInField="numeric"),
       
-  prototype = list(session="",cm.per.bin=2,smooth.occupancy.sd=3,smooth.rate.map.sd=3,min.valid.bins.auto=20,reduce.size=T,
-                   grid.score.number.fields.to.detect=40,grid.score.min.num.bins.per.field=10,grid.score.field.threshold=0.1,
-                   border.percentage.threshold.field=20,border.min.bins.in.field=10))
+  prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateMapSd=3,minValidBinsAuto=20,reduceSize=T,
+                   gridScoreNumberFieldsToDetect=40,gridScoreMinNumBinsPerField=10,gridScoreFieldThreshold=0.1,
+                   borderPercentageThresholdField=20,borderMinBinsInField=10))
 
 
 ### show ###
 setMethod("show", "SpatialProperties2d",
           function(object){
             print(paste("session:",object@session))
-            print(paste("cm.per.bin:",object@cm.per.bin))
-            print(paste("smooth.occupancy.sd:",object@smooth.occupancy.sd))
-            print(paste("smooth.rate.map.sd:",object@smooth.rate.map.sd))
-            print(paste("reduce.size:",object@reduce.size))
-            print(paste("ncol.map:",object@ncol.map))
-            print(paste("nrow.map:",object@nrow.map))
-            if(length(object@cell.list)!=0){
-              print(paste("cell.list:"))
-              print(object@cell.list)
+            print(paste("cmPerBin:",object@cmPerBin))
+            print(paste("smoothOccupancySd:",object@smoothOccupancySd))
+            print(paste("smoothRateMapSd:",object@smoothRateMapSd))
+            print(paste("reduceSize:",object@reduceSize))
+            print(paste("nColMap:",object@nColMap))
+            print(paste("nRowMap:",object@nRowMap))
+            if(length(object@cellList)!=0){
+              print(paste("cellList:"))
+              print(object@cellList)
             }
               
           })
 
 #### make firing rate maps 
-setGeneric(name="firing.rate.map.2d",
+setGeneric(name="firingRateMap2d",
            def=function(sp,st,pt)
-           {standardGeneric("firing.rate.map.2d")}
+           {standardGeneric("firingRateMap2d")}
 )
-setMethod(f="firing.rate.map.2d",
+setMethod(f="firingRateMap2d",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt)
           {
@@ -76,12 +76,12 @@ setMethod(f="firing.rate.map.2d",
             if(st@nSpikes==0)
               stop("st@nSpikes==0")
             
-            sp@cell.list<-st@cellList
+            sp@cellList<-st@cellList
             
             ## reduce the size of maps and map autocorrelation
-            if(sp@reduce.size==T){
-              x<-pt@x-min(pt@x,na.rm=T)+sp@cm.per.bin
-              y<-pt@y-min(pt@y,na.rm=T)+sp@cm.per.bin
+            if(sp@reduceSize==T){
+              x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
+              y<-pt@y-min(pt@y,na.rm=T)+sp@cmPerBin
             }else{
               x<-pt@x
               y<-pt@y
@@ -93,8 +93,8 @@ setMethod(f="firing.rate.map.2d",
             y[is.na(y)]<- -1
             
             ## get the dimensions of the map
-            sp@ncol.map=as.integer(((max(x)+1)/sp@cm.per.bin)+1) # x 
-            sp@nrow.map=as.integer(((max(y)+1)/sp@cm.per.bin)+1) # y
+            sp@nColMap=as.integer(((max(x)+1)/sp@cmPerBin)+1) # x 
+            sp@nRowMap=as.integer(((max(y)+1)/sp@cmPerBin)+1) # y
             
             ## get spike position
             results<-.Call("spike_position_cwrap",
@@ -103,54 +103,54 @@ setMethod(f="firing.rate.map.2d",
                   length(x),
                   as.integer(st@res),
                   st@nSpikes,
-                  pt@res.samples.per.whl.sample,
+                  pt@resSamplesPerWhlSample,
                   as.integer(st@startInterval),
                   as.integer(st@endInterval),
                   length(st@startInterval))
-            sp@x.spikes<-results[1,]
-            sp@y.spikes<-results[2,]
-            #plot(head(sp@x.spikes[which(sp@x.spikes!=-1.0)],n=20000),head(sp@y.spikes[which(sp@x.spikes!=-1.0)],n=20000))
+            sp@xSpikes<-results[1,]
+            sp@ySpikes<-results[2,]
+            #plot(head(sp@xSpikes[which(sp@xSpikes!=-1.0)],n=20000),head(sp@ySpikes[which(sp@xSpikes!=-1.0)],n=20000))
             
             ## make the occupancy map
             sp@occupancy<-.Call("occupancy_map_cwrap",
-                           sp@ncol.map,
-                            sp@nrow.map,
-                            sp@cm.per.bin,
-                            sp@cm.per.bin,
+                           sp@nColMap,
+                            sp@nRowMap,
+                            sp@cmPerBin,
+                            sp@cmPerBin,
                             x,
                             y,
                             length(x),
-                            pt@res.samples.per.whl.sample/pt@samplingRateDat*1000, ## ms per whl samples
+                            pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
                             as.integer(st@startInterval),
                             as.integer(st@endInterval),
                             length(st@startInterval),
-                            pt@res.samples.per.whl.sample)
+                            pt@resSamplesPerWhlSample)
             #image(t(sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
             
             ## smooth the occupancy map
             sp@occupancy<- .Call("smooth_double_gaussian_2d_cwrap",
                   as.numeric(sp@occupancy),
-                  sp@ncol.map,
-                  sp@nrow.map,
-                  sp@smooth.occupancy.sd/sp@cm.per.bin,
+                  sp@nColMap,
+                  sp@nRowMap,
+                  sp@smoothOccupancySd/sp@cmPerBin,
                   -1.0)
             #image(t(sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
             
             ## make the 2d maps
             results<- .Call("firing_rate_map_2d_cwrap",
-                            sp@ncol.map,
-                            sp@nrow.map,
-                            sp@cm.per.bin,
-                            sp@cm.per.bin,
-                            sp@x.spikes,
-                            sp@y.spikes,
+                            sp@nColMap,
+                            sp@nRowMap,
+                            sp@cmPerBin,
+                            sp@cmPerBin,
+                            sp@xSpikes,
+                            sp@ySpikes,
                             as.integer(st@clu),
                             st@nSpikes,
-                            sp@cell.list,
-                            length(sp@cell.list),
+                            sp@cellList,
+                            length(sp@cellList),
                             as.numeric(sp@occupancy),
-                            sp@smooth.rate.map.sd/sp@cm.per.bin)
-            sp@maps<-array(data=results,dim=(c(sp@nrow.map,sp@ncol.map,length(sp@cell.list))))
+                            sp@smoothRateMapSd/sp@cmPerBin)
+            sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
             
             
             return(sp)
@@ -159,179 +159,179 @@ setMethod(f="firing.rate.map.2d",
 
 
 
-#### get.map.stats
-setGeneric(name="get.map.stats",
+#### getMapStats
+setGeneric(name="getMapStats",
            def=function(sp)
-           {standardGeneric("get.map.stats")}
+           {standardGeneric("getMapStats")}
 )
-setMethod(f="get.map.stats",
+setMethod(f="getMapStats",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
             
             if(length(sp@maps)==0)
-              stop("Need to call firing.rate.map.2d first to run get.map.stats")
+              stop("Need to call firingRateMap2d first to run getMapStats")
             if(length(sp@occupancy)==0)
               stop("sp@occupancy length ==0")
           
             ### get peak rates
-            sp@peak.rates<-apply(sp@maps,3,max)
+            sp@peakRates<-apply(sp@maps,3,max)
 
             ### get info scores
-            sp@info.score<- .Call("information_score_cwrap",
-                as.integer(sp@cell.list),
-                length(sp@cell.list),
+            sp@infoScore<- .Call("information_score_cwrap",
+                as.integer(sp@cellList),
+                length(sp@cellList),
                 as.numeric(sp@maps),
                 as.numeric(sp@occupancy),
-                as.integer(sp@ncol.map*sp@nrow.map))
+                as.integer(sp@nColMap*sp@nRowMap))
             
             ### get sparsity scores
             sp@sparsity<- .Call("sparsity_score_cwrap",
-                                as.integer(sp@cell.list),
-                                length(sp@cell.list),
+                                as.integer(sp@cellList),
+                                length(sp@cellList),
                                 as.numeric(sp@maps),
                                 as.numeric(sp@occupancy),
-                                as.integer(sp@ncol.map*sp@nrow.map))
+                                as.integer(sp@nColMap*sp@nRowMap))
             
           return(sp)
           }
 )
 
-setGeneric(name="map.spatial.autocorrelation",
+setGeneric(name="mapSpatialAutocorrelation",
            def=function(sp)
-           {standardGeneric("map.spatial.autocorrelation")}
+           {standardGeneric("mapSpatialAutocorrelation")}
 )
-setMethod(f="map.spatial.autocorrelation",
+setMethod(f="mapSpatialAutocorrelation",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
             if(length(sp@maps)==0)
-              stop("Need to call firing.rate.map.2d first to run get.map.stats")
+              stop("Need to call firingRateMap2d first to run getMapStats")
             if(length(sp@occupancy)==0)
               stop("sp@occupancy length ==0")
-            sp@ncol.auto = as.integer((sp@ncol.map*2)+1)
-            sp@nrow.auto = as.integer((sp@nrow.map*2)+1)
+            sp@nColAuto = as.integer((sp@nColMap*2)+1)
+            sp@nRowAuto = as.integer((sp@nRowMap*2)+1)
             results<- .Call("map_autocorrelation_cwrap",
-                  sp@cell.list,
-                  length(sp@cell.list),
+                  sp@cellList,
+                  length(sp@cellList),
                   as.numeric(sp@maps),
-                  sp@ncol.map,
-                  sp@nrow.map,
-                  sp@ncol.auto,
-                  sp@nrow.auto,
-                  sp@min.valid.bins.auto)
-            sp@autos<-array(data=results,dim=(c(sp@nrow.auto,sp@ncol.auto,length(sp@cell.list))))
+                  sp@nColMap,
+                  sp@nRowMap,
+                  sp@nColAuto,
+                  sp@nRowAuto,
+                  sp@minValidBinsAuto)
+            sp@autos<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList))))
             return(sp)
           }
 )
 
 
 
-setGeneric(name="grid.score",
+setGeneric(name="gridScore",
            def=function(sp)
-           {standardGeneric("grid.score")}
+           {standardGeneric("gridScore")}
 )
-setMethod(f="grid.score",
+setMethod(f="gridScore",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
             if(length(sp@autos)==0)
-              stop("Need to call map.spatial.autocorrelation first to run grid.score()")
+              stop("Need to call mapSpatialAutocorrelation first to run gridScore()")
             
             dyn.load("~/repo/r_packages/relectro/src/relectro.so")
             
-            sp@grid.score<-.Call("grid_score_cwrap",
-                  sp@cell.list,
-                  length(sp@cell.list),
+            sp@gridScore<-.Call("grid_score_cwrap",
+                  sp@cellList,
+                  length(sp@cellList),
                   sp@autos,
-                  sp@ncol.auto,
-                  sp@nrow.auto,
-                  sp@cm.per.bin,
-                  sp@grid.score.number.fields.to.detect,
-                  sp@grid.score.min.num.bins.per.field,
-                  sp@grid.score.field.threshold,
+                  sp@nColAuto,
+                  sp@nRowAuto,
+                  sp@cmPerBin,
+                  sp@gridScoreNumberFieldsToDetect,
+                  sp@gridScoreMinNumBinsPerField,
+                  sp@gridScoreFieldThreshold,
                   -1.0) #invalid
             return(sp)
           }
 )
-setGeneric(name="grid.orientation",
+setGeneric(name="gridOrientation",
            def=function(sp)
-           {standardGeneric("grid.orientation")}
+           {standardGeneric("gridOrientation")}
 )
-setMethod(f="grid.orientation",
+setMethod(f="gridOrientation",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
             if(length(sp@autos)==0)
-              stop("Need to call map.spatial.autocorrelation first to run grid.orientation()")
+              stop("Need to call mapSpatialAutocorrelation first to run gridOrientation()")
             
 
-            sp@grid.orientation<- .Call("grid_orientation_cwrap",
-                                 sp@cell.list,
-                                 length(sp@cell.list),
+            sp@gridOrientation<- .Call("grid_orientation_cwrap",
+                                 sp@cellList,
+                                 length(sp@cellList),
                                  sp@autos,
-                                 sp@ncol.auto,
-                                 sp@nrow.auto,
-                                 sp@cm.per.bin,
-                                 sp@grid.score.number.fields.to.detect,
-                                 sp@grid.score.min.num.bins.per.field,
-                                 sp@grid.score.field.threshold,
+                                 sp@nColAuto,
+                                 sp@nRowAuto,
+                                 sp@cmPerBin,
+                                 sp@gridScoreNumberFieldsToDetect,
+                                 sp@gridScoreMinNumBinsPerField,
+                                 sp@gridScoreFieldThreshold,
                                  -1.0)
             return(sp)
           }
 )
-setGeneric(name="grid.spacing",
+setGeneric(name="gridSpacing",
            def=function(sp)
-           {standardGeneric("grid.spacing")}
+           {standardGeneric("gridSpacing")}
 )
-setMethod(f="grid.spacing",
+setMethod(f="gridSpacing",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
             if(length(sp@autos)==0)
-              stop("Need to call map.spatial.autocorrelation first to run grid.spacing()")
+              stop("Need to call mapSpatialAutocorrelation first to run gridSpacing()")
             
-            sp@grid.spacing<- .Call("grid_spacing_cwrap",
-                                        sp@cell.list,
-                                        length(sp@cell.list),
+            sp@gridSpacing<- .Call("grid_spacing_cwrap",
+                                        sp@cellList,
+                                        length(sp@cellList),
                                         sp@autos,
-                                        sp@ncol.auto,
-                                        sp@nrow.auto,
-                                        sp@cm.per.bin,
-                                        sp@grid.score.number.fields.to.detect,
-                                        sp@grid.score.min.num.bins.per.field,
-                                        sp@grid.score.field.threshold,
+                                        sp@nColAuto,
+                                        sp@nRowAuto,
+                                        sp@cmPerBin,
+                                        sp@gridScoreNumberFieldsToDetect,
+                                        sp@gridScoreMinNumBinsPerField,
+                                        sp@gridScoreFieldThreshold,
                                         -1.0)
             return(sp)
           }
 )
 
 
-setGeneric(name="border.score",
+setGeneric(name="borderScore",
            def=function(sp)
-           {standardGeneric("border.score")}
+           {standardGeneric("borderScore")}
 )
-setMethod(f="border.score",
+setMethod(f="borderScore",
           signature="SpatialProperties2d",
           definition=function(sp)
           {
             if(length(sp@maps)==0)
-              stop("Need to call firing.rate.map.2d first to run border.score()")
+              stop("Need to call firingRateMap2d first to run borderScore()")
             
             results<-.Call("border_score_rectangular_environment_cwrap",
-                    sp@cell.list,
-                    length(sp@cell.list),
-                    sp@ncol.map,
-                    sp@nrow.map,
+                    sp@cellList,
+                    length(sp@cellList),
+                    sp@nColMap,
+                    sp@nRowMap,
                     sp@occupancy,
                     sp@maps,
-                    sp@border.percentage.threshold.field,
-                    sp@border.min.bins.in.field)
+                    sp@borderPercentageThresholdField,
+                    sp@borderMinBinsInField)
             
-            sp@border.score<-results[1,]
-            sp@border.cm<-results[2,]
-            sp@border.dm<-results[3,]
-            sp@border.num.field.detected<-results[4,]
+            sp@borderScore<-results[1,]
+            sp@borderCM<-results[2,]
+            sp@borderDM<-results[3,]
+            sp@borderNumFieldsDetected<-results[4,]
             return(sp)
           }
 )

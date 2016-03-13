@@ -1,4 +1,4 @@
-make.pairs<-function(cl1="",cl2=NULL){
+makePairs<-function(cl1="",cl2=NULL){
   if(is.null(cl2)){
     m<-combn(cl1,m=2)
     data.frame(Var1=m[1,],Var2=m[2,])
@@ -8,7 +8,7 @@ make.pairs<-function(cl1="",cl2=NULL){
   }
 }
 
-smooth.gaussian<-function(x,sd=2,invalid=-1.0)
+smoothGaussian<-function(x,sd=2,invalid=-1.0)
 {
   if(length(x)==0)
     return
@@ -20,7 +20,7 @@ smooth.gaussian<-function(x,sd=2,invalid=-1.0)
                     x, length(x), sd, invalid)
   return(results)
 }
-smooth.gaussian.degrees<-function(x,sd=2,invalid=-1.0)
+smoothGaussianDegrees<-function(x,sd=2,invalid=-1.0)
 {
   if(length(x)==0)
     return

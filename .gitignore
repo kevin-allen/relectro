@@ -2,3 +2,4 @@
 *.so
 *~
 inst/doc
+.Rproj.user

@@ -48,15 +48,14 @@ df<-df[order(df$res),] # sort according to res values
 ## create a SpikeTrain object from random spikes ###
 st<-new("SpikeTrain")
 ## set the spike trains in the object
-st<-setSpikeTrain(st=st,res=df$res,clu=df$clu,sampling.rate=20000)
+st<-setSpikeTrain(st=st,res=df$res,clu=df$clu,samplingRate=20000)
 ## get the spike-time autocorrelation
-auto<-spikeTimeAutocorrelation(st,bin.size.ms=1,window.size.ms=200)
+auto<-spikeTimeAutocorrelation(st,binSizeMs=1,windowSizeMs=200)
 ## plot the autocorrelation
 plot(auto$count,type='l',ylab="Spike count", xlab="time (ms)")
 ## get the mean firing rate
 meanFiringRate(st)
 rm(clu,res1,res2,res3,df,auto,st)
-
 ```
 
 
@@ -76,13 +75,13 @@ setwd(datadir)
 st<-new("SpikeTrain") # create SpikeTrain object
 st@session=session # set session name
 st<-loadSpikeTrain(st) # load res clu and sampling rate
-#cross<-spikeTimeCrosscorrelation(st,bin.size.ms=1,window.size.ms = 200,probability = T) ## calculate spike-time crosscorrelation
-#plot(cross$time[which(cross$clu1==2&cross$clu2==5)],cross$prob[which(cross$clu1==2&cross$clu2==5)],ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5") ## plot one crosscorrelation
+cross<-spikeTimeCrosscorrelation(st,binSizeMs=1,windowSizeMs = 200,probability = T) ## calculate spike-time crosscorrelation
+plot(cross$time[which(cross$clu1==2&cross$clu2==5)],cross$prob[which(cross$clu1==2&cross$clu2==5)],ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5") ## plot one crosscorrelation
 ## set some events, in this case the spikes of clu 2
-#st<-setEvents(st,events=st@res[which(st@clu==2)])
-#cc<-spikeTimeCrosscorrelationEvents(st)
-#plot(cc$time[which(cc$clu==6)],cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[which(cc$clu==6)])),ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
-#rm(cross,cc,clufile)
+st<-setEvents(st,events=st@res[which(st@clu==2)])
+cc<-spikeTimeCrosscorrelationEvents(st)
+plot(cc$time[which(cc$clu==6)],cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[which(cc$clu==6)])),ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
+rm(cross,cc,clufile)
 
 ```
 
@@ -121,15 +120,15 @@ Positrack objects are used to represent the path of the animal during a recordin
 setwd(datadir)
 pt<-new("Positrack",session=session)
 pt<-loadPositrack(pt)
-m<-get.intervals.at.speed(pt,0,3)
+m<-getIntervalsAtSpeed(pt,0,3)
 m[,1:10]
 rm(m)
 ```
 
 One can also use the intervals given by the RecSession object to limit the analysis of the path to these intervals.
 ```{r positrack2}
-pt1<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
-plot(pt1@x[1:10000],pt1@y[1:10000],xlab="x (cm)",ylab="y (cm)")
+pt1<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
+plot(pt1@x[1:10000],pt1@y[1:10000],col="black", type='l',xlab="x (cm)",ylab="y (cm)")
 rm(pt1)
 ```
 
@@ -137,7 +136,7 @@ You can see that the path is limited to the sqr70 environment.
 
 You can get the speed of the animal at some define time points
 ```{r positrack3}
-plot(get.speed.at.res.values(pt,res=seq(100000,300000,20)),type='l',xlab="res index",ylab="Running speed (cm/sec)")
+plot(getSpeedAtResValues(pt,res=seq(100000,300000,20)),type='l',xlab="res index",ylab="Running speed (cm/sec)")
 ```
 
 ## SpatialProperties2d
@@ -148,14 +147,14 @@ Now that you have a recording session, spike trains, and the position data, you 
 ```{r spatial_properties1}
 
 sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
-pt<-set.invalid.outside.interval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
-sp<-firing.rate.map.2d(sp,st,pt) ## make firing rate maps
-sp<-get.map.stats(sp) ## get info score, sparsity from maps
-sp<-map.spatial.autocorrelation(sp) ## spatial autocorrelation from maps
-sp<-grid.score(sp)
-sp<-grid.orientation(sp)
-sp<-grid.spacing(sp)
-sp<-border.score(sp)
+pt<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
+sp<-firingRateMap2d(sp,st,pt) ## make firing rate maps
+sp<-getMapStats(sp) ## get info score, sparsity from maps
+sp<-mapSpatialAutocorrelation(sp) ## spatial autocorrelation from maps
+sp<-gridScore(sp)
+sp<-gridOrientation(sp)
+sp<-gridSpacing(sp)
+sp<-borderScore(sp)
 sp
 ## plot one firing rate map
 jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))

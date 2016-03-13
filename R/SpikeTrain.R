@@ -25,10 +25,10 @@ setGeneric(name="spikeTimeAutocorrelation",
              {standardGeneric("spikeTimeAutocorrelation")})
 setMethod(f="spikeTimeAutocorrelation",
           signature = "SpikeTrain",
-          definition=function(st,bin.size.ms=1,window.size.ms=200,probability=FALSE,...)
+          definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE,...)
             {
-            n.bins=(window.size.ms*2)/bin.size.ms
-            window.size=2*window.size.ms*st@samplingRate/1000 # window size in res value from - to + extrems
+            nBins=(windowSizeMs*2)/binSizeMs
+            windowSize=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
             
             results<- .Call("autocorrelation_cwrap",
@@ -37,8 +37,8 @@ setMethod(f="spikeTimeAutocorrelation",
                         st@clu,
                         st@res,
                         st@nSpikes,
-                        n.bins,
-                        window.size,
+                        nBins,
+                        windowSize,
                         st@startResIndexc,
                         st@endResIndexc,
                         length(st@startResIndexc),
@@ -46,12 +46,12 @@ setMethod(f="spikeTimeAutocorrelation",
             
             # return a data fram with clu time count
             if(probability==F)
-              data.frame(clu=rep(st@cellList,each=n.bins),
-                         time=seq(-window.size.ms+bin.size.ms,window.size.ms,bin.size.ms)-(bin.size.ms/2),
+              data.frame(clu=rep(st@cellList,each=nBins),
+                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
                          count=results)
             else{
-              data.frame(clu=rep(st@cellList,each=n.bins),
-                         time=seq(-window.size.ms+bin.size.ms,window.size.ms,bin.size.ms)-(bin.size.ms/2),
+              data.frame(clu=rep(st@cellList,each=nBins),
+                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
                          prob=results)
             }
           }
@@ -64,20 +64,20 @@ setMethod(f="spikeTimeAutocorrelation",
 # function using .Call() to call c wrapper
 # It calls the the c function with the cwrap suffix
 setGeneric(name="spikeTimeCrosscorrelationEvents",
-           def=function(st,bin.size.ms=1,window.size.ms=200,probability=FALSE)
+           def=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
            {standardGeneric("spikeTimeCrosscorrelationEvents")})
 
 setMethod(f="spikeTimeCrosscorrelationEvents",
           signature = "SpikeTrain",
-          definition=function(st,bin.size.ms=1,window.size.ms=200,probability=FALSE)
+          definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
           {
             
             if(length(st@events)==0)
               stop("events is empty")
             
             
-            n.bins=(window.size.ms*2)/bin.size.ms
-            window.size=2*window.size.ms*st@samplingRate/1000 # window size in res value from - to + extrems
+            nBins=(windowSizeMs*2)/binSizeMs
+            windowSize=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
             
             dyn.load("~/repo/r_packages/relectro/src/relectro.so")
@@ -87,8 +87,8 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
                             st@clu,
                             st@res,
                             st@nSpikes,
-                            n.bins,
-                            window.size,
+                            nBins,
+                            windowSize,
                             st@startResIndexc,
                             st@endResIndexc,
                             length(st@startResIndexc),
@@ -99,39 +99,34 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
             
             # return a data fram with clu time count
             if(probability==F){
-              data.frame(clu=rep(st@cellList,each=n.bins),
-                         time=seq(-window.size.ms+bin.size.ms,window.size.ms,bin.size.ms)-(bin.size.ms/2),
+              data.frame(clu=rep(st@cellList,each=nBins),
+                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
                          count=results)
             }
             else{
-              data.frame(clu=rep(st@cellList,each=n.bins),
-                         time=seq(-window.size.ms+bin.size.ms,window.size.ms,bin.size.ms)-(bin.size.ms/2),
+              data.frame(clu=rep(st@cellList,each=nBins),
+                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
                          prob=results)
             }
-          
         })
 
 ### spikeTimeCrosscorrelation ###
 # function using .Call() to call c wrapper
 # It calls the the c function with the cwrap suffix
 setGeneric(name="spikeTimeCrosscorrelation",
-           def=function(st,bin.size.ms=1,window.size.ms=200,probability=FALSE)
+           def=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
            {standardGeneric("spikeTimeCrosscorrelation")})
 
 setMethod(f="spikeTimeCrosscorrelation",
           signature = "SpikeTrain",
-          definition=function(st,bin.size.ms=1,window.size.ms=200,probability=FALSE)
+          definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
           {
             
             if(length(st@cellPairList[,1])==0)
               stop("cellPairList is empty")
-            
-           # bin.size.ms=1
-          #  window.size.ms=200
-          #  probability=FALSE
-            
-            n.bins=(window.size.ms*2)/bin.size.ms
-            window.size=2*window.size.ms*st@samplingRate/1000 # window size in res value from - to + extrems
+          
+            nBins=(windowSizeMs*2)/binSizeMs
+            window.size=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
             window.size
             
@@ -142,7 +137,7 @@ setMethod(f="spikeTimeCrosscorrelation",
                             st@clu,
                             st@res,
                             st@nSpikes,
-                            n.bins,
+                            nBins,
                             window.size,
                             st@startResIndexc,
                             st@endResIndexc,
@@ -152,14 +147,14 @@ setMethod(f="spikeTimeCrosscorrelation",
             
             # return a data fram with clu time count
             if(probability==F)
-              data.frame(clu1=rep(st@cellPairList[,1],each=n.bins),
-                         clu2=rep(st@cellPairList[,2],each=n.bins),
-                         time=seq(-window.size.ms+bin.size.ms,window.size.ms,bin.size.ms)-(bin.size.ms/2),
+              data.frame(clu1=rep(st@cellPairList[,1],each=nBins),
+                         clu2=rep(st@cellPairList[,2],each=nBins),
+                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
                          count=results)
             else
-              data.frame(clu1=rep(st@cellPairList[,1],each=n.bins),
-                         clu2=rep(st@cellPairList[,2],each=n.bins),
-                         time=seq(-window.size.ms+bin.size.ms,window.size.ms,bin.size.ms)-(bin.size.ms/2),
+              data.frame(clu1=rep(st@cellPairList[,1],each=nBins),
+                         clu2=rep(st@cellPairList[,2],each=nBins),
+                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
                          prob=results)
             
           }
@@ -204,13 +199,12 @@ setMethod(f="loadSpikeTrain",
             st@cellList<-sort(unique(st@clu))
             # by default get all the possible pairs
             if(length(st@cellList>1))
-              st@cellPairList<-make.pairs(st@cellList)
+              st@cellPairList<-makePairs(st@cellList)
             st@startInterval<-0
             st@endInterval<-max(st@res)
             st@startResIndexc<-0
             st@endResIndexc<-length(st@res)-1
             return(st)
-          
           }
 )
 
@@ -223,16 +217,12 @@ setGeneric(name="setSpikeTrain",
 
 setMethod(f="setSpikeTrain",
           signature="SpikeTrain",
-          definition=function(st,res,clu,sampling.rate)
+          definition=function(st,res,clu,samplingRate)
           {
-            
-            #res=df$res
-            #clu=df$clu
-            #sampling.rate=20000
-            
+          
             st@res<-res
             st@clu<-clu
-            st@samplingRate<-sampling.rate
+            st@samplingRate<-samplingRate
           
             if(st@samplingRate<1 | st@samplingRate > 100000)
               stop(paste("samplingRate is out of range:",st@samplingRate))
@@ -249,7 +239,7 @@ setMethod(f="setSpikeTrain",
             st@cellList<-sort(unique(st@clu))
             
             if(length(st@cellList)>1)
-              st@cellPairList<-make.pairs(st@cellList)
+              st@cellPairList<-makePairs(st@cellList)
             st@startInterval<-0
             st@endInterval<-max(st@res)
             st@startResIndexc<-0
@@ -297,27 +287,27 @@ setMethod(f="setIntervals",
             
             ## if s is a matrix, then e is ignored
             if(class(s)=="matrix"){
-              start.intervals<-as.numeric(s[,1])
-              end.intervals<-as.numeric(s[,2])
+              startIntervals<-as.numeric(s[,1])
+              endIntervals<-as.numeric(s[,2])
               
             }else{
-              start.intervals<-s
-              end.intervals<-e
+              startIntervals<-s
+              endIntervals<-e
             }
             
-            if(length(start.intervals)!=length(end.intervals))
-              stop("problem with length of start.intervals and end.intervals")
-            if(any(start.intervals>end.intervals))
-              stop("start.intervals>end.intervals")
-            if(any(diff(start.intervals)<0))
-              stop("problem with chonology within start.intervals")
-            if(any(diff(end.intervals)<0))
-              stop("problem with chonology within end.intervals")
-            if(any(start.intervals[-1]-end.intervals[-length(end.intervals)]<0))
+            if(length(startIntervals)!=length(endIntervals))
+              stop("problem with length of startIntervals and endIntervals")
+            if(any(startIntervals>endIntervals))
+              stop("startIntervals>endIntervals")
+            if(any(diff(startIntervals)<0))
+              stop("problem with chonology within startIntervals")
+            if(any(diff(endIntervals)<0))
+              stop("problem with chonology within endIntervals")
+            if(any(startIntervals[-1]-endIntervals[-length(endIntervals)]<0))
               stop("problem with chronology between intervals, from end to next start")
             
-            st@startInterval<-start.intervals
-            st@endInterval<-end.intervals
+            st@startInterval<-startIntervals
+            st@endInterval<-endIntervals
             
             st@startInterval
             st@endInterval
@@ -379,5 +369,4 @@ setMethod("show", "SpikeTrain",
             print(paste("nIntervalsc:",length(object@startResIndexc)))
             print(paste(object@startResIndexc,object@endResIndexc))
             print(paste("nEvents:",length(object@events)))
-            
                   })

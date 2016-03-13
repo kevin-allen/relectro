@@ -3,64 +3,64 @@
 ############################################
 DatFiles <- setClass(
   "DatFiles", ## name of the class
-  slots=c(file.names="character",
+  slots=c(fileNames="character",
           resofs="numeric",
-          num.channels="numeric"
+          nChannels="numeric"
           ),
-  prototype = list(file.names="",num.channels=0))
+  prototype = list(fileNames="",nChannels=0))
 
-### dat.files.set ###
-setGeneric(name="dat.files.set",
-           def=function(df,file.names,num.channels)
-           {standardGeneric("dat.files.set")}
+### datFilesSet ###
+setGeneric(name="datFilesSet",
+           def=function(df,fileNames,nChannels)
+           {standardGeneric("datFilesSet")}
 )
-setMethod(f="dat.files.set",
+setMethod(f="datFilesSet",
           signature="DatFiles",
-          definition=function(df,file.names="",num.channels=0)
+          definition=function(df,fileNames="",nChannels=0)
           {
-            if(length(file.names)==0)
-              stop("file.names length = 0")
-            if(num.channels<=0)
-              stop("num.channels should be larger than 0")
+            if(length(fileNames)==0)
+              stop("fileNames length = 0")
+            if(nChannels<=0)
+              stop("nChannels should be larger than 0")
             
-            df@file.names=file.names
-            df@num.channels=num.channels
+            df@fileNames=fileNames
+            df@nChannels=nChannels
             return(df)                        
           })
 
-setGeneric(name="dat.files.get.one.channel",
-           def=function(df,channel.no,first.sample,last.sample)
-           {standardGeneric("dat.files.get.one.channel")}
+setGeneric(name="datFilesGetOneChannel",
+           def=function(df,channelNo,firstSample,lastSample)
+           {standardGeneric("datFilesGetOneChannel")}
 )
-setMethod(f="dat.files.get.one.channel",
+setMethod(f="datFilesGetOneChannel",
           signature="DatFiles",
-          definition=function(df,channel.no,first.sample,last.sample)
+          definition=function(df,channelNo,firstSample,lastSample)
           {
-            if(length(df@file.names)==0)
-              stop("df@file.names length = 0")
-            if(df@num.channels<=0)
-              stop("df@num.channles should be larger than 0")
-            if(channel.no<0)
-              stop("channel.no < 0")
-            if(channel.no>=df@num.channels)
-              stop("channel.no >= df@num.channels")
-            if(first.sample<0)
-              stop("first.sample<0")
-            if(last.sample<0)
-              stop("last.sample<0")
-            if(first.sample>last.sample)
-              stop("first.sample > last.sample")
-            if(length(df@file.names)>100)
+            if(length(df@fileNames)==0)
+              stop("df@fileNames length = 0")
+            if(df@nChannels<=0)
+              stop("df@nChannles should be larger than 0")
+            if(channelNo<0)
+              stop("channelNo < 0")
+            if(channelNo>=df@nChannels)
+              stop("channelNo >= df@nChannels")
+            if(firstSample<0)
+              stop("firstSample<0")
+            if(lastSample<0)
+              stop("lastSample<0")
+            if(firstSample>lastSample)
+              stop("firstSample > lastSample")
+            if(length(df@fileNames)>100)
               stop("can only works with a maximum of 100 files")
-            if(any(nchar(df@file.names)>255))
+            if(any(nchar(df@fileNames)>255))
               stop("max file name size is 255")
             
             results<-.Call("group_data_file_si_get_one_channel_cwrap",
-                df@file.names,
-                df@num.channels,
-                channel.no,
-                first.sample,
-                last.sample)
+                df@fileNames,
+                df@nChannels,
+                channelNo,
+                firstSample,
+                lastSample)
           return(results)
           })
 
@@ -68,9 +68,9 @@ setMethod(f="dat.files.get.one.channel",
 ### show ###
 setMethod("show", "DatFiles",
           function(object){
-            print(paste("file.names:"))
-            print(paste(object@file.names))
-            print(paste("num.channels:",object@num.channels))
+            print(paste("fileNames:"))
+            print(paste(object@fileNames))
+            print(paste("nChannels:",object@nChannels))
           })
 
 
