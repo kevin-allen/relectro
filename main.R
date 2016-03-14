@@ -15,9 +15,6 @@ library(rbenchmark) # useful to test speed, or system.time
 library(devtools) # to develop the package
 library(roxygen2) # to make the documentation, etc.
 
-
-
-
 ### choose one of the 3 options
 ## option 1
 ## loading the installed package
@@ -37,7 +34,20 @@ source("~/repo/r_packages/relectro/R/DatFiles.R")
 dyn.load("~/repo/r_packages/relectro/src/relectro.so")
 
 
+########################
+### DatFiles object ####
+########################
+## get session information
+rs<-new("RecSession",session="jp4298-12022016-0104",path="/data/projects/vtrack/jp4298/jp4298-12022016-0104")
+rs<-loadRecSession(rs)
+rs
+## get data from files, use rs to get info we need
+df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
+df
+rs
+data<-datFilesGetOneChannel(df,channelNo=df@nChannels-1,firstSample=0,lastSample=rs@trialEndRes[length(rs@trialEndRes)]) # get data one channel
 
+memory.profile()
 
 #########################################
 #### EXAMPLES RANDOM DATA SpikeTrain ####
@@ -220,17 +230,30 @@ rm(sp,pt,jet.colors,map,st,rs)
 ### DatFiles object ####
 ########################
 ## get session information
-rs<-new("RecSession")
-setwd("/data/processing/jp4298/jp4298-12022016-0104/")
-rs@session="jp4298-12022016-0104"
+rs<-new("RecSession",session="jp4298-12022016-0104",path="/data/projects/vtrack/jp4298/jp4298-12022016-0104")
 rs<-loadRecSession(rs)
+rs
 ## get data from files, use rs to get info we need
-df<-new("DatFiles")
-df<-datFilesSet(df,file.names=paste(rs@trialNames,"dat",sep="."),nChannels=rs@nChannels)
+df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
+df
+rs
+
 data<-datFilesGetOneChannel(df,channelNo=df@nChannels-1,firstSample=0,lastSample=rs@trialEndRes[length(rs@trialEndRes)]) # get data one channel
+
 ## detect ttl ups or down in signal
 ups<-detectUps(x=data)
 downs<-detectDowns(x=data)
 plot(ups[1:50],downs[1:50])
 lines(c(0,120000),c(0,120000))
 rm(rs,df,downs,ups,session,data)
+
+
+
+######################
+### ElectroProject ###
+######################
+ep<-new("ElectroProject",directory="/data/projects/vtrack")
+ep<-setSessionList(ep)
+sapply(ep@sessionList,getIsClustered)
+ep@sessionNameList[sapply(ep@sessionList,containsElectrodeLocation,"mec")]
+ep@sessionNameList[sapply(ep@sessionList,containsEnvironment,"lt")]

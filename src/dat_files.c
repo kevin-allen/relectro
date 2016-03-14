@@ -22,8 +22,8 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   char* data_file_names[MAXNUMBERFILES];
   int i, file_lines;
   struct group_data_file_si gdf;
-  long int num_samples;
-  long int needed_samples;
+  int num_samples;
+  int needed_samples;
   short int* data;
 
   PROTECT(file_names_r = AS_CHARACTER(file_names_r));
@@ -37,8 +37,14 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
 
   //copy the file names into a x-element array of pointer */
   for (i=0; i<file_lines; i++) {
-    data_file_names[i]=malloc(strlen( CHAR(STRING_ELT(file_names_r, i))) + 1);
+    if((data_file_names[i]=malloc(strlen( CHAR(STRING_ELT(file_names_r, i))) + 1))==NULL)
+      {
+	fprintf(stderr,"group_data_File_si_get_one_channel_cwrap(): problem allocating memory for data_file_names\n");
+	UNPROTECT(1);
+	return(R_NilValue);
+      }
     strcpy(data_file_names[i],CHAR(STRING_ELT(file_names_r, i)));
+    printf("%s\n",data_file_names[i]);
   }
   
   if(init_group_data_file_si(&gdf,data_file_names,file_lines,INTEGER_VALUE(num_channels_r))!=0)
@@ -47,8 +53,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
       UNPROTECT(1);
       return (R_NilValue);
     }
-  
-  num_samples=gdf.num_samples_all_files;
+  num_samples=(int)gdf.num_samples_all_files;
   
   if(INTEGER_VALUE(end_index_r) > num_samples)
     {
@@ -56,17 +61,17 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
       UNPROTECT(1);
       return (R_NilValue);
     }
-  
+
   needed_samples=INTEGER_VALUE(end_index_r)-INTEGER_VALUE(start_index_r);
   SEXP out = PROTECT(allocVector(INTSXP,needed_samples));
   int* ptr = INTEGER_POINTER(out);
   data = (short*) malloc(needed_samples*sizeof(short));
   
   if ((group_data_file_si_get_data_one_channel(&gdf,
-						INTEGER_VALUE(channel_no_r),
-					       data,
-					       INTEGER_VALUE(start_index_r),
-					       INTEGER_VALUE(end_index_r)))!=0)
+  					       INTEGER_VALUE(channel_no_r),
+  					       data,
+  					       INTEGER_VALUE(start_index_r),
+  					       INTEGER_VALUE(end_index_r)))!=0)
     {
       printf("error reading from data file\n");
       UNPROTECT(2);
@@ -80,6 +85,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   for (i=0; i<file_lines; i++)
     free(data_file_names[i]);
   free(data);
+  clean_group_data_file_si(&gdf);
   UNPROTECT(2);
   return(out);
 }
@@ -131,8 +137,8 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,in
       gdf->num_samples_all_files+=gdf->file_group[i].num_samples_in_file;
     }
 
-  //fprintf(stderr,"init_group_data_file_si(): gdf->num_files: %d \n",gdf->num_files);
-  //fprintf(stderr,"init_group_data_file_si(): gdf->num_channels: %d \n",gdf->num_channels);
+  fprintf(stderr,"init_group_data_file_si(): gdf->num_files: %d \n",gdf->num_files);
+  fprintf(stderr,"init_group_data_file_si(): gdf->num_channels: %d \n",gdf->num_channels);
   return 0;
 }
 
@@ -206,10 +212,9 @@ int clean_group_data_file_si(struct group_data_file_si * gdf)
 {
   // function to free allocated memory
   int i;
-  // fprintf(stderr,"clean_group_data_file_si()\n");
   for(i=0; i < gdf->num_files;i++)
     {
-      clean_data_file_si(&gdf->file_group[i]);
+       clean_data_file_si(&gdf->file_group[i]);
     }
   // free memory
   if(gdf->file_group!=NULL)
@@ -230,7 +235,7 @@ int init_data_file_si(struct data_file_si *df,const char *file_name, int num_cha
   df->file_name=NULL;
   df->data_block=NULL;
   // allocate memory for df->file_name
-  if((df->file_name=(char *)malloc(strlen(file_name)))==NULL)
+  if((df->file_name=(char *)malloc(strlen(file_name)+1))==NULL)
     {
       fprintf(stderr,"init_data_file_si(): problem allocating memory for file_name\n");
       return 1;
@@ -289,14 +294,18 @@ int clean_data_file_si(struct data_file_si *df)
 {
   /* function to free memory and close a .dat file after reading it.
    */
-  //  fprintf(stderr,"clean_data_file_si()\n");
+  fprintf(stderr,"clean_data_file_si()\n");
   // free memory
+
+  fprintf(stderr,"free file_name\n");
   if (df->file_name!=NULL)
     free(df->file_name);
+  fprintf(stderr,"free data_block\n");
   if (df->data_block!=NULL)
     free(df->data_block);
   
   // try to close the file
+  fprintf(stderr,"close file\n");
   if(close(df->file_descriptor)==-1)
     {
       fprintf(stderr,"clean_data_file_si(): problem closing file descriptor %d\n",df->file_descriptor);

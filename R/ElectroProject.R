@@ -4,7 +4,7 @@
 ElectroProject <- setClass(
   "ElectroProject", ## name of the class
   slots=c(directory="character",
-          nSession="numeric",
+          nSessions="numeric",
           sessionNameList="character",
           sessionList="list"),
   prototype = list(directory=""))
@@ -26,10 +26,10 @@ setMethod(f="setSessionList",
             
             ## only keep the directory with a hyphen in the name
             dirs<-dirs[grepl(pattern="-",dirs)]
-            ep@nSession<-length(dirs)
+            ep@nSessions<-length(dirs)
             
             dirDepth<-length(strsplit(dirs,split="/")[[1]])
-            ep@sessionNameList<-unlist(strsplit(dirs,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSession,by=dirDepth)]
+            ep@sessionNameList<-unlist(strsplit(dirs,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
               
             for (i in 1:length(dirs))
             {
@@ -39,9 +39,14 @@ setMethod(f="setSessionList",
           return(ep)
           })
 
-ep<-new("ElectroProject",directory="/data/projects/vtrack")
-ep<-setSessionList(ep)
-sapply(ep@sessionList,getIsClustered)
-ep@sessionNameList[sapply(ep@sessionList,containsElectrodeLocation,"mec")]
-ep@sessionNameList[sapply(ep@sessionList,containsEnvironment,"lt")]
+
+### show ###
+setMethod("show", "ElectroProject",
+          function(object){
+            print(paste("directory:",object@directory))
+            print(paste("nSessions:",object@nSessions))
+            print(paste("sessionNameList:"))
+            print(object@sessionNameList)
+            print(paste("Clustered sessions:",sum(sapply(ep@sessionList,getIsClustered))))
+          })
 

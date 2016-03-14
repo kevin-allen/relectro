@@ -5,6 +5,7 @@ RecSession <- setClass(
   "RecSession", ## name of the class
   slots=c(session="character",
           path="character",
+          fileBase="character", # path+session
           samplingRate="numeric",
           resofs="numeric",
           env="character",
@@ -32,7 +33,6 @@ setMethod(f="loadRecSession",
           definition=function(rs)
           {
             
-            
             #setwd("~/repo/r_packages/data")
             #session="jp4298-15022016-0106"
             if(rs@session=="")
@@ -40,13 +40,14 @@ setMethod(f="loadRecSession",
             if(rs@path=="")
               rs@path=getwd()
             
-            pathSession=paste(rs@path,rs@session,sep="/")
+            rs@fileBase=paste(rs@path,rs@session,sep="/")
             
-            if(!file.exists(paste(pathSession,"par",sep=".")))
-              stop("needs ",paste(pathSession,"par",sep="."))
+            
+            if(!file.exists(paste(rs@fileBase,"par",sep=".")))
+              stop("needs ",paste(rs@fileBase,"par",sep="."))
             
             ## read the par file line per line## shitty format
-            conn <- file(paste(pathSession,"par",sep="."),open="r")
+            conn <- file(paste(rs@fileBase,"par",sep="."),open="r")
             par<-readLines(conn)
             close(conn)
             rs@nChannels<-as.numeric(unlist(strsplit(par[1], split=" "))[1])
@@ -62,13 +63,13 @@ setMethod(f="loadRecSession",
             for(i in 1:rs@nElectrodes)
               rs@channelsTetrode[i,]<-as.numeric(chan[[i]][-1])
             
-            if(file.exists(paste(pathSession,"desen",sep="."))){
-              rs@env<-as.character(read.table(paste(pathSession,"desen",sep="."))$V1)
+            if(file.exists(paste(rs@fileBase,"desen",sep="."))){
+              rs@env<-as.character(read.table(paste(rs@fileBase,"desen",sep="."))$V1)
               if(length(rs@env)!=length(rs@trialNames))
                 stop("Problem with length of par and desen files")
             }
-            if(file.exists(paste(pathSession,"desel",sep="."))){
-                rs@electrodeLocation<-as.character(read.table(paste(pathSession,"desel",sep="."))$V1)
+            if(file.exists(paste(rs@fileBase,"desel",sep="."))){
+                rs@electrodeLocation<-as.character(read.table(paste(rs@fileBase,"desel",sep="."))$V1)
               if(rs@nElectrodes!=length(rs@electrodeLocation))
                 stop("Problem with length of par and desel files")
             }
@@ -78,13 +79,13 @@ setMethod(f="loadRecSession",
               stop("Problem with number of trials in par file")
             
             ## if early process was run on this one, get more informaiton
-            if(file.exists(paste(pathSession,"resofs",sep="."))&
-               file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
+            if(file.exists(paste(rs@fileBase,"resofs",sep="."))&
+               file.exists(paste(rs@fileBase,"sampling_rate_dat",sep=".")))
             {
               ## get sampling rate
-              rs@samplingRate<-read.table(paste(pathSession,"sampling_rate_dat",sep="."))$V1
+              rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1
               ## read the resofs file  
-              rs@resofs<-read.table(paste(pathSession,"resofs",sep="."))$V1
+              rs@resofs<-read.table(paste(rs@fileBase,"resofs",sep="."))$V1
               
               if(length(rs@resofs)!=rs@nTrials)
                 stop("Problem with length of resofs")
@@ -98,7 +99,7 @@ setMethod(f="loadRecSession",
               rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
               rs@sessionDurationSec<-sum(rs@trialDurationSec)
             }
-            if(file.exists(paste(pathSession,"res",sep="."))){
+            if(file.exists(paste(rs@fileBase,"clu",sep="."))){
               rs@clustered=T
             } else{
               rs@clustered=F
@@ -167,7 +168,8 @@ setMethod(f="getIntervalsEnvironment",
           return(matrix(data=c(rs@trialStartRes[which(rs@env==env)],rs@trialEndRes[which(rs@env==env)]),ncol=2,
                  dimnames=list(rep(env,length(which(rs@env==env))),c("start","end"))))
           })
-            
+ 
+
 
 ### show ###
 setMethod("show", "RecSession",

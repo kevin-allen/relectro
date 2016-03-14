@@ -4,24 +4,28 @@
 DatFiles <- setClass(
   "DatFiles", ## name of the class
   slots=c(fileNames="character",
+          path="character",
           resofs="numeric",
           nChannels="numeric"
           ),
-  prototype = list(fileNames="",nChannels=0))
+  prototype = list(fileNames="",path="",nChannels=0))
 
 ### datFilesSet ###
 setGeneric(name="datFilesSet",
-           def=function(df,fileNames,nChannels)
+           def=function(df,fileNames,path,nChannels)
            {standardGeneric("datFilesSet")}
 )
 setMethod(f="datFilesSet",
           signature="DatFiles",
-          definition=function(df,fileNames="",nChannels=0)
+          definition=function(df,fileNames="",path="",nChannels=0)
           {
             if(length(fileNames)==0)
               stop("fileNames length = 0")
             if(nChannels<=0)
               stop("nChannels should be larger than 0")
+            if(path==""&&df@path==""){
+              df@path=getwd()
+            } 
             
             df@fileNames=fileNames
             df@nChannels=nChannels
@@ -55,8 +59,9 @@ setMethod(f="datFilesGetOneChannel",
             if(any(nchar(df@fileNames)>255))
               stop("max file name size is 255")
             
+           
             results<-.Call("group_data_file_si_get_one_channel_cwrap",
-                df@fileNames,
+                paste(df@path,df@fileNames,sep="/"),
                 df@nChannels,
                 channelNo,
                 firstSample,
@@ -68,6 +73,7 @@ setMethod(f="datFilesGetOneChannel",
 ### show ###
 setMethod("show", "DatFiles",
           function(object){
+            print(paste("path:",object@path))
             print(paste("fileNames:"))
             print(paste(object@fileNames))
             print(paste("nChannels:",object@nChannels))

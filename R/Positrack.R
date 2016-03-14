@@ -4,6 +4,7 @@
 Positrack <- setClass(
   "Positrack", ## name of the class
   slots=c(session="character",
+          path="character",
           pxPerCm="numeric",
           samplingRateDat="numeric",
           resSamplesPerWhlSample="numeric",
@@ -18,7 +19,7 @@ Positrack <- setClass(
           res="numeric",
           defaultXYSmoothing="numeric"
           ),  # cell list to limit the analysis to these cells
-  prototype = list(session="",defaultXYSmoothing=2))
+  prototype = list(session="",path="",defaultXYSmoothing=2))
 
 ### loadPositrack ###
 setGeneric(name="loadPositrack",
@@ -32,27 +33,31 @@ setMethod(f="loadPositrack",
             
             if(pt@session=="")
               stop("pt@session is empty")
-            if(!file.exists(paste(pt@session,"whl",sep=".")))
-              stop("need",paste(pt@session,"whl",sep="."))
-            if(!file.exists(paste(pt@session,"whd",sep=".")))
-              stop("need",paste(pt@session,"whd",sep="."))
-            if(!file.exists(paste(pt@session,"res_samples_per_whl_sample",sep=".")))
-              stop("need",paste(pt@session,"res_samples_per_whl_sample",sep="."))
-            if(!file.exists(paste(pt@session,"sampling_rate_dat",sep=".")))
-              stop("need",paste(pt@session,"sampling_rate_dat",sep="."))
-            if(!file.exists(paste(pt@session,"px_per_cm",sep=".")))
-              stop("need",paste(pt@session,"px_per_cm",sep="."))
+            if(pt@path==""){
+              pt@path=getwd()
+            }
+            pathSession=paste(rs@path,rs@session,sep="/")
+            if(!file.exists(paste(pathSession,"whl",sep=".")))
+              stop("need",paste(pathSession,"whl",sep="."))
+            if(!file.exists(paste(pathSession,"whd",sep=".")))
+              stop("need",paste(pathSession,"whd",sep="."))
+            if(!file.exists(paste(pathSession,"res_samples_per_whl_sample",sep=".")))
+              stop("need",paste(pathSession,"res_samples_per_whl_sample",sep="."))
+            if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
+              stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
+            if(!file.exists(paste(pathSession,"px_per_cm",sep=".")))
+              stop("need",paste(pathSession,"px_per_cm",sep="."))
             
             
             ## get sampling rate
-            whl<-read.table(paste(pt@session,"whl",sep="."))
+            whl<-read.table(paste(pathSession,"whl",sep="."))
             pt@xWhl<-whl$V1
             pt@yWhl<-whl$V2
-            whd<-read.table(paste(pt@session,"whd",sep="."))
+            whd<-read.table(paste(pathSession,"whd",sep="."))
             pt@hdWhd<-whd$V3
-            pt@resSamplesPerWhlSample<-read.table(paste(pt@session,"res_samples_per_whl_sample",sep="."))$V1
-            pt@pxPerCm<-read.table(paste(pt@session,"px_per_cm",sep="."))$V1
-            pt@samplingRateDat<-read.table(paste(pt@session,"sampling_rate_dat",sep="."))$V1
+            pt@resSamplesPerWhlSample<-read.table(paste(pathSession,"res_samples_per_whl_sample",sep="."))$V1
+            pt@pxPerCm<-read.table(paste(pathSession,"px_per_cm",sep="."))$V1
+            pt@samplingRateDat<-read.table(paste(pathSession,"sampling_rate_dat",sep="."))$V1
             
             ## check that things add up
             if(length(pt@xWhl)!=length(pt@hdWhd))
@@ -274,6 +279,7 @@ setMethod(f="getIntervalsAtSpeed",
 setMethod("show", "Positrack",
           function(object){
             print(paste("session:",object@session))
+            print(paste("path:",object@path))
             if(length(object@samplingRateDat)==0){
               print(paste("Oject not yet loaded"))
               print("call loadPositrack")

@@ -4,6 +4,7 @@
 SpikeTrain <- setClass(
   "SpikeTrain", ## name of the class
   slots=c(session="character",
+          path="character",
           samplingRate="numeric",
           res="numeric",
           time="numeric",
@@ -16,6 +17,107 @@ SpikeTrain <- setClass(
           events="numeric",
           cellList="numeric",cellPairList="data.frame"),  # cell list to limit the analysis to these cells
   prototype = list(session=""))
+
+
+
+### loadSpikeTrain ###
+setGeneric(name="loadSpikeTrain",
+           def=function(st)
+           {standardGeneric("loadSpikeTrain")}
+)
+setMethod(f="loadSpikeTrain",
+          signature="SpikeTrain",
+          definition=function(st)
+          {
+            
+            if(st@session=="")
+              stop("st@session is not set")
+            if(st@path=="") ## path is given or is getwd()
+              st@path=getwd()
+            pathSession=paste(st@path,st@session,sep="/")
+            
+            
+            if(!file.exists(paste(pathSession,"res",sep=".")))
+              stop("need",paste(pathSession,"res",sep="."))
+            if(!file.exists(paste(pathSession,"clu",sep=".")))
+              stop("need",paste(pathSession,"clu",sep="."))
+            if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
+              stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
+            
+            st@res<-read.table(paste(pathSession,"res",sep="."))$V1
+            st@clu<-read.table(paste(pathSession,"clu",sep="."))$V1
+            st@samplingRate<-read.table(paste(pathSession,"sampling_rate_dat",sep="."))$V1
+            if(st@samplingRate<1 | st@samplingRate > 100000)
+              stop(paste("samplingRate is out of range:",st@samplingRate))
+            st@clu<-st@clu[-1] ## remove first number
+            if(length(st@res)!=length(st@clu))
+              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu)))
+            # remove noise cluster 1 or 0
+            df<-data.frame(res=st@res,clu=st@clu)
+            df<-df[which(df$clu>1),]
+            st@res<-df$res
+            st@clu<-df$clu
+            # get time in sec
+            st@time<-st@res/st@samplingRate
+            st@nSpikes<-length(st@res)
+            st@nCells<-length(unique(st@clu))
+            st@nSpikesPerCell<-as.numeric(table(st@clu))
+            # by default analysis on all cells and all recording period
+            st@cellList<-sort(unique(st@clu))
+            # by default get all the possible pairs
+            if(length(st@cellList>1))
+              st@cellPairList<-makePairs(st@cellList)
+            st@startInterval<-0
+            st@endInterval<-max(st@res)
+            st@startResIndexc<-0
+            st@endResIndexc<-length(st@res)-1
+            return(st)
+          }
+)
+
+### setSpikeTrain ###
+setGeneric(name="setSpikeTrain",
+           def=function(st,...)
+           {standardGeneric("setSpikeTrain")}
+)
+
+
+setMethod(f="setSpikeTrain",
+          signature="SpikeTrain",
+          definition=function(st,res,clu,samplingRate)
+          {
+            
+            st@res<-res
+            st@clu<-clu
+            st@samplingRate<-samplingRate
+            
+            if(st@samplingRate<1 | st@samplingRate > 100000)
+              stop(paste("samplingRate is out of range:",st@samplingRate))
+            
+            if(length(st@res)!=length(st@clu))
+              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu)))
+            
+            # get time in sec
+            st@time<-st@res/st@samplingRate
+            st@nSpikes<-length(st@res)
+            st@nCells<-length(unique(st@clu))
+            st@nSpikesPerCell<-as.numeric(table(st@clu))
+            # by default analysis on all cells and all recording period
+            st@cellList<-sort(unique(st@clu))
+            
+            if(length(st@cellList)>1)
+              st@cellPairList<-makePairs(st@cellList)
+            st@startInterval<-0
+            st@endInterval<-max(st@res)
+            st@startResIndexc<-0
+            st@endResIndexc<-length(st@res)-1
+            return(st)
+          }
+)
+
+
+
+
 
 ### spikeTimeAutocorrelation ###
 # function using .Call() to call c wrapper
@@ -160,93 +262,6 @@ setMethod(f="spikeTimeCrosscorrelation",
           }
           )
 
-
-### loadSpikeTrain ###
-setGeneric(name="loadSpikeTrain",
-           def=function(st)
-           {standardGeneric("loadSpikeTrain")}
-)
-setMethod(f="loadSpikeTrain",
-          signature="SpikeTrain",
-          definition=function(st)
-          {
-            if(!file.exists(paste(st@session,"res",sep=".")))
-              stop("need",paste(st@session,"res",sep="."))
-            if(!file.exists(paste(st@session,"clu",sep=".")))
-              stop("need",paste(st@session,"clu",sep="."))
-            if(!file.exists(paste(st@session,"sampling_rate_dat",sep=".")))
-              stop("need",paste(st@session,"sampling_rate_dat",sep="."))
-            
-            st@res<-read.table(paste(st@session,"res",sep="."))$V1
-            st@clu<-read.table(paste(st@session,"clu",sep="."))$V1
-            st@samplingRate<-read.table(paste(st@session,"sampling_rate_dat",sep="."))$V1
-            if(st@samplingRate<1 | st@samplingRate > 100000)
-              stop(paste("samplingRate is out of range:",st@samplingRate))
-            st@clu<-st@clu[-1] ## remove first number
-            if(length(st@res)!=length(st@clu))
-              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu)))
-            # remove noise cluster 1 or 0
-            df<-data.frame(res=st@res,clu=st@clu)
-            df<-df[which(df$clu>1),]
-            st@res<-df$res
-            st@clu<-df$clu
-            # get time in sec
-            st@time<-st@res/st@samplingRate
-            st@nSpikes<-length(st@res)
-            st@nCells<-length(unique(st@clu))
-            st@nSpikesPerCell<-as.numeric(table(st@clu))
-            # by default analysis on all cells and all recording period
-            st@cellList<-sort(unique(st@clu))
-            # by default get all the possible pairs
-            if(length(st@cellList>1))
-              st@cellPairList<-makePairs(st@cellList)
-            st@startInterval<-0
-            st@endInterval<-max(st@res)
-            st@startResIndexc<-0
-            st@endResIndexc<-length(st@res)-1
-            return(st)
-          }
-)
-
-### setSpikeTrain ###
-setGeneric(name="setSpikeTrain",
-           def=function(st,...)
-           {standardGeneric("setSpikeTrain")}
-)
-
-
-setMethod(f="setSpikeTrain",
-          signature="SpikeTrain",
-          definition=function(st,res,clu,samplingRate)
-          {
-          
-            st@res<-res
-            st@clu<-clu
-            st@samplingRate<-samplingRate
-          
-            if(st@samplingRate<1 | st@samplingRate > 100000)
-              stop(paste("samplingRate is out of range:",st@samplingRate))
-          
-            if(length(st@res)!=length(st@clu))
-              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu)))
-          
-            # get time in sec
-            st@time<-st@res/st@samplingRate
-            st@nSpikes<-length(st@res)
-            st@nCells<-length(unique(st@clu))
-            st@nSpikesPerCell<-as.numeric(table(st@clu))
-            # by default analysis on all cells and all recording period
-            st@cellList<-sort(unique(st@clu))
-            
-            if(length(st@cellList)>1)
-              st@cellPairList<-makePairs(st@cellList)
-            st@startInterval<-0
-            st@endInterval<-max(st@res)
-            st@startResIndexc<-0
-            st@endResIndexc<-length(st@res)-1
-            return(st)
-          }
-)
 
 ### meanFiringRate ###
 setGeneric(name="meanFiringRate",
