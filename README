@@ -6,28 +6,6 @@ To build and install the package
 R CMD build relectro
 R CMD INSTALL relectro
 
-##### naming convention to be used in the package #####
-
-Variable names
-
-    Use camelCaps: initial lowercase, then alternate case between words.
-
-Function names
-
-    Use camelCaps: initial lower case, then alternate case between words.
-    Do not use ‘.’ (in the S3 class system, some(x) where x is class A will dispatch to some.A).
-    Prefix non-exported functions with a ‘.’.
-
-Class names
-
-    Use CamelCaps: initial upper case, then alternate case between words.
-
-File names
-
-    Filename extension for R code should be ‘.R’. Use the prefix ‘methods-‘ for S4 class methods, e.g., ‘methods-coverage.R’. Generic definitions can be listed in a single file, ‘AllGenerics.R’, and class definitions in ‘AllClasses.R’.
-    Filename extension for man pages should be ‘.Rd’.
-
-
 
 ElectroProject holding Mice and RecSession infomration?
 To do the looping, we could have an object called Project, containing an array of RecSession, 
@@ -35,6 +13,10 @@ ElectroProject could be saved in a file and loaded, so that we don't need to sea
  - buildProject (use list_sessions to find clustered sessions, get all RecSession objects)
  - saveProject to file
  - loadProject from file
+
+
+Object loading files should have a path option so that we don't need to setwd for each call
+
 
 
 

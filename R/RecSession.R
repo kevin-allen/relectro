@@ -4,6 +4,7 @@
 RecSession <- setClass(
   "RecSession", ## name of the class
   slots=c(session="character",
+          path="character",
           samplingRate="numeric",
           resofs="numeric",
           env="character",
@@ -16,8 +17,9 @@ RecSession <- setClass(
           nElectrodes="numeric",
           nChannels="numeric",
           nTrials="numeric",
-          channelsTetrode="matrix"),  # cell list to limit the analysis to these cells
-  prototype = list(session=""))
+          channelsTetrode="matrix",
+          clustered="logical"),  # cell list to limit the analysis to these cells
+  prototype = list(session="",path=""))
 
 
 ### loadRecSession ###
@@ -29,55 +31,28 @@ setMethod(f="loadRecSession",
           signature="RecSession",
           definition=function(rs)
           {
+            
+            
             #setwd("~/repo/r_packages/data")
             #session="jp4298-15022016-0106"
             if(rs@session=="")
               stop("rs@session is empty")
-            if(!file.exists(paste(rs@session,"par",sep=".")))
-              stop("need",paste(rs@session,"par",sep="."))
-            if(!file.exists(paste(rs@session,"desen",sep=".")))
-              stop("need",paste(rs@session,"desen",sep="."))
-            if(!file.exists(paste(rs@session,"desel",sep=".")))
-              stop("need",paste(rs@session,"desel",sep="."))
-            if(!file.exists(paste(rs@session,"resofs",sep=".")))
-              stop("need",paste(rs@session,"resofs",sep="."))
-            if(!file.exists(paste(rs@session,"sampling_rate_dat",sep=".")))
-              stop("need",paste(rs@session,"sampling_rate_dat",sep="."))
+            if(rs@path=="")
+              rs@path=getwd()
             
-            ## get sampling rate
-            rs@samplingRate<-read.table(paste(rs@session,"sampling_rate_dat",sep="."))$V1
+            pathSession=paste(rs@path,rs@session,sep="/")
+            
+            if(!file.exists(paste(pathSession,"par",sep=".")))
+              stop("needs ",paste(pathSession,"par",sep="."))
+            
             ## read the par file line per line## shitty format
-            conn <- file(paste(rs@session,"par",sep="."),open="r")
+            conn <- file(paste(pathSession,"par",sep="."),open="r")
             par<-readLines(conn)
             close(conn)
             rs@nChannels<-as.numeric(unlist(strsplit(par[1], split=" "))[1])
             rs@nElectrodes  <-as.numeric(unlist(strsplit(par[3], split=" "))[1])
             rs@nTrials<-as.numeric(par[rs@nElectrodes+4])
             rs@trialNames<-par[(rs@nElectrodes+5):(rs@nElectrodes+5+rs@nTrials-1)]
-            ## read the desen file
-            rs@env<-as.character(read.table(paste(rs@session,"desen",sep="."))$V1)
-            ## read the desel file
-            rs@electrodeLocation<-as.character(read.table(paste(rs@session,"desel",sep="."))$V1)
-            ## read the resofs file  
-            rs@resofs<-read.table(paste(rs@session,"resofs",sep="."))$V1
-            
-            ## check that things add up
-            if(length(rs@env)!=length(rs@trialNames))
-              stop("Problem with length of par and desen files")
-            if(rs@nElectrodes!=length(rs@electrodeLocation))
-              stop("Problem with length of par and desel files")
-            if(rs@nTrials!=length(rs@trialNames))
-              stop("Problem with number of trials in par file")
-            if(length(rs@resofs)!=rs@nTrials)
-              stop("Problem with length of resofs")
-            if(rs@samplingRate<1 | rs@samplingRate > 100000)
-              stop(paste("samplingRate is out of range:",rs@samplingRate))
-            
-            ## trial times
-            rs@trialStartRes<-c(0,rs@resofs[-length(rs@resofs)])
-            rs@trialEndRes<-rs@resofs
-            rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
-            rs@sessionDurationSec<-sum(rs@trialDurationSec)
             
             ## map of channel and tetrodes
             chan<-strsplit(par[4:(4+rs@nElectrodes-1)], split=" ")
@@ -87,9 +62,91 @@ setMethod(f="loadRecSession",
             for(i in 1:rs@nElectrodes)
               rs@channelsTetrode[i,]<-as.numeric(chan[[i]][-1])
             
-            return(rs)
+            if(file.exists(paste(pathSession,"desen",sep="."))){
+              rs@env<-as.character(read.table(paste(pathSession,"desen",sep="."))$V1)
+              if(length(rs@env)!=length(rs@trialNames))
+                stop("Problem with length of par and desen files")
+            }
+            if(file.exists(paste(pathSession,"desel",sep="."))){
+                rs@electrodeLocation<-as.character(read.table(paste(pathSession,"desel",sep="."))$V1)
+              if(rs@nElectrodes!=length(rs@electrodeLocation))
+                stop("Problem with length of par and desel files")
+            }
+            
+            
+            if(rs@nTrials!=length(rs@trialNames))
+              stop("Problem with number of trials in par file")
+            
+            ## if early process was run on this one, get more informaiton
+            if(file.exists(paste(pathSession,"resofs",sep="."))&
+               file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
+            {
+              ## get sampling rate
+              rs@samplingRate<-read.table(paste(pathSession,"sampling_rate_dat",sep="."))$V1
+              ## read the resofs file  
+              rs@resofs<-read.table(paste(pathSession,"resofs",sep="."))$V1
+              
+              if(length(rs@resofs)!=rs@nTrials)
+                stop("Problem with length of resofs")
+              
+              if(rs@samplingRate<1 | rs@samplingRate > 100000)
+                stop(paste("samplingRate is out of range:",rs@samplingRate))
+              
+              ## trial times
+              rs@trialStartRes<-c(0,rs@resofs[-length(rs@resofs)])
+              rs@trialEndRes<-rs@resofs
+              rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
+              rs@sessionDurationSec<-sum(rs@trialDurationSec)
+            }
+            if(file.exists(paste(pathSession,"res",sep="."))){
+              rs@clustered=T
+            } else{
+              rs@clustered=F
+            }
+              return(rs)
           }
 )
+
+
+### getIsClustered ###
+setGeneric(name="getIsClustered",
+           def=function(rs)
+           {standardGeneric("getIsClustered")}
+)
+setMethod(f="getIsClustered",
+          signature="RecSession",
+          definition=function(rs)
+          {
+            return(rs@clustered)
+          })
+
+
+### containsElectrodeLocation ###
+setGeneric(name="containsElectrodeLocation",
+           def=function(rs,location="")
+           {standardGeneric("containsElectrodeLocation")}
+)
+setMethod(f="containsElectrodeLocation",
+          signature="RecSession",
+          definition=function(rs,location="")
+          {
+            return(any(rs@electrodeLocation==location))
+          })
+
+### containsEnvironment ###
+setGeneric(name="containsEnvironment",
+           def=function(rs,environment="")
+           {standardGeneric("containsEnvironment")}
+)
+setMethod(f="containsEnvironment",
+          signature="RecSession",
+          definition=function(rs,environment="")
+          {
+            return(any(rs@env==environment))
+          })
+
+
+
 
 ### getTrialIntervalsWithEnv ###
 setGeneric(name="getIntervalsEnvironment",
@@ -100,6 +157,9 @@ setMethod(f="getIntervalsEnvironment",
           signature="RecSession",
           definition=function(rs,env="lt")
           {
+            if(rs@trialStartRes=="")
+              print("trialStartRes is not set")
+              return()
             if(!env%in%rs@env){
               print("environment not used in the session")
               return()
@@ -113,6 +173,7 @@ setMethod(f="getIntervalsEnvironment",
 setMethod("show", "RecSession",
           function(object){
             print(paste("session:",object@session))
+            print(paste("path:",object@path))
             print(paste("samplingRate:",object@samplingRate,"Hz"))
             print(paste("nChannels:",object@nChannels))
             print(paste("nTrials:",object@nTrials))
@@ -130,5 +191,5 @@ setMethod("show", "RecSession",
             print(paste(object@trialStartRes,object@trialEndRes))
             print(paste("Map of channels per tetrode (channelsTetrode)"))
             print(object@channelsTetrode)
-          
+            print(paste("clustered:",object@clustered))
           })

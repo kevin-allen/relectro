@@ -7,7 +7,9 @@ Author: Kevin Allen
 Maintainer: Kevin Allen <allen@uni-heidelberg.de>
 Description: R interface to analyse electropysiological data.
 License: GLP-2
-Depends: methods
-Suggests: knitr,
+Depends:
+    methods
+Suggests:
+    knitr,
     rmarkdown
 VignetteBuilder: rmarkdown
