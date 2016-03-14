@@ -7,8 +7,7 @@ R CMD build relectro
 R CMD INSTALL relectro
 
 
-Object loading files should have a path option so that we don't need to setwd for each call
-
+How do we represent a cell with its properties in relectro?
 
 Think about plotting common objects: maps, maps autocorrelations, etc.
 

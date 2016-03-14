@@ -14,6 +14,8 @@ Positrack <- setClass(
           x="numeric", # in cm
           y="numeric",
           hd="numeric",
+          lin="numeric", # linear position
+          dir="numeric", # direction in linear position
           speed="numeric",
           angularSpeed="numeric",
           res="numeric",
@@ -200,7 +202,7 @@ setGeneric(name="setInvalidOutsideInterval",
 )
 setMethod(f="setInvalidOutsideInterval",
           signature="Positrack",
-          definition=function(pt,s,e)
+          definition=function(pt,s,e="")
           {
             if(pt@session=="")
               stop("pt@session is empty")
@@ -323,6 +325,92 @@ setMethod(f="getSpeedAtResValues",
                            as.integer(pt@resSamplesPerWhlSample))
             
             return(results)
+          }
+)
+
+
+#### linearzeLinearTrack
+setGeneric(name="linearzeLinearTrack",
+           def=function(pt)
+           {standardGeneric("linearzeLinearTrack")}
+)
+setMethod(f="linearzeLinearTrack",
+          signature="Positrack",
+          definition=function(pt)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@x)==0)
+              stop("pt@x has length of 0")
+            
+            # only data from linear track should be valid when calling this        
+            x<-pt@x
+            y<-pt@y
+            x[which(x==-1.0)]<-NA
+            y[which(y==-1.0)]<-NA
+            #plot(x,y)
+            
+            ###
+            ### get the regression lines that best fit the maze
+            ###
+            ## for some reasons I don't understand today,
+            ## I can only get lm to work if I swap x and y
+            ## would need to understand this point
+            lm1<-lm(x~y)
+         #   plot(y,x,xlim=c(0,90),ylim=c(0,90))
+         #   abline(lm1,col="red")
+    
+            ###	find the closest point on the line for each position data
+            ### some high school stuff
+            ### https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+            ### y = mx + b  
+            ### 
+            ### b<-lm1$coefficients[1]
+            ### m<-lm1$coefficients[2]
+            ### rewrite as Ax + By + C = 0; standard form
+            ###
+            ### -mx + y - b = 0
+            A=0-lm1$coefficients[2]
+            B=1
+            C=0-lm1$coefficients[1]
+            ###
+            ### given point x0,y0
+            ### point on this line which is closest to (x0,y0) has coordinates
+            ### x = B(Bx0-Ay0)-AC/(A^2+B^2)
+            ### y = A(-Bx0 +Ay0) - BC/ (A^2 + B^2)
+            ###
+            x.on.line<-function(x,y,A,B,C){
+              return( (B*(B*x-A*y)-A*C)/(A^2+B^2))
+            }
+            y.on.line<-function(x,y,A,B,C){
+              return( (A*(-B*x+A*y)-B*C)/(A^2+B^2))
+            }
+            xl<-x.on.line(y,x,A,B,C)
+            yl<-y.on.line(y,x,A,B,C)
+            #points(xl,yl,col="blue")
+            ### now use the points on the line to find the 
+            ### distance between the point with the smallest x and all other points
+            ### that is our transformation from 2d to 1d
+            X<-xl[which.min(xl)]
+            Y<-yl[which.min(xl)]
+            #points(X,Y,col="red")
+            distance<-function(x1,y1,x2,y2){
+              return(sqrt((x1-x2)^2+(y1-y2)^2))
+            }
+            lin<-distance(xl,yl,X,Y)
+            #points(xl,lin,col="green")
+            pt@lin<-lin
+            pt@lin[is.na(pt@lin)]<- -1.0
+            ### smooth the 1d array
+            pt@lin<-smoothGaussian(x=pt@lin,sd=5,invalid=-1.0)
+            ### get the direction T or F
+            pt@dir<-rep(0,length(pt@x))
+            pt@dir[2:length(pt@dir)]<-ifelse(diff(pt@lin)>0,1,0)
+            pt@dir[which(pt@lin==-1.0)]<-NA
+            #plot(pt@lin,xlim=c(240000,245000),type='l')
+            #lines(ifelse(pt@dir>0,50,0),xlim=c(240000,245000),col="red")
+            
+            return(pt)
           }
 )
 

@@ -34,20 +34,6 @@ source("~/repo/r_packages/relectro/R/DatFiles.R")
 dyn.load("~/repo/r_packages/relectro/src/relectro.so")
 
 
-########################
-### DatFiles object ####
-########################
-## get session information
-rs<-new("RecSession",session="jp4298-12022016-0104",path="/data/projects/vtrack/jp4298/jp4298-12022016-0104")
-rs<-loadRecSession(rs)
-rs
-## get data from files, use rs to get info we need
-df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
-df
-rs
-data<-datFilesGetOneChannel(df,channelNo=df@nChannels-1,firstSample=0,lastSample=rs@trialEndRes[length(rs@trialEndRes)]) # get data one channel
-
-memory.profile()
 
 #########################################
 #### EXAMPLES RANDOM DATA SpikeTrain ####

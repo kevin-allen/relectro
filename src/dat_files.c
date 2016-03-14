@@ -44,7 +44,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
 	return(R_NilValue);
       }
     strcpy(data_file_names[i],CHAR(STRING_ELT(file_names_r, i)));
-    printf("%s\n",data_file_names[i]);
+    //    printf("%s\n",data_file_names[i]);
   }
   
   if(init_group_data_file_si(&gdf,data_file_names,file_lines,INTEGER_VALUE(num_channels_r))!=0)
@@ -137,8 +137,8 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,in
       gdf->num_samples_all_files+=gdf->file_group[i].num_samples_in_file;
     }
 
-  fprintf(stderr,"init_group_data_file_si(): gdf->num_files: %d \n",gdf->num_files);
-  fprintf(stderr,"init_group_data_file_si(): gdf->num_channels: %d \n",gdf->num_channels);
+  //fprintf(stderr,"init_group_data_file_si(): gdf->num_files: %d \n",gdf->num_files);
+  //fprintf(stderr,"init_group_data_file_si(): gdf->num_channels: %d \n",gdf->num_channels);
   return 0;
 }
 
@@ -294,18 +294,18 @@ int clean_data_file_si(struct data_file_si *df)
 {
   /* function to free memory and close a .dat file after reading it.
    */
-  fprintf(stderr,"clean_data_file_si()\n");
+  // fprintf(stderr,"clean_data_file_si()\n");
   // free memory
 
-  fprintf(stderr,"free file_name\n");
+  // fprintf(stderr,"free file_name\n");
   if (df->file_name!=NULL)
     free(df->file_name);
-  fprintf(stderr,"free data_block\n");
+  //fprintf(stderr,"free data_block\n");
   if (df->data_block!=NULL)
     free(df->data_block);
   
   // try to close the file
-  fprintf(stderr,"close file\n");
+  //fprintf(stderr,"close file\n");
   if(close(df->file_descriptor)==-1)
     {
       fprintf(stderr,"clean_data_file_si(): problem closing file descriptor %d\n",df->file_descriptor);

@@ -158,9 +158,12 @@ setMethod(f="getIntervalsEnvironment",
           signature="RecSession",
           definition=function(rs,env="lt")
           {
-            if(rs@trialStartRes=="")
+            
+            
+            if(length(rs@trialStartRes)==0){
               print("trialStartRes is not set")
               return()
+            }
             if(!env%in%rs@env){
               print("environment not used in the session")
               return()
