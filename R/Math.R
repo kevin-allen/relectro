@@ -36,3 +36,50 @@ smoothGaussianDegrees<-function(x,sd=2,invalid=-1.0)
                   x, length(x), sd, invalid)
   return(results)
 }
+shift <- function (v, places, dir = "right") 
+{# shift a vector in place
+  vnew <- NULL
+  d <- substring(dir, 1, 1)
+  if (d == "r" & places < 0) {
+    d <- "l"
+  }
+  else {
+    if (d == "l" & places < 0) {
+      d <- "r"
+    }
+  }
+  n <- length(v)
+  p <- abs(places)
+  if (p == 0) {
+    vnew <- v
+  }
+  else {
+    if (d == "r") {
+      vnew <- c(v[(n - p + 1):n], v[1:(n - p)])
+    }
+    else {
+      vnew <- c(v[(p + 1):n], v[1:p])
+    }
+  }
+  return(vnew)
+}
+
+shuffle.vector<-function(x,
+                         time.per.sample.res,
+                         min.mv.ms,
+                         sampling_rate){
+  min.mv<- min.mv.ms*(sampling_rate/1000)/time.per.sample.res
+  mv<-sample(min.mv:length(x)-min.mv,1)
+  return(shift(x,mv))
+}
+
+shuffle.vectors<-function(x,y,
+                         time.per.sample.res,
+                         min.mv.ms,
+                         sampling_rate){
+  min.mv<- min.mv.ms*(sampling_rate/1000)/time.per.sample.res
+  mv<-sample(min.mv:length(x)-min.mv,1)
+  x<-shift(x,mv)
+  y<-shift(y,mv)
+  return(list(x=x,y=y))
+}

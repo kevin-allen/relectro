@@ -9,7 +9,9 @@ R CMD INSTALL relectro
 
 How do we represent a cell with its properties in relectro?
 
-Think about plotting common objects: maps, maps autocorrelations, etc.
+
+Think about plotting common objects: maps, maps autocorrelations, st-auto, st-cross, etc.
+If they were a Class, we could have a plot function for them.
 
 2 days:
 firing_map_1d: -occupancy

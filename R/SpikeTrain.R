@@ -44,9 +44,9 @@ setMethod(f="loadSpikeTrain",
             if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
               stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
             
-            st@res<-read.table(paste(pathSession,"res",sep="."))$V1
-            st@clu<-read.table(paste(pathSession,"clu",sep="."))$V1
-            st@samplingRate<-read.table(paste(pathSession,"sampling_rate_dat",sep="."))$V1
+            st@res<-as.numeric(readLines(paste(pathSession,"res",sep=".")))
+            st@clu<-as.numeric(readLines(paste(pathSession,"clu",sep=".")))
+            st@samplingRate<-as.numeric(readLines(paste(pathSession,"sampling_rate_dat",sep=".")))
             if(st@samplingRate<1 | st@samplingRate > 100000)
               stop(paste("samplingRate is out of range:",st@samplingRate))
             st@clu<-st@clu[-1] ## remove first number
