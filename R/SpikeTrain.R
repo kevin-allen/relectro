@@ -15,8 +15,39 @@ SpikeTrain <- setClass(
           startInterval="numeric",endInterval="numeric", # to limit analysis to these intervals
           startResIndexc="numeric",endResIndexc="numeric",
           events="numeric",
-          cellList="numeric",cellPairList="data.frame"),  # cell list to limit the analysis to these cells
-  prototype = list(session=""))
+          cellList="numeric",cellPairList="data.frame", # cell list to limit the analysis to these cells
+          ifrKernelSdMs="numeric",
+          ifrWindowSizeMs="numeric",
+          ifrSpikeBinMs="numeric",
+          ifr="matrix",
+          ifrTime="numeric"
+          ),  
+  prototype = list(session="",ifrKernelSdMs=50,ifrWindowSizeMs=50,ifrSpikeBinMs=1))
+
+
+### ifr ###
+setGeneric(name="ifr",
+           def=function(st)
+           {standardGeneric("ifr")})
+
+setMethod(f="ifr",
+          signature = "SpikeTrain",
+          definition=function(st)
+          {
+            if(st@nSpikes==0)
+              stop("ifr(): there are no spike in the SpikeTrain object")
+
+            results<-.Call("ifr_from_spike_density",
+                  as.integer(st@res),as.integer(st@clu), as.integer(st@nSpikes), 
+                  st@ifrWindowSizeMs, st@ifrKernelSdMs, st@ifrSpikeBinMs,
+                  as.integer(st@cellList), length(st@cellList),
+                  as.integer(st@startInterval),as.integer(st@endInterval),length(st@startInterval),
+                  st@samplingRate)
+            st@ifrTime<-results[1,]
+            st@ifr<-results[-1,]
+            return(st)
+          }
+)
 
 
 
@@ -366,6 +397,11 @@ setMethod(f="setEvents",
           }
 )
 
+
+
+
+
+
 ### show ###
 setMethod("show", "SpikeTrain",
           function(object){
@@ -377,11 +413,16 @@ setMethod("show", "SpikeTrain",
             print(object@nSpikesPerCell)
             print(paste("cellList:"))
             print(object@cellList)
-            print(paste("n cellPairList:",length(object@cellPairList[,1])))
-            print(paste("nIntervals:",length(object@startInterval))) 
-            print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))
-            print(paste(object@startInterval,object@endInterval))
-            print(paste("nIntervalsc:",length(object@startResIndexc)))
-            print(paste(object@startResIndexc,object@endResIndexc))
-            print(paste("nEvents:",length(object@events)))
+            if(length(object@cellList)!=0){
+              print(paste("n cellPairList:",length(object@cellPairList[,1])))
+            }
+            if(length(object@startInterval)!=0){
+              print(paste("nIntervals:",length(object@startInterval))) 
+              print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))
+              print(paste(object@startInterval,object@endInterval))
+              print(paste("nIntervalsc:",length(object@startResIndexc)))
+              print(paste(object@startResIndexc,object@endResIndexc))
+            }
+            if(length(object@events)!=0)
+              print(paste("nEvents:",length(object@events)))
                   })

@@ -21,7 +21,7 @@ SpatialProperties2d<- setClass(
             reduceSize="logical",
             minValidBinsAuto="numeric",
             ##
-            peakRates="numeric",
+            peakRate="numeric",
             infoScore="numeric",
             sparsity="numeric",
             ##
@@ -41,7 +41,7 @@ SpatialProperties2d<- setClass(
             ##
             nShufflings="numeric",
             minShiftMs="numeric",
-            peakRatesShuffle="numeric",
+            peakRateShuffle="numeric",
             infoScoreShuffle="numeric",
             sparsityShuffle="numeric",
             borderScoreShuffle="numeric",
@@ -51,7 +51,7 @@ SpatialProperties2d<- setClass(
             ),
       
   prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateMapSd=3,minValidBinsAuto=20,reduceSize=T,
-                   gridScoreNumberFieldsToDetect=40,gridScoreMinNumBinsPerField=10,gridScoreFieldThreshold=0.1,
+                   gridScoreNumberFieldsToDetect=40,gridScoreMinNumBinsPerField=50,gridScoreFieldThreshold=0.1,
                    borderPercentageThresholdField=20,borderMinBinsInField=10,nShufflings=100,minShiftMs=20000))
 
 
@@ -69,6 +69,17 @@ setMethod("show", "SpatialProperties2d",
               print(paste("cellList:"))
               print(object@cellList)
             }
+            if(length(object@peakRate)!=0){
+              print("peakRate:")
+              print(paste(object@peakRate))
+              print("infoScore:")
+              print(paste(object@infoScore))
+              print("borderScore:")
+              print(paste(object@borderScore))
+              print("gridScore:")
+              print(paste(object@gridScore))
+            }
+              
             print(paste("nShufflings:",object@nShufflings))
             print(paste("shuffled values:",length(object@infoScoreShuffle)))
               
@@ -191,7 +202,7 @@ setMethod(f="getMapStats",
               stop("sp@occupancy length ==0")
           
             ### get peak rates
-            sp@peakRates<-apply(sp@maps,3,max)
+            sp@peakRate<-apply(sp@maps,3,max)
 
             ### get info scores
             sp@infoScore<- .Call("information_score_cwrap",
@@ -314,8 +325,6 @@ setMethod(f="getMapStatsShuffle",
               y<-results[[2]]
               
               
-              
-              
               results<-.Call("spike_position_cwrap",
                              x,
                              y,
@@ -369,7 +378,7 @@ setMethod(f="getMapStatsShuffle",
               
               
               ### get peak rates
-              sp@peakRatesShuffle <- c(sp@peakRatesShuffle,apply(sp@maps,3,max))
+              sp@peakRateShuffle <- c(sp@peakRateShuffle,apply(sp@maps,3,max))
               
               ### get info scores
               sp@infoScoreShuffle <- c(sp@infoScoreShuffle,

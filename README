@@ -7,16 +7,19 @@ R CMD build relectro
 R CMD INSTALL relectro
 
 
+
+KNOWN BUGS: 
+1) grid score is not working
+
+
 How do we represent a cell with its properties in relectro?
 
 
 Think about plotting common objects: maps, maps autocorrelations, st-auto, st-cross, etc.
 If they were a Class, we could have a plot function for them.
 
-2 days:
-firing_map_1d: -occupancy
-	       -maps
-	       -map stats
+What about a default plot function for RecSession, ElectroProject, Positrack, SpikeTrain, SpatialProperties2d?
+
 
 1 day:
 SpikeTrain: -instantaneous firing rate.

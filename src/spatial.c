@@ -624,7 +624,7 @@ SEXP occupancy_map_cwrap(SEXP x_bins_r, // num of bins x
 
   int x_bins=INTEGER_VALUE(x_bins_r);
   int y_bins=INTEGER_VALUE(y_bins_r);
-  SEXP out = PROTECT(allocMatrix(REALSXP,y_bins,x_bins)); // nrow ncol, to return
+  SEXP out = PROTECT(allocMatrix(REALSXP,y_bins,x_bins)); // nrow ncol, to return, y and x are swapped 
   double* map = (double*)malloc(y_bins*x_bins*sizeof(double)); // to pass to c function
  
   occupancy_map(x_bins, // num of bins x
@@ -3081,4 +3081,372 @@ void border_score_rectangular_environment(int* cells,
   free(all_fields_map);
   free(detection_map);
   free(wall_id);
+}
+
+void spike_head_direction(double *hd_whl, 
+			  int whl_lines, 
+			  int *res, 
+			  int res_lines, 
+			  double *hd_spike, 
+			  int res_samples_per_whl_sample,
+			  int* start_interval, 
+			  int* end_interval, 
+			  int interval_lines)
+{
+  // get the res index for the intervals
+  int* start_interval_index;
+  int* end_interval_index;
+
+  start_interval_index = (int*) malloc(interval_lines*sizeof(int));
+  end_interval_index =  (int*) malloc(interval_lines*sizeof(int));
+  res_index_for_intervals(&interval_lines,
+			  start_interval,
+			  end_interval, 
+			  res_lines, 
+			  res,
+			  start_interval_index,
+			  end_interval_index);
+  // set all the spike position to -1
+  set_array_to_value_double(hd_spike,res_lines,-1.0);
+
+  //loop for each interval and set the position when valid//
+  int whl_index;
+  int residual;
+  double deg_diff,corr_hd;
+  for (int k = 0; k < interval_lines; k++)
+    {
+      for (int i = start_interval_index[k]; i < end_interval_index[k]; i++)
+	{
+	  
+	  if (res[i] != -1.0)
+	    {
+	      whl_index = (res[i] / res_samples_per_whl_sample) - 1;
+	      if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
+		{
+		  printf("whl file is too small for some res value\n");
+		}
+	      residual = res[i] % res_samples_per_whl_sample;
+	      // spikes before the first frame capture
+	      if (whl_index == -1)
+		{hd_spike[i] = hd_whl[0];}
+	      
+	      // spikes between the first and last frame capture
+	      if ((whl_index < whl_lines -1) && 
+		  (whl_index != -1) && 
+		  (hd_whl[whl_index] != -1.0) &&
+		  (hd_whl[whl_index+1]!= -2))
+		{
+		  // circular data
+		  deg_diff=sqrt((hd_whl[whl_index+1]-hd_whl[whl_index])*
+				(hd_whl[whl_index+1]-hd_whl[whl_index]));
+		  if (deg_diff <= 180)
+		    {
+		      hd_spike[i] =
+			hd_whl[whl_index] +
+			((hd_whl[whl_index+1]- hd_whl[whl_index])
+			 /res_samples_per_whl_sample * residual);
+		    }
+		  else // the difference is larger than 180
+		    {
+		      if ( hd_whl[whl_index+1] >= hd_whl[whl_index])
+			{
+			  corr_hd=hd_whl[whl_index]+360;
+			  hd_spike[i] =  corr_hd +
+			    ((hd_whl[whl_index+1]- corr_hd)
+			     /res_samples_per_whl_sample * residual);
+			}
+		      
+		      if ( hd_whl[whl_index+1] < hd_whl[whl_index])
+			{
+			  corr_hd=hd_whl[whl_index+1]+360;
+			  hd_spike[i] = hd_whl[whl_index] +
+			    ((corr_hd- hd_whl[whl_index])
+			     /res_samples_per_whl_sample * residual);
+			}
+		      if ( hd_spike[i] >= 360)
+			{
+			  hd_spike[i]= hd_spike[i]-360;
+			}
+		    }
+		}
+	      // if spikes after the last frame capture
+	      if (whl_index == whl_lines -1)
+		{
+		  hd_spike[i] = hd_whl[whl_index];
+		}
+	       
+	      // cope with the -1 in whl
+	      if (hd_whl[whl_index] == -1.0 || hd_whl[whl_index+1]==-1.0)
+		{
+		  hd_spike[i] = -1.0;
+		}
+	    }
+	  else // the res value was set at -1
+	    {
+	      hd_spike[i] = -1.0;
+	    }
+	}
+    }
+  free(start_interval_index);
+  free(end_interval_index);
+  return ;
+}
+SEXP spike_head_direction_cwrap(SEXP hd_whl_r,
+			  SEXP whl_lines_r,
+			  SEXP res_r,
+			  SEXP res_lines_r,
+			  SEXP res_samples_per_whl_sample_r,
+			  SEXP start_interval_r,
+			  SEXP end_interval_r,
+			  SEXP interval_lines_r)
+{
+  int whl_lines=INTEGER_VALUE(whl_lines_r);
+  int res_lines=INTEGER_VALUE(res_lines_r);
+  SEXP out = PROTECT(allocVector(REALSXP,res_lines));
+  double* hd_spike = (double*)malloc(res_lines*sizeof(double));
+  spike_head_direction(REAL(hd_whl_r),
+		       whl_lines,
+		       INTEGER_POINTER(res_r),
+		       res_lines,
+		       hd_spike,
+		       INTEGER_VALUE(res_samples_per_whl_sample_r),
+		       INTEGER_POINTER(start_interval_r),
+		       INTEGER_POINTER(end_interval_r),
+		       INTEGER_VALUE(interval_lines_r));
+  double* rans;
+  rans = REAL(out);
+  // copy the results in a SEXP
+  for(int i = 0; i < res_lines; i++) {
+    rans[i] = hd_spike[i];
+  }
+  free(hd_spike);
+  UNPROTECT(1);
+  return(out);
+}
+void occupancy_histogram(int x_bins, // num of bins x
+			 double pixels_per_bin_x,
+			 double *x_whl, 
+			 int whl_lines, // num lines in whl data
+			 double *map, // occupancy map
+			 double ms_per_sample, // ms per sample for whl data
+			 int *start_interval, // starts of the intervals in res value
+			 int *end_interval, // ends of intervals in res value
+			 int interval_lines, // number of intervals
+			 int res_samples_per_whl_sample,
+			 int num_repetitions // if the occupancy size is double, then add the value
+			                     // twice at value/pixels_per_bin_x and value*2/pixels_per_bin_x
+			 )
+{
+  /**********************************************************************
+     Create the occupancy histogram
+     Work like occupancy_map() but for 1d data
+     This add  ms_per_sample for every valid whl value that is in 
+     the intervals given valid whl values outside the intervals 
+     will not be added to occupancy map.
+     If a valid whl value is for a period outside intervals,
+     the right proportion of time will be removed
+    
+     There is a minimum time that the animal has to 
+     spend in a bin for it to be valid; see variable min_occ
+
+     Bins that are on there own in space are removed.
+  ************************************************************************/
+  int min_occ = 20; // minimum time spent in a bin
+  
+  // variable to deal with the intervals
+  int res_value_for_whl_sample; // time in res associated with a whl sample
+  int start_res_value; // starting time of a whl sample in res value
+  int end_res_value; // end time of a whl sample
+  int res_value_to_add; // number of res inside the interval
+  int interval_index=0;
+  double time_to_add;
+  int bin_x; // where to add the time in the map
+  
+  // set the map to 0
+  for(int x = 0; x < x_bins; x++)
+    {
+      map[x] = 0;
+    }
+    
+  // loop with the whl data
+  for(int i = 0; i < whl_lines; i++)
+    {
+      if (x_whl[i] != -1.0)
+	{
+	  
+	  // get the begining of the period cover by this whl sample, in res value
+	  res_value_for_whl_sample=(res_samples_per_whl_sample*i)+res_samples_per_whl_sample;
+	  start_res_value=res_value_for_whl_sample-(res_samples_per_whl_sample/2); // start of whl sample
+	  end_res_value=res_value_for_whl_sample+(res_samples_per_whl_sample/2); // end of whl sample
+	  // start with the assumption that time to add is  = 0; as if outside the valid intervals
+	  res_value_to_add=0;
+	  
+	  // then add res_time if there are intervals between start_res_value and end_res_value
+	  while(start_interval[interval_index]<end_res_value && interval_index<interval_lines)
+	    {
+	      if(end_interval[interval_index]>start_res_value) // need to add some time
+		{
+		  // add the total interval time, and then remove what is not overlapping the whl sample
+		  res_value_to_add=end_interval[interval_index]-start_interval[interval_index]; 
+		  
+		  if (start_interval[interval_index]<start_res_value)
+		    {
+		      res_value_to_add=res_value_to_add-(start_res_value-start_interval[interval_index]);
+		    }
+		  if (end_interval[interval_index]>end_res_value)
+		    {
+		      res_value_to_add=res_value_to_add-(end_interval[interval_index]-end_res_value);
+		    }
+		}
+	      interval_index++; // go to the next interval
+	    }
+	  interval_index--;
+	  // calculate the time in ms, and add it to the right bin of the occ map
+	  time_to_add=ms_per_sample*((double)res_value_to_add/res_samples_per_whl_sample);
+	  for (int j = 0; j < num_repetitions; j++)
+	    {
+	      bin_x = (int) x_whl[i]/pixels_per_bin_x + ((x_bins/num_repetitions)*j);
+	      map[bin_x]=map[bin_x]+time_to_add;
+	    }
+	}
+    }
+  // set the bins that have less then min_occ ms
+  for(int x = 0; x < x_bins; x++)
+    {
+      if ( map[x] <= min_occ)
+	{
+	  map[x] = -1.0;
+	}
+    }
+}
+SEXP occupancy_histogram_cwrap(SEXP x_bins_r, // num of bins x
+			       SEXP pixels_per_bin_x_r,
+			       SEXP x_whl_r, 
+			       SEXP whl_lines_r, // num lines in whl data
+			       SEXP ms_per_sample_r, // ms per sample for whl data
+			       SEXP start_interval_r, // starts of the intervals in res value
+			       SEXP end_interval_r, // ends of intervals in res value
+			       SEXP interval_lines_r, // number of intervals
+			       SEXP res_samples_per_whl_sample_r,
+			       SEXP n_repetitions_r)
+{
+  int x_bins=INTEGER_VALUE(x_bins_r);
+  SEXP out = PROTECT(allocVector(REALSXP,x_bins)); //  to return
+  double* histo = (double*)malloc(x_bins*sizeof(double)); // to pass to c function
+  occupancy_histogram(x_bins, // num of bins x
+		      REAL(pixels_per_bin_x_r)[0],
+		      REAL(x_whl_r),
+		      INTEGER_VALUE(whl_lines_r), // num lines in whl data
+		      histo, // occupancy map
+		      REAL(ms_per_sample_r)[0], // ms per sample for whl data
+		      INTEGER_POINTER(start_interval_r), // starts of the intervals in res value
+		      INTEGER_POINTER(end_interval_r), // ends of intervals in res value
+		      INTEGER_VALUE(interval_lines_r), // number of intervals
+		      INTEGER_VALUE(res_samples_per_whl_sample_r),
+		      INTEGER_VALUE(n_repetitions_r));
+
+
+  double* rans;
+  rans = REAL(out);
+  // copy the results in a SEXP
+  for(int x = 0; x < x_bins; x++)
+    rans[x] = histo[x];
+  free(histo);
+  UNPROTECT(1);
+  return(out);
+}
+void create_place_field_linear( int x_bins,
+				double pixels_per_bin, 
+				double *x_spike, 
+				int *clu,
+				int res_lines,
+				int target_cell,
+				double *occupancy_map,
+				double *place_field,
+				int num_repetitions)
+{
+  /*********************************************************
+  function to calculate the linear place field of one cell
+  *********************************************************/
+  int total_bins = x_bins;
+  int bin_x;
+  // set the spike array to 0
+  set_array_to_value_double(place_field,total_bins,0);
+  
+  // add the number of spikes for each bin
+  for(int i = 0; i <res_lines; i++)
+    {
+      if (clu[i]==target_cell)
+	{
+	  if (x_spike[i] != -1.0)
+	    {
+	      for (int j = 0; j < num_repetitions; j++)
+		{
+		  bin_x = (int) x_spike[i]/pixels_per_bin + ((x_bins/num_repetitions)*j);
+		  place_field[bin_x]++;
+		}
+	    }	  
+	}
+    }
+  ////////////// get the firing rate for every bin////////////////
+  for (int i = 0; i < total_bins; i++)
+    {
+      if (occupancy_map[i] == -1.0)
+	{
+	  place_field[i] = -1.0;
+	}
+      
+      if (occupancy_map[i] != -1.0)
+	{
+	  if (place_field[i] != 0)
+	    {
+	      place_field[i] = (double)place_field[i]/((double)occupancy_map[i]/1000);
+	    }
+	}
+    }
+}
+SEXP firing_rate_histo_cwrap(SEXP num_bins_x_r,
+			     SEXP pixels_per_bin_x_r,
+			     SEXP x_spike_r, 
+			     SEXP clu_r,
+			     SEXP res_lines_r,
+			     SEXP cells_r,
+			     SEXP num_cells_r,
+			     SEXP occ_histo_r,
+			     SEXP smooth_histo_sd_r,
+			     SEXP repetitions_r)
+{
+
+  int num_bins_x=INTEGER_VALUE(num_bins_x_r);
+  int num_cells=INTEGER_VALUE(num_cells_r);
+  int total_size = num_bins_x*num_cells;
+  int* cells = INTEGER_POINTER(cells_r);
+  int target_cell;
+  SEXP out = PROTECT(allocVector(REALSXP,total_size));
+  double* histos = (double*)malloc(total_size*sizeof(double)); 
+  double* one_histo;
+  for(int i = 0; i < num_cells;i++)
+    {
+      target_cell = cells[i];
+      // use a pointer to place give the address for each cell
+      one_histo = histos + (i*num_bins_x);
+      create_place_field_linear(num_bins_x,
+				REAL(pixels_per_bin_x_r)[0],
+				REAL(x_spike_r),
+				INTEGER_POINTER(clu_r),
+				INTEGER_VALUE(res_lines_r),
+				target_cell,
+				REAL(occ_histo_r),
+				one_histo,
+				INTEGER_VALUE(repetitions_r));
+      /// smooth histo
+      smooth_double_gaussian_circular(one_histo,num_bins_x, REAL(smooth_histo_sd_r)[0],-1.0);
+    }
+  double* ans;
+  ans=REAL(out);
+  for(int i = 0; i < total_size;i++)
+    ans[i]=histos[i];
+  free(histos);
+  UNPROTECT(1);
+  return(out);
 }

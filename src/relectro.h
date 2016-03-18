@@ -1,6 +1,8 @@
 #include <R.h>
 #include <Rdefines.h>
 
+
+
 /****************************************************************
 Structures to read one data file                                     
 ****************************************************************/
@@ -49,16 +51,19 @@ double sum_double(int num_data, double* data, double invalid);
 int find_max(int num_data, int* data);
 double find_max_double_index(int num_data,double* data, int* index);
 double find_max_double(int num_data,double* data);
+double radian_to_degree(double radian);
+double degree_to_radian(double degree);
 void gaussian_kernel(double* kernel,int size, double standard_deviation);
 void gaussian_kernel_2d(double* kernel,int x_size,int y_size,double standard_deviation);
 void smooth_double_gaussian(double* array, int array_size, double smooth, double invalid);
 SEXP smooth_double_gaussian_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
 void smooth_double_gaussian_degrees(double* array, int array_size,double smooth, double invalid);
 SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
+void smooth_double_gaussian_circular(double* array, int array_size, double smooth, double invalid);
+SEXP smooth_double_gaussian_circular_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
 void set_array_to_value_int (int* array, int array_size, int value);
 void set_array_to_value_double (double* array, int array_size, double value);
 void smooth_double_gaussian_2d(double* array, int x_size,int y_size, double smooth, double invalid);
-
 SEXP smooth_double_gaussian_degrees_cwrap(SEXP array_r, SEXP array_size_r, SEXP sd_r, SEXP invalid_r);
 double correlation (double* x, double* y, int size, double invalid);
 void get_x_and_y_bin_from_index(int x_bins,int y_bins,int index,int* x_bin,int* y_bin);
@@ -66,6 +71,19 @@ int get_index_from_x_and_y_bin(int x_bins,int y_bins,int x_bin,int y_bin);
 double distance(double x1, double y1, double x2, double y2);
 SEXP detect_ttl_ups_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
 SEXP detect_ttl_downs_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
+void circular_stats_rate_histogram(double* histo, int num_bins, double* mean_direction, double* mean_vector_length);
+SEXP circular_stats_rate_histogram_cwrap(SEXP cells_r, SEXP cell_lines_r,SEXP all_histos_r, SEXP histo_size_r);
+
+
+// ifr.c
+SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r, SEXP window_size_ms_r, SEXP kernel_sd_ms_r, SEXP spike_bin_ms_r, SEXP cell_list_r, SEXP number_cells_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r, SEXP sampling_rate_r);
+void  firing_rate_per_cells_time_windows(int target_cell, int* res, int* clu, int res_lines, int bin_size_res,  double kernel_sd_res, double* firing_rate_in_bins, double* time_of_bin,int firing_rate_in_bins_lines,int* num_valid_bins, int* start_interval,int* end_interval, int* start_interval_index, int* end_interval_index,int interval_lines, int res_sampling_rate,int spike_bin_ms);
+
+
+// convolution.c
+void convolution_fftw3(double* inA, int inA_size, double* inB, int inB_size, double* out);
+SEXP convolution_fftw3_cwrap(SEXP inA_r,SEXP inA_size_r, SEXP inB_r, SEXP inB_size_r);
+
 
 
 // spatial.c
@@ -134,8 +152,12 @@ int find_border_starting_point(double* occ_map, int num_bins_x, int num_bins_y,i
 int find_an_adjacent_border_pixel(double* occ_map, int num_bins_x, int num_bins_y,int*border_map,int*border_x,int* border_y,int* num_bins_border);
 void border_score_rectangular_environment(int* cells, int cell_lines, int num_bins_x, int num_bins_y, double* occ_map, double* maps, double percent_threshold_field, int min_bins_in_field, double* border_score, double* cm, double* dm, int* num_fields_detected);
 SEXP border_score_rectangular_environment_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP num_bins_x_r,SEXP num_bins_y_r,SEXP occ_map_r,SEXP maps_r,SEXP percent_threshold_field_r,	SEXP min_bins_in_field_r);
-
-
+void spike_head_direction(double *hd_whl, int whl_lines, int *res,  int res_lines,  double *hd_spike,  int res_samples_per_whl_sample, int* start_interval,  int* end_interval,  int interval_lines);
+SEXP spike_head_direction_cwrap(SEXP hd_whl_r, SEXP whl_lines_r, SEXP res_r, SEXP res_lines_r, SEXP res_samples_per_whl_sample_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r);
+void occupancy_histogram(int x_bins,double pixels_per_bin_x, double *x_whl, int whl_lines, double *map, double ms_per_sample,int *start_interval, int *end_interval, int interval_lines, int res_samples_per_whl_sample, int num_repetitions);
+SEXP occupancy_histogram_cwrap(SEXP x_bins_r, SEXP pixels_per_bin_x_r, SEXP x_whl_r, SEXP whl_lines_r, SEXP ms_per_sample_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r, SEXP res_samples_per_whl_sample_r,SEXP n_repetitions_r);
+void create_place_field_linear( int x_bins,double pixels_per_bin, double *x_spike, int *clu,int res_lines,int target_cell,double *occupancy_map,double *place_field,int num_repetitions);
+SEXP firing_rate_histo_cwrap(SEXP num_bins_x_r, SEXP pixels_per_bin_x_r, SEXP x_spike_r, SEXP clu_r, SEXP res_lines_r, SEXP cells_r, SEXP num_cells_r, SEXP occ_histo_r, SEXP smooth_histo_sd_r, SEXP repetitions_r);
 
 // interval.c
 int check_interval_chronology_between(int num_lines, 
