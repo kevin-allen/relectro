@@ -16,6 +16,9 @@ SpatialProperties2d<- setClass(
             maps="array",
             occupancy="matrix",
             autos="array",
+            autosDetect="array",
+            autosDoughnut="array",
+            autosDoughnutRotate="array",
             spatialAutocorrelation="numeric",
             cellList="numeric",
             reduceSize="logical",
@@ -38,6 +41,8 @@ SpatialProperties2d<- setClass(
             gridScoreNumberFieldsToDetect="numeric",
             gridScoreMinNumBinsPerField="numeric",
             gridScoreFieldThreshold="numeric",
+            nAutoRotations="numeric",
+            AutoRotationDegree="numeric",
             ##
             nShufflings="numeric",
             minShiftMs="numeric",
@@ -52,7 +57,8 @@ SpatialProperties2d<- setClass(
       
   prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateMapSd=3,minValidBinsAuto=20,reduceSize=T,
                    gridScoreNumberFieldsToDetect=40,gridScoreMinNumBinsPerField=50,gridScoreFieldThreshold=0.1,
-                   borderPercentageThresholdField=20,borderMinBinsInField=10,nShufflings=100,minShiftMs=20000))
+                   borderPercentageThresholdField=20,borderMinBinsInField=10,nShufflings=100,minShiftMs=20000,
+                   nAutoRotations=5,AutoRotationDegree=30))
 
 
 ### show ###
@@ -120,8 +126,8 @@ setMethod(f="firingRateMap2d",
             y[is.na(y)]<- -1.0
             
             ## get the dimensions of the map
-            sp@nColMap=as.integer(((max(x)+1)/sp@cmPerBin)+1) # x 
-            sp@nRowMap=as.integer(((max(y)+1)/sp@cmPerBin)+1) # y
+            sp@nRowMap=as.integer(((max(x)+1)/sp@cmPerBin)+1) # x in R is a row
+            sp@nColMap=as.integer(((max(y)+1)/sp@cmPerBin)+1) # y in R is a col
             
             ## get spike position
             results<-.Call("spike_position_cwrap",
@@ -140,8 +146,8 @@ setMethod(f="firingRateMap2d",
             
             ## make the occupancy map
             sp@occupancy<-.Call("occupancy_map_cwrap",
-                           sp@nColMap,
-                            sp@nRowMap,
+                           sp@nRowMap,
+                            sp@nColMap,
                             sp@cmPerBin,
                             sp@cmPerBin,
                             x,
@@ -152,21 +158,21 @@ setMethod(f="firingRateMap2d",
                             as.integer(st@endInterval),
                             length(st@startInterval),
                             as.integer(pt@resSamplesPerWhlSample))
-            #image(t(sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
+            #image((sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
             
             ## smooth the occupancy map
             sp@occupancy<- .Call("smooth_double_gaussian_2d_cwrap",
                   as.numeric(sp@occupancy),
-                  sp@nColMap,
-                  sp@nRowMap,
+                  sp@nColMap, # because C has a different way to order matrix as my c code
+                  sp@nRowMap, #
                   sp@smoothOccupancySd/sp@cmPerBin,
                   -1.0)
-            #image(t(sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
+            #image((sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
             
             ## make the 2d maps
             results<- .Call("firing_rate_map_2d_cwrap",
-                            sp@nColMap,
                             sp@nRowMap,
+                            sp@nColMap,
                             sp@cmPerBin,
                             sp@cmPerBin,
                             sp@xSpikes,
@@ -178,7 +184,6 @@ setMethod(f="firingRateMap2d",
                             as.numeric(sp@occupancy),
                             sp@smoothRateMapSd/sp@cmPerBin)
             sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
-            
             
             return(sp)
           }
@@ -219,12 +224,14 @@ setMethod(f="getMapStats",
                                 as.numeric(sp@maps),
                                 as.numeric(sp@occupancy),
                                 as.integer(sp@nColMap*sp@nRowMap))
+            
+            
             ### get border score
             results<-.Call("border_score_rectangular_environment_cwrap",
                            as.integer(sp@cellList),
                            length(sp@cellList),
-                           sp@nColMap,
                            sp@nRowMap,
+                           sp@nColMap,
                            sp@occupancy,
                            sp@maps,
                            sp@borderPercentageThresholdField,
@@ -234,16 +241,17 @@ setMethod(f="getMapStats",
             sp@borderDM<-results[3,]
             sp@borderNumFieldsDetected<-results[4,]
             
+            
             sp@nColAuto = as.integer((sp@nColMap*2)+1)
             sp@nRowAuto = as.integer((sp@nRowMap*2)+1)
             results<- .Call("map_autocorrelation_cwrap",
                             as.integer(sp@cellList),
                             length(sp@cellList),
                             as.numeric(sp@maps),
-                            sp@nColMap,
                             sp@nRowMap,
-                            sp@nColAuto,
+                            sp@nColMap,
                             sp@nRowAuto,
+                            sp@nColAuto,
                             as.integer(sp@minValidBinsAuto))
             sp@autos<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList))))
             
@@ -462,16 +470,95 @@ setMethod(f="mapSpatialAutocorrelation",
                   as.integer(sp@cellList),
                   length(sp@cellList),
                   as.numeric(sp@maps),
-                  sp@nColMap,
                   sp@nRowMap,
-                  sp@nColAuto,
+                  sp@nColMap,
                   sp@nRowAuto,
+                  sp@nColAuto,
                   as.integer(sp@minValidBinsAuto))
             sp@autos<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList))))
             return(sp)
           }
 )
 
+setGeneric(name="autocorrelationNoFields",
+           def=function(sp)
+           {standardGeneric("autocorrelationNoFields")}
+)
+setMethod(f="autocorrelationNoFields",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@autos)==0)
+              stop("Need to call mapSpatialAutocorrelation first to run gridScore()")
+            results<-.Call("detect_and_remove_field_cwrap",
+                           as.integer(sp@cellList),
+                           length(sp@cellList),
+                           sp@autos,
+                           sp@nRowAuto,
+                           sp@nColAuto,
+                           as.integer(sp@gridScoreNumberFieldsToDetect),
+                           as.integer(sp@gridScoreMinNumBinsPerField),
+                           sp@gridScoreFieldThreshold,
+                           -2.0) #invalid
+            sp@autosDetect<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList))))
+            return(sp)
+          }
+)
+setGeneric(name="autocorrelationDoughnut",
+           def=function(sp)
+           {standardGeneric("autocorrelationDoughnut")}
+)
+setMethod(f="autocorrelationDoughnut",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@autos)==0)
+              stop("Need to call mapSpatialAutocorrelation first to run gridScore()")
+            results<-.Call("autocorrelation_doughnut_cwrap",
+                           as.integer(sp@cellList),
+                           length(sp@cellList),
+                           sp@autos,
+                           sp@nRowAuto,
+                           sp@nColAuto,
+                           as.integer(sp@gridScoreNumberFieldsToDetect),
+                           as.integer(sp@gridScoreMinNumBinsPerField),
+                           sp@gridScoreFieldThreshold,
+                           sp@cmPerBin,
+                           -2.0) #invalid
+            sp@autosDoughnut<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList))))
+            return(sp)
+          }
+)
+
+setGeneric(name="autocorrelationDoughnutRotate",
+           def=function(sp)
+           {standardGeneric("autocorrelationDoughnutRotate")}
+)
+setMethod(f="autocorrelationDoughnutRotate",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@autos)==0)
+              stop("Need to call mapSpatialAutocorrelation first to run gridScore()")
+            results<-.Call("autocorrelation_doughnut_rotate_cwrap",
+                           as.integer(sp@cellList),
+                           length(sp@cellList),
+                           sp@autos,
+                           sp@nRowAuto,
+                           sp@nColAuto,
+                           as.integer(sp@gridScoreNumberFieldsToDetect),
+                           as.integer(sp@gridScoreMinNumBinsPerField),
+                           sp@gridScoreFieldThreshold,
+                           sp@cmPerBin,
+                           sp@nAutoRotations,
+                           sp@AutoRotationDegree,
+                           -2.0) #invalid
+            
+            
+            sp@autosDoughnutRotate<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList)*sp@nAutoRotations)))
+            return(sp)
+          }
+)
 
 
 setGeneric(name="gridScore",
@@ -484,18 +571,17 @@ setMethod(f="gridScore",
           {
             if(length(sp@autos)==0)
               stop("Need to call mapSpatialAutocorrelation first to run gridScore()")
-            
             sp@gridScore<-.Call("grid_score_cwrap",
                   as.integer(sp@cellList),
                   length(sp@cellList),
                   sp@autos,
-                  sp@nColAuto,
                   sp@nRowAuto,
+                  sp@nColAuto,
                   sp@cmPerBin,
                   as.integer(sp@gridScoreNumberFieldsToDetect),
                   as.integer(sp@gridScoreMinNumBinsPerField),
                   sp@gridScoreFieldThreshold,
-                  -1.0) #invalid
+                  -2.0) #invalid
             return(sp)
           }
 )

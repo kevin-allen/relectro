@@ -158,6 +158,12 @@ void occupancy_histogram(int x_bins,double pixels_per_bin_x, double *x_whl, int 
 SEXP occupancy_histogram_cwrap(SEXP x_bins_r, SEXP pixels_per_bin_x_r, SEXP x_whl_r, SEXP whl_lines_r, SEXP ms_per_sample_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r, SEXP res_samples_per_whl_sample_r,SEXP n_repetitions_r);
 void create_place_field_linear( int x_bins,double pixels_per_bin, double *x_spike, int *clu,int res_lines,int target_cell,double *occupancy_map,double *place_field,int num_repetitions);
 SEXP firing_rate_histo_cwrap(SEXP num_bins_x_r, SEXP pixels_per_bin_x_r, SEXP x_spike_r, SEXP clu_r, SEXP res_lines_r, SEXP cells_r, SEXP num_cells_r, SEXP occ_histo_r, SEXP smooth_histo_sd_r, SEXP repetitions_r);
+SEXP detect_and_remove_field_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP map_r, SEXP x_bins_r, SEXP y_bins_r,SEXP num_fields_to_detect_r, SEXP min_num_bins_fields_r, SEXP threshold_r, SEXP invalid_r);
+double detect_and_remove_field(double *map, int x_bins, int y_bins, int num_fields_to_detect,  int min_num_bins_fields,  float threshold, double invalid);
+SEXP autocorrelation_doughnut_cwrap(SEXP cells_r,SEXP cell_lines_r, SEXP maps_r,SEXP x_bins_r,SEXP y_bins_r,SEXP num_fields_to_detect_r,SEXP min_num_bins_fields_r,SEXP threshold_r,SEXP px_per_bin_r,SEXP invalid_r);
+void autocorrelation_doughnut(double* one_auto_map, int auto_num_bins_x,int auto_num_bins_y,  double pixels_per_bin,int number_fields_to_detect, int min_num_bins_per_field,double field_threshold, double invalid);
+SEXP autocorrelation_doughnut_rotate_cwrap(SEXP cells_r,SEXP cell_lines_r, SEXP maps_r, SEXP x_bins_r, SEXP y_bins_r, SEXP num_fields_to_detect_r, SEXP min_num_bins_fields_r,SEXP threshold_r,SEXP px_per_bin_r,SEXP rotations_r,SEXP degree_r,SEXP invalid_r);
+void autocorrelation_doughnut_rotate(double* one_auto_map, int auto_num_bins_x, int auto_num_bins_y, double* rotated_maps,double pixels_per_bin,int number_fields_to_detect, int min_num_bins_per_field, double field_threshold, int rotations, double degree, double invalid);
 
 // interval.c
 int check_interval_chronology_between(int num_lines, 

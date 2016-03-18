@@ -624,7 +624,7 @@ SEXP occupancy_map_cwrap(SEXP x_bins_r, // num of bins x
 
   int x_bins=INTEGER_VALUE(x_bins_r);
   int y_bins=INTEGER_VALUE(y_bins_r);
-  SEXP out = PROTECT(allocMatrix(REALSXP,y_bins,x_bins)); // nrow ncol, to return, y and x are swapped 
+  SEXP out = PROTECT(allocMatrix(REALSXP,x_bins,y_bins)); // nrow ncol, to return, y and x are swapped 
   double* map = (double*)malloc(y_bins*x_bins*sizeof(double)); // to pass to c function
  
   occupancy_map(x_bins, // num of bins x
@@ -646,7 +646,7 @@ SEXP occupancy_map_cwrap(SEXP x_bins_r, // num of bins x
   // copy the results in a SEXP
   for(int x = 0; x < x_bins; x++)
     for(int y = 0; y < y_bins; y++){
-      rans[x*y_bins+y] = map[x*y_bins+y];
+      rans[y*x_bins+x] = map[x*y_bins+y]; // the way things are ordered in C differs from R
     }
   free(map);
   UNPROTECT(1);
@@ -816,12 +816,22 @@ SEXP firing_rate_map_2d_cwrap(SEXP num_bins_x_r,
   int num_bins_y=INTEGER_VALUE(num_bins_y_r);
   int num_cells=INTEGER_VALUE(num_cells_r);
   int total_size = num_bins_x*num_bins_y*num_cells;
+  int one_map_size=num_bins_x*num_bins_y;
   int* cells = INTEGER_POINTER(cells_r);
   int target_cell;
+  double* occ=REAL(occ_map_r);
   SEXP out = PROTECT(allocVector(REALSXP,total_size));
   double* maps = (double*)malloc(total_size*sizeof(double)); 
+  double* t_occ_map = (double*)malloc(one_map_size*sizeof(double));
   double* one_map;
 
+  
+  // transpose the occ maps from R to C format
+  for(int x =0; x < num_bins_x;x++)
+    for(int y =0; y < num_bins_y;y++)
+      t_occ_map[x*num_bins_y+y]=occ[x+num_bins_x*y];
+  
+  
   for(int i = 0; i < num_cells;i++)
     {
       target_cell = cells[i];
@@ -836,18 +846,30 @@ SEXP firing_rate_map_2d_cwrap(SEXP num_bins_x_r,
       			 INTEGER_POINTER(clu_r),
       			 INTEGER_VALUE(res_lines_r),
       			 target_cell,
-      			 REAL(occ_map_r),
+      			 t_occ_map,
       			 one_map);
       /// smooth the place field
       smooth_double_gaussian_2d(one_map,num_bins_x, num_bins_y, REAL(smooth_map_sd_r)[0],-1.0);
     }
   
   double* ans;
+  double* one_ans;
   ans=REAL(out);
-  for(int i = 0; i < total_size;i++)
+  
+  for(int i = 0; i < total_size;i++){
     ans[i]=maps[i];
+  }
+  //transpose the maps for R
+  for(int i = 0; i < num_cells;i++){
+    one_map = maps + (i*one_map_size);
+    one_ans = ans + (i*one_map_size);
+    for(int x =0; x < num_bins_x;x++)
+      for(int y =0; y < num_bins_y;y++)
+        one_ans[x+num_bins_x*y]=one_map[x*num_bins_y+y];
+  }
 
   free(maps);
+  free(t_occ_map);
   UNPROTECT(1);
   return(out);
 }
@@ -1103,21 +1125,35 @@ SEXP map_autocorrelation_cwrap(SEXP cells_r,
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   double* maps = REAL(maps_r);
   double* one_map;
+  double* one_tmap;
   int num_bins_x = INTEGER_VALUE(num_bins_x_r);
   int num_bins_y = INTEGER_VALUE(num_bins_y_r);
+  int one_map_size=num_bins_x*num_bins_y;
   int auto_num_bins_x = INTEGER_VALUE(auto_num_bins_x_r);
   int auto_num_bins_y = INTEGER_VALUE(auto_num_bins_y_r);
   int min_bins_for_autocorrelation = INTEGER_VALUE(min_bins_for_autocorrelation_r);
 
+  // transpose the maps
+  double* tmaps = (double*) malloc(one_map_size*cell_lines*sizeof(double));
+    //transpose the maps for R
+  for(int i = 0; i < cell_lines;i++){
+    one_map = maps + (i*one_map_size);
+    one_tmap = tmaps + (i*one_map_size);
+      for(int x =0; x < num_bins_x;x++)
+        for(int y =0; y < num_bins_y;y++)
+          one_tmap[x*num_bins_y+y]=one_map[x+num_bins_x*y];
+    }
+  
   int total_bins_auto= auto_num_bins_x*auto_num_bins_y;
   SEXP out = PROTECT(allocVector(REALSXP,total_bins_auto*cell_lines));
-  double* all_auto = REAL(out);
+  double* all_auto = (double*) malloc(total_bins_auto*cell_lines*sizeof(double));
   double* one_auto;
+  double* all_tauto=REAL(out);
+  double* one_tauto;
 
-  
   for(int i = 0; i < cell_lines; i++){
     one_auto=all_auto+(i*total_bins_auto);
-    one_map=maps+(i*num_bins_x*num_bins_y);
+    one_map=tmaps+(i*num_bins_x*num_bins_y);
     map_autocorrelation(one_map, // pointer to one place field map
 			one_auto, // pointer to one spatial autocorrelation map
 			num_bins_x, // x size of the place field map (num bins)
@@ -1127,6 +1163,22 @@ SEXP map_autocorrelation_cwrap(SEXP cells_r,
 			min_bins_for_autocorrelation); // minimum of valid values to do the correlation
   }
 
+  //for(int i = 0; i < total_bins_auto*cell_lines;i++)
+  //    all_tauto[i]=all_auto[i];
+  
+  
+  // transpose the results
+  for(int i = 0; i < cell_lines;i++){
+    one_auto = all_auto + (i*total_bins_auto);
+    one_tauto = all_tauto + (i*total_bins_auto);
+    for(int x =0; x < auto_num_bins_x;x++)
+      for(int y =0; y < auto_num_bins_y;y++)
+        one_tauto[x+auto_num_bins_x*y]=one_auto[x*auto_num_bins_y+y];
+  }
+
+  
+  free(tmaps);
+  free(all_auto);
   UNPROTECT(1);
   return (out);
 }
@@ -2114,9 +2166,17 @@ SEXP grid_score_cwrap(SEXP cells_r,
 
   // create a copy of autocorrelation otherwise it will remove the fields from autocorrelation
   double* all_autos_copy = (double*)malloc(total_bins_auto*cell_lines*sizeof(double));
-  for(int i =0; i <total_bins_auto*cell_lines;i++)
-    all_autos_copy[i]=all_autos[i];
-
+  double* one_auto_copy;
+  
+  
+  for(int i = 0; i < cell_lines; i++){
+    one_auto = all_autos + (i*total_bins_auto);
+    one_auto_copy = all_autos_copy + (i*total_bins_auto);
+    for(int x =0; x < auto_num_bins_x;x++)
+      for(int y =0; y < auto_num_bins_y;y++)
+        one_auto_copy[x*auto_num_bins_y+y]=one_auto[x+auto_num_bins_x*y]; // needs to be transpose for c code
+  }
+  
   SEXP out = PROTECT(allocVector(REALSXP,cell_lines));
   double* o = REAL(out);
 
@@ -2124,13 +2184,13 @@ SEXP grid_score_cwrap(SEXP cells_r,
   for(int i = 0; i < cell_lines; i++){
     one_auto=all_autos_copy+(i*total_bins_auto);
     o[i]= gridness_score(one_auto,
-			 auto_num_bins_x,
-			 auto_num_bins_y,
-			 REAL(pixels_per_bin_r)[0],
-			 INTEGER_VALUE(number_fields_to_detect_r),
-			 INTEGER_VALUE(min_num_bins_per_field_r),
-			 REAL(field_threshold_r)[0], 
-			 REAL(invalid_r)[0]);
+			    auto_num_bins_x,
+			    auto_num_bins_y,
+			    REAL(pixels_per_bin_r)[0],
+			    INTEGER_VALUE(number_fields_to_detect_r),
+			    INTEGER_VALUE(min_num_bins_per_field_r),
+			    REAL(field_threshold_r)[0], 
+			    REAL(invalid_r)[0]);
   }
   free(all_autos_copy);
   UNPROTECT(1);
@@ -2824,15 +2884,26 @@ SEXP border_score_rectangular_environment_cwrap(SEXP cells_r,
   int num_bins_y = INTEGER_VALUE(num_bins_y_r);
   double* occ_map = REAL(occ_map_r);
   double* maps = REAL(maps_r);
-
+  double* one_map;
+  double* one_map_copy;
 
   int total_bins= num_bins_x*num_bins_y;
 
   // create a copy of map otherwise it will remove the fields from it
   double* maps_copy = (double*)malloc(total_bins*cell_lines*sizeof(double));
-  for(int i =0; i <total_bins*cell_lines;i++)
-    maps_copy[i]=maps[i];
-
+  double* tocc_map = (double*)malloc(total_bins*sizeof(double));
+  // transpose the map
+  for(int i =0; i < cell_lines;i++){
+    one_map=maps+(i*total_bins);
+    one_map_copy=maps_copy+(i*total_bins);
+    for(int x = 0; x < num_bins_x; x++) 
+      for(int y = 0; y < num_bins_y; y++)
+      one_map_copy[x*num_bins_y+y]=one_map[x+num_bins_x*y]; 
+  }
+  for(int x = 0; x < num_bins_x; x++) 
+    for(int y = 0; y < num_bins_y; y++)
+      tocc_map[x*num_bins_y+y]=occ_map[x+num_bins_x*y];
+  
 
   SEXP out = PROTECT(allocMatrix(REALSXP,4,cell_lines));
   double* o = REAL(out);
@@ -2848,7 +2919,7 @@ SEXP border_score_rectangular_environment_cwrap(SEXP cells_r,
 				       cell_lines,
 				       num_bins_x,
 				       num_bins_y,
-				       occ_map,
+				       tocc_map,
 				       maps_copy,
 				       REAL(percent_threshold_field_r)[0],
 				       INTEGER_VALUE(min_bins_in_field_r),
@@ -2867,6 +2938,7 @@ SEXP border_score_rectangular_environment_cwrap(SEXP cells_r,
     }
 
   free(maps_copy);
+  free(tocc_map);
   free(cm);
   free(dm);
   free(num_fields_detected);
@@ -3450,3 +3522,467 @@ SEXP firing_rate_histo_cwrap(SEXP num_bins_x_r,
   UNPROTECT(1);
   return(out);
 }
+
+
+SEXP detect_and_remove_field_cwrap(SEXP cells_r,
+                                  SEXP cell_lines_r,
+                                  SEXP maps_r,
+                                  SEXP x_bins_r,
+                                  SEXP y_bins_r,
+                                  SEXP num_fields_to_detect_r,
+                                  SEXP min_num_bins_fields_r,
+                                  SEXP threshold_r,
+                                  SEXP invalid_r)
+{
+  int cell_lines =INTEGER_VALUE(cell_lines_r);
+  int x_bins=INTEGER_VALUE(x_bins_r);
+  int y_bins=INTEGER_VALUE(y_bins_r);
+  int one_map_size=x_bins*y_bins;
+  double* tmaps = (double*)malloc(one_map_size*cell_lines*sizeof(double));
+  double* maps =REAL(maps_r);
+  double* one_map;
+  double* one_tmap;
+  // transpose the maps
+  for(int i = 0; i < cell_lines; i++){
+    one_map=maps+(one_map_size*i);
+    one_tmap=tmaps+(one_map_size*i);  
+    for(int x = 0; x< x_bins; x++)
+      for(int y = 0; y< y_bins; y++)
+        one_tmap[x*y_bins+y]=one_map[x+x_bins*y];
+  }
+
+  for(int i = 0; i < cell_lines; i++){
+    one_map=tmaps+(one_map_size*i);
+    detect_and_remove_field(one_map,
+                            x_bins,
+                            y_bins,
+                            INTEGER_VALUE(num_fields_to_detect_r),
+                            INTEGER_VALUE(min_num_bins_fields_r),
+                            REAL(threshold_r)[0],
+                            REAL(invalid_r)[0]);
+
+  }
+  
+  SEXP out = PROTECT(allocVector(REALSXP,one_map_size*cell_lines));
+  maps=REAL(out);
+  // transpose back to R order
+  for(int i = 0; i < cell_lines;i++){
+    one_tmap = tmaps + (i*one_map_size); 
+    one_map = maps + (i*one_map_size); // to ship back
+    for(int x =0; x < x_bins;x++)
+      for(int y =0; y < y_bins;y++)
+        one_map[x+x_bins*y]=one_tmap[x*y_bins+y];
+  }
+  
+  free(tmaps);
+  UNPROTECT(1);
+  return(out);
+}
+
+double detect_and_remove_field(double *map,
+                               int x_bins,
+                               int y_bins,
+                               int num_fields_to_detect,
+                               int min_num_bins_fields,
+                               float threshold,
+                               double invalid)
+{
+  /********************************************************
+  funtion to detect fields in a map and remove them
+  **********************************************************/
+  double* x_field;
+  double* y_field;
+  double* radius_field;
+  int* num_bins_field;
+  
+  int index;
+  x_field= (double*) malloc(num_fields_to_detect*sizeof(double));
+  y_field= (double*) malloc(num_fields_to_detect*sizeof(double));
+  radius_field= (double*) malloc(num_fields_to_detect*sizeof(double));
+  num_bins_field= (int*) malloc(num_fields_to_detect*sizeof(int));
+  
+  for (int i = 0; i < num_fields_to_detect ; i++)
+  {
+    // that function set to invalid the fieldfield
+    detect_one_field(map,
+                     x_bins,
+                     y_bins,
+                     min_num_bins_fields,
+                     threshold,
+                     &x_field[i],
+                     &y_field[i],
+                     &radius_field[i],
+                     &num_bins_field[i],
+                     invalid);
+  }
+  for (int i = 0; i < num_fields_to_detect ; i++)
+  {
+    if (x_field[i] != -1 && y_field[i] != -1)
+    {
+      // set the mean of the field to 1 in the map
+      index=get_index_from_x_and_y_bin(x_bins,y_bins,(int)x_field[i],(int)y_field[i]);
+      map[index]=1;
+    }
+  }
+  free(x_field);
+  free(y_field);
+  free(radius_field);
+  free(num_bins_field);
+  return 0;
+}
+
+SEXP autocorrelation_doughnut_cwrap(SEXP cells_r,
+                                    SEXP cell_lines_r,
+                                    SEXP maps_r,
+                                    SEXP x_bins_r,
+                                    SEXP y_bins_r,
+                                    SEXP num_fields_to_detect_r,
+                                    SEXP min_num_bins_fields_r,
+                                    SEXP threshold_r,
+                                    SEXP px_per_bin_r,
+                                    SEXP invalid_r)
+{
+  int cell_lines =INTEGER_VALUE(cell_lines_r);
+  int x_bins=INTEGER_VALUE(x_bins_r);
+  int y_bins=INTEGER_VALUE(y_bins_r);
+  int one_map_size=x_bins*y_bins;
+  double* tmaps = (double*)malloc(one_map_size*cell_lines*sizeof(double));
+  double* maps =REAL(maps_r);
+  double* one_map;
+  double* one_tmap;
+  // transpose the maps
+  for(int i = 0; i < cell_lines; i++){
+    one_map=maps+(one_map_size*i);
+    one_tmap=tmaps+(one_map_size*i);  
+    for(int x = 0; x< x_bins; x++)
+      for(int y = 0; y< y_bins; y++)
+        one_tmap[x*y_bins+y]=one_map[x+x_bins*y];
+  }
+  
+  for(int i = 0; i < cell_lines; i++){
+    one_map=tmaps+(one_map_size*i);
+   
+   autocorrelation_doughnut(one_map,
+                            x_bins,
+                            y_bins,
+                            REAL(px_per_bin_r)[0],
+                            INTEGER_VALUE(num_fields_to_detect_r),
+                            INTEGER_VALUE(min_num_bins_fields_r),
+                            REAL(threshold_r)[0],
+                            REAL(invalid_r)[0]);
+                            
+  }
+  
+  SEXP out = PROTECT(allocVector(REALSXP,one_map_size*cell_lines));
+  maps=REAL(out);
+  // transpose back to R order
+  for(int i = 0; i < cell_lines;i++){
+    one_tmap = tmaps + (i*one_map_size); 
+    one_map = maps + (i*one_map_size); // to ship back
+    for(int x =0; x < x_bins;x++)
+      for(int y =0; y < y_bins;y++)
+        one_map[x+x_bins*y]=one_tmap[x*y_bins+y];
+  }
+  
+  free(tmaps);
+  UNPROTECT(1);
+  return(out);
+}
+
+void autocorrelation_doughnut(double* one_auto_map,
+                              int auto_num_bins_x,
+                              int auto_num_bins_y,
+                              double pixels_per_bin,
+                              int number_fields_to_detect, // min number of bins in fields
+                              int min_num_bins_per_field,
+                              double field_threshold, 
+                              double invalid)
+{
+  // get the circular area that is rotated to calculate the grid score
+  int num_fields = 7;
+  int num_bins = auto_num_bins_x*auto_num_bins_y;
+  double* original_map;
+  double* x_field;
+  double* y_field;
+  double* radius;
+  double* distance_to_mid;
+  int* area_field;
+  int mid_x=auto_num_bins_x/2;
+  int mid_y=auto_num_bins_y/2;
+  int x;
+  int y;
+  int d;
+  double min_radius; // for the ring
+  double max_radius; // for the ring
+  
+  original_map = (double*) malloc(sizeof(double) *num_bins);
+  x_field = (double*) malloc(sizeof(double) *num_fields);
+  y_field = (double*) malloc(sizeof(double) *num_fields);
+  radius = (double*) malloc(sizeof(double) *num_fields);
+  distance_to_mid = (double*) malloc(sizeof(double) *num_fields);
+  area_field = (int*) malloc(sizeof(int) *num_fields);
+  
+  
+  // copy the original map before detection of fields
+  for (int i = 0 ; i < num_bins ; i++)
+  {
+    original_map[i] = one_auto_map [i];
+  }
+  // get the position of the 6 fields close to mid of map
+  grid_closest_peaks_to_middle(one_auto_map,
+                               auto_num_bins_x,
+                               auto_num_bins_y,
+                               pixels_per_bin,
+                               number_fields_to_detect,
+                               min_num_bins_per_field,
+                               field_threshold,
+                               invalid,
+                               x_field, // res for results
+                               y_field,
+                               radius,
+                               distance_to_mid,
+                               area_field,
+                               num_fields);
+  
+  // to make the ring that will be rotated
+  min_radius=radius[0]/pixels_per_bin; 
+  if (min_radius >= auto_num_bins_x/4 || min_radius >= auto_num_bins_y/4)
+  {
+    printf("autocorrelation_doughnut\n");
+    printf("radius of central field was as big as the map\n");
+    min_radius=min_radius/2;
+  }
+  max_radius=0;
+  for (int i = 1 ; i < num_fields; i++)
+  {  
+    if (x_field[i] != -1)
+    {
+      if ((distance_to_mid[i]+radius[i])/pixels_per_bin > max_radius)
+      {
+        max_radius=(distance_to_mid[i]+radius[i])/pixels_per_bin;
+      }
+    }
+  }
+  // set the value outside the ring to invalid
+  for (int i = 0 ; i < num_bins ; i++)
+  {
+    if (original_map[i] != invalid)
+    {
+      // check the distance between that bin and the center of the map
+      get_x_and_y_bin_from_index(auto_num_bins_x,
+                                 auto_num_bins_y,
+                                 i,
+                                 &x,
+                                 &y);
+      d=(int)distance(mid_x,mid_y,x,y);
+      if (d<min_radius|| d>max_radius)
+      {
+        original_map[i] = invalid;
+      }
+    }
+  }
+
+  for(int i = 0; i < num_bins; i++)
+    one_auto_map[i]=original_map[i];
+  
+  free(original_map);
+  free(x_field);
+  free(y_field);
+  free(radius);
+  free(distance_to_mid);
+  free(area_field);
+  return;
+}
+
+
+SEXP autocorrelation_doughnut_rotate_cwrap(SEXP cells_r,
+                                    SEXP cell_lines_r,
+                                    SEXP maps_r,
+                                    SEXP x_bins_r,
+                                    SEXP y_bins_r,
+                                    SEXP num_fields_to_detect_r,
+                                    SEXP min_num_bins_fields_r,
+                                    SEXP threshold_r,
+                                    SEXP px_per_bin_r,
+                                    SEXP rotations_r,
+                                    SEXP degree_r,
+                                    SEXP invalid_r)
+{
+  int cell_lines =INTEGER_VALUE(cell_lines_r);
+  int x_bins=INTEGER_VALUE(x_bins_r);
+  int y_bins=INTEGER_VALUE(y_bins_r);
+  int one_map_size=x_bins*y_bins;
+  int rotations = INTEGER_VALUE(rotations_r);
+  double* tmaps = (double*)malloc(one_map_size*cell_lines*sizeof(double));
+  double* maps =REAL(maps_r);
+  double* one_map;
+  double* one_tmap;
+  double* ptr_rotated;
+  // transpose the maps
+  for(int i = 0; i < cell_lines; i++){
+    one_map=maps+(one_map_size*i);
+    one_tmap=tmaps+(one_map_size*i);  
+    for(int x = 0; x< x_bins; x++)
+      for(int y = 0; y< y_bins; y++)
+        one_tmap[x*y_bins+y]=one_map[x+x_bins*y];
+  }
+  // all cells * rotations
+  double* rotated_maps = (double*) malloc(sizeof(double)*one_map_size*cell_lines*rotations);
+  
+  for(int i = 0; i < cell_lines; i++){
+    one_map=tmaps+(one_map_size*i);
+    ptr_rotated = rotated_maps+(one_map_size*rotations*i);
+    autocorrelation_doughnut_rotate(one_map,
+                                    x_bins,
+                                    y_bins,
+                                    ptr_rotated,
+                                    REAL(px_per_bin_r)[0],
+                                    INTEGER_VALUE(num_fields_to_detect_r),
+                                    INTEGER_VALUE(min_num_bins_fields_r),
+                                    REAL(threshold_r)[0],
+                                    rotations,
+                                    REAL(degree_r)[0],
+                                    REAL(invalid_r)[0]);
+    
+  }
+  
+  SEXP out = PROTECT(allocVector(REALSXP,one_map_size*cell_lines*rotations));
+  maps=REAL(out);
+  // transpose back to R order
+  for(int i = 0; i < cell_lines;i++)
+    for(int j = 0; j < rotations; j++){
+      one_tmap = rotated_maps + (i*one_map_size*rotations+ one_map_size*j); 
+      one_map = maps + (i*one_map_size*rotations+ one_map_size*j) ;
+      for(int x =0; x < x_bins;x++)
+        for(int y =0; y < y_bins;y++)
+          one_map[x+x_bins*y]=one_tmap[x*y_bins+y];
+    }
+  free(tmaps);
+  free(rotated_maps);
+  UNPROTECT(1);
+  return(out);
+}
+
+void autocorrelation_doughnut_rotate(double* one_auto_map,
+                              int auto_num_bins_x,
+                              int auto_num_bins_y,
+                              double* rotated_maps,
+                              double pixels_per_bin,
+                              int number_fields_to_detect, // min number of bins in fields
+                              int min_num_bins_per_field,
+                              double field_threshold,
+                              int num_rotations,
+                              double degree,
+                              double invalid)
+{
+  // get the circular area that is rotated to calculate the grid score
+  int num_fields = 7;
+  int num_bins = auto_num_bins_x*auto_num_bins_y;
+  double* original_map;
+  double* x_field;
+  double* y_field;
+  double* radius;
+  double* distance_to_mid;
+  int* area_field;
+  int mid_x=auto_num_bins_x/2;
+  int mid_y=auto_num_bins_y/2;
+  int x;
+  int y;
+  int d;
+  double min_radius; // for the ring
+  double max_radius; // for the ring
+  double* one_map;
+  original_map = (double*) malloc(sizeof(double) *num_bins);
+  x_field = (double*) malloc(sizeof(double) *num_fields);
+  y_field = (double*) malloc(sizeof(double) *num_fields);
+  radius = (double*) malloc(sizeof(double) *num_fields);
+  distance_to_mid = (double*) malloc(sizeof(double) *num_fields);
+  area_field = (int*) malloc(sizeof(int) *num_fields);
+  
+  
+  // copy the original map before detection of fields
+  for (int i = 0 ; i < num_bins ; i++)
+  {
+    original_map[i] = one_auto_map [i];
+  }
+  // get the position of the 6 fields close to mid of map
+  grid_closest_peaks_to_middle(one_auto_map,
+                               auto_num_bins_x,
+                               auto_num_bins_y,
+                               pixels_per_bin,
+                               number_fields_to_detect,
+                               min_num_bins_per_field,
+                               field_threshold,
+                               invalid,
+                               x_field, // res for results
+                               y_field,
+                               radius,
+                               distance_to_mid,
+                               area_field,
+                               num_fields);
+  
+  // to make the ring that will be rotated
+  min_radius=radius[0]/pixels_per_bin; 
+  if (min_radius >= auto_num_bins_x/4 || min_radius >= auto_num_bins_y/4)
+  {
+    printf("autocorrelation_doughnut\n");
+    printf("radius of central field was as big as the map\n");
+    min_radius=min_radius/2;
+  }
+  max_radius=0;
+  for (int i = 1 ; i < num_fields; i++)
+  {  
+    if (x_field[i] != -1)
+    {
+      if ((distance_to_mid[i]+radius[i])/pixels_per_bin > max_radius)
+      {
+        max_radius=(distance_to_mid[i]+radius[i])/pixels_per_bin;
+      }
+    }
+  }
+  // set the value outside the ring to invalid
+  for (int i = 0 ; i < num_bins ; i++)
+  {
+    if (original_map[i] != invalid)
+    {
+      // check the distance between that bin and the center of the map
+      get_x_and_y_bin_from_index(auto_num_bins_x,
+                                 auto_num_bins_y,
+                                 i,
+                                 &x,
+                                 &y);
+                                 d=(int)distance(mid_x,mid_y,x,y);
+                                 if (d<min_radius|| d>max_radius)
+                                 {
+                                   original_map[i] = invalid;
+                                 }
+    }
+  }
+  
+  // create the rotated maps 
+  for(int i = 0; i < num_rotations; i++)
+  {
+    one_map=rotated_maps+i*num_bins;
+    for (int j = 0; j < num_bins; j++)
+    {
+      one_map[j]=original_map[j];
+    }
+    
+    map_rotate(one_map,
+               auto_num_bins_x,
+               auto_num_bins_y,
+               degree*i,
+               invalid);
+  }
+  
+  
+  free(original_map);
+  free(x_field);
+  free(y_field);
+  free(radius);
+  free(distance_to_mid);
+  free(area_field);
+  return;
+}
+
+
