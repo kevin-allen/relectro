@@ -19,9 +19,10 @@ Positrack <- setClass(
           speed="numeric",
           angularSpeed="numeric",
           res="numeric",
-          defaultXYSmoothing="numeric"
+          defaultXYSmoothing="numeric",
+          minShiftMs="numeric"
           ),  # cell list to limit the analysis to these cells
-  prototype = list(session="",path="",defaultXYSmoothing=2))
+  prototype = list(session="",path="",defaultXYSmoothing=2,minShiftMs=20000))
 
 ### loadPositrack ###
 setGeneric(name="loadPositrack",
@@ -297,9 +298,6 @@ setMethod("show", "Positrack",
             print(paste("min max y:",min(object@y,na.rm=T),"cm,",max(object@y,na.rm=T),"cm"))
           })
 
-
-
-
 #### getSpeedAtResValues
 setGeneric(name="getSpeedAtResValues",
            def=function(pt,res)
@@ -327,6 +325,33 @@ setMethod(f="getSpeedAtResValues",
             return(results)
           }
 )
+
+
+
+#### shiftPositionRandom
+setGeneric(name="shiftPositionRandom",
+           def=function(pt)
+           {standardGeneric("shiftPositionRandom")}
+)
+setMethod(f="shiftPositionRandom",
+          signature="Positrack",
+          definition=function(pt)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@x)==0)
+              stop("pt@x has length of 0")
+            
+            results<-shuffle.vectors(x=pt@x,y=pt@y,
+                                     time.per.sample.res=pt@resSamplesPerWhlSample,
+                                     pt@minShiftMs,
+                                     pt@samplingRateDat)
+            pt@x<-results[[1]]
+            pt@y<-results[[2]]
+            return(pt)
+          }
+)
+
 
 
 #### linearzeLinearTrack

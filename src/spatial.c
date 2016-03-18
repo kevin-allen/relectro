@@ -2913,8 +2913,6 @@ SEXP border_score_rectangular_environment_cwrap(SEXP cells_r,
   double* border_score =  (double*) malloc(cell_lines*sizeof(double));
   int* num_fields_detected = (int*) malloc(cell_lines*sizeof(int));
 
-
-  
   border_score_rectangular_environment(cells,
 				       cell_lines,
 				       num_bins_x,

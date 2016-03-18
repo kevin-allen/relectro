@@ -7,9 +7,13 @@ R CMD build relectro
 R CMD INSTALL relectro
 
 
+R object [xdim*y +x]
+C 2d array [ydim*x +y]
 
 KNOWN BUGS: 
 1) grid score is not working
+2) maps are not read the same way in R object and C 2d maps, did some transposition.
+
 
 
 How do we represent a cell with its properties in relectro?

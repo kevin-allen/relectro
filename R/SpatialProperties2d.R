@@ -193,19 +193,16 @@ setMethod(f="firingRateMap2d",
 
 #### getMapStats
 setGeneric(name="getMapStats",
-           def=function(sp)
+           def=function(sp,st,pt)
            {standardGeneric("getMapStats")}
 )
 setMethod(f="getMapStats",
           signature="SpatialProperties2d",
-          definition=function(sp)
+          definition=function(sp,st,pt)
           {
-            
-            if(length(sp@maps)==0)
-              stop("Need to call firingRateMap2d first to run getMapStats")
-            if(length(sp@occupancy)==0)
-              stop("sp@occupancy length ==0")
-          
+            ## make the maps
+            sp<-firingRateMap2d(sp,st,pt)
+
             ### get peak rates
             sp@peakRate<-apply(sp@maps,3,max)
 
@@ -241,31 +238,19 @@ setMethod(f="getMapStats",
             sp@borderDM<-results[3,]
             sp@borderNumFieldsDetected<-results[4,]
             
-            
-            sp@nColAuto = as.integer((sp@nColMap*2)+1)
-            sp@nRowAuto = as.integer((sp@nRowMap*2)+1)
-            results<- .Call("map_autocorrelation_cwrap",
-                            as.integer(sp@cellList),
-                            length(sp@cellList),
-                            as.numeric(sp@maps),
-                            sp@nRowMap,
-                            sp@nColMap,
-                            sp@nRowAuto,
-                            sp@nColAuto,
-                            as.integer(sp@minValidBinsAuto))
-            sp@autos<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList))))
-            
+            # make spatial autocorrelations
+            sp<-mapSpatialAutocorrelation(sp)
             sp@gridScore<-.Call("grid_score_cwrap",
                                 as.integer(sp@cellList),
                                 length(sp@cellList),
                                 sp@autos,
-                                sp@nColAuto,
                                 sp@nRowAuto,
+                                sp@nColAuto,
                                 sp@cmPerBin,
                                 as.integer(sp@gridScoreNumberFieldsToDetect),
                                 as.integer(sp@gridScoreMinNumBinsPerField),
                                 sp@gridScoreFieldThreshold,
-                                -1.0) #invalid
+                                -2.0) #invalid
           return(sp)
           }
 )
@@ -282,113 +267,13 @@ setMethod(f="getMapStatsShuffle",
             
             if(sp@nShufflings==0)            
               stop("sp@nShufflings==0")
-            
-            if(pt@session=="")
-              stop("pt@session is empty")
-            if(length(pt@x)==0)
-              stop("pt@x has length of 0")
-            if(st@session=="")
-              stop("st@session is empty")
-            if(st@nSpikes==0)
-              stop("st@nSpikes==0")
-            
-            sp@cellList<-st@cellList
-            
-            ## reduce the size of maps and map autocorrelation
-            if(sp@reduceSize==T){
-              x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
-              y<-pt@y-min(pt@y,na.rm=T)+sp@cmPerBin
-            }else{
-              x<-pt@x
-              y<-pt@y
-            }
-            
-            #plot(x,y)
-            ## use -1 as invalid values in c functions
-            x[is.na(x)]<- -1.0
-            y[is.na(y)]<- -1.0
-            
-            ## get the dimensions of the map
-            sp@nColMap=as.integer(((max(x)+1)/sp@cmPerBin)+1) # x 
-            sp@nRowMap=as.integer(((max(y)+1)/sp@cmPerBin)+1) # y
-            ## dimensions of autos
-            sp@nColAuto = as.integer((sp@nColMap*2)+1)
-            sp@nRowAuto = as.integer((sp@nRowMap*2)+1)
-            
+
             for(i in 1:sp@nShufflings){
               print(paste(i,"of",sp@nShufflings))
               
-              ################################
-              # shuffle the x and y position #
-              # need to be changed           #
-              # valid position values should #
-              # not change environments      #
-              ################################
-              
-              results<-shuffle.vectors(x=x,y=y,
-                             time.per.sample.res=pt@resSamplesPerWhlSample,
-                             sp@minShiftMs,
-                             rs@samplingRate)
-              x<-results[[1]]
-              y<-results[[2]]
-              
-              
-              results<-.Call("spike_position_cwrap",
-                             x,
-                             y,
-                             length(x),
-                             as.integer(st@res),
-                             as.integer(st@nSpikes),
-                             as.integer(pt@resSamplesPerWhlSample),
-                             as.integer(st@startInterval),
-                             as.integer(st@endInterval),
-                             length(st@startInterval))
-              sp@xSpikes<-results[1,]
-              sp@ySpikes<-results[2,]
-              
-              ## make the occupancy map
-              sp@occupancy<-.Call("occupancy_map_cwrap",
-                                  sp@nColMap,
-                                  sp@nRowMap,
-                                  sp@cmPerBin,
-                                  sp@cmPerBin,
-                                  x,
-                                  y,
-                                  length(x),
-                                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
-                                  as.integer(st@startInterval),
-                                  as.integer(st@endInterval),
-                                  length(st@startInterval),
-                                  as.integer(pt@resSamplesPerWhlSample))
-              
-              ## smooth the occupancy map
-              sp@occupancy<- .Call("smooth_double_gaussian_2d_cwrap",
-                                   as.numeric(sp@occupancy),
-                                   sp@nColMap,
-                                   sp@nRowMap,
-                                   sp@smoothOccupancySd/sp@cmPerBin,
-                                   -1.0)
-              ## make the 2d maps
-              results<- .Call("firing_rate_map_2d_cwrap",
-                              sp@nColMap,
-                              sp@nRowMap,
-                              sp@cmPerBin,
-                              sp@cmPerBin,
-                              sp@xSpikes,
-                              sp@ySpikes,
-                              as.integer(st@clu),
-                              as.integer(st@nSpikes),
-                              as.integer(sp@cellList),
-                              length(sp@cellList),
-                              as.numeric(sp@occupancy),
-                              sp@smoothRateMapSd/sp@cmPerBin)
-              sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
-              
-              
-              ### get peak rates
+              pts<-shiftPositionRandom(pt)
+              sp<-firingRateMap2d(sp,st,pts)
               sp@peakRateShuffle <- c(sp@peakRateShuffle,apply(sp@maps,3,max))
-              
-              ### get info scores
               sp@infoScoreShuffle <- c(sp@infoScoreShuffle,
                                        .Call("information_score_cwrap",
                                              as.integer(sp@cellList),
@@ -396,52 +281,40 @@ setMethod(f="getMapStatsShuffle",
                                              as.numeric(sp@maps),
                                              as.numeric(sp@occupancy),
                                              as.integer(sp@nColMap*sp@nRowMap)))
-              
-              ### get sparsity scores
               sp@sparsityShuffle <- c(sp@sparsityShuffle, .Call("sparsity_score_cwrap",
                                                                 as.integer(sp@cellList),
                                                                 length(sp@cellList),
                                                                 as.numeric(sp@maps),
                                                                 as.numeric(sp@occupancy),
                                                                 as.integer(sp@nColMap*sp@nRowMap)))
-              ### get the border scores
+              ### get border score
               results<-.Call("border_score_rectangular_environment_cwrap",
                              as.integer(sp@cellList),
                              length(sp@cellList),
-                             sp@nColMap,
                              sp@nRowMap,
+                             sp@nColMap,
                              sp@occupancy,
                              sp@maps,
                              sp@borderPercentageThresholdField,
                              as.integer(sp@borderMinBinsInField))
-              
               sp@borderScoreShuffle <-c(sp@borderScoreShuffle,results[1,])
               sp@borderCMShuffle<-c(sp@borderCMShuffle,results[2,])
               sp@borderDMShuffle<-c(sp@borderDMShuffle,results[3,])
               
-              ### get auto
-              results<- .Call("map_autocorrelation_cwrap",
-                              as.integer(sp@cellList),
-                              length(sp@cellList),
-                              as.numeric(sp@maps),
-                              sp@nColMap,
-                              sp@nRowMap,
-                              sp@nColAuto,
-                              sp@nRowAuto,
-                              as.integer(sp@minValidBinsAuto))
-              sp@autos<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList))))
-              
-              sp@gridScoreShuffle <-.Call("grid_score_cwrap",
-                                  as.integer(sp@cellList),
+              # make spatial autocorrelations
+              sp<-mapSpatialAutocorrelation(sp)
+              sp@gridScoreShuffle<-c(sp@gridScoreShuffle,
+                                     .Call("grid_score_cwrap",
+                                    as.integer(sp@cellList),
                                   length(sp@cellList),
                                   sp@autos,
-                                  sp@nColAuto,
                                   sp@nRowAuto,
+                                  sp@nColAuto,
                                   sp@cmPerBin,
                                   as.integer(sp@gridScoreNumberFieldsToDetect),
                                   as.integer(sp@gridScoreMinNumBinsPerField),
                                   sp@gridScoreFieldThreshold,
-                                  -1.0) #invalid
+                                  -2.0))
             }
             return(sp)
 })
@@ -596,18 +469,18 @@ setMethod(f="gridOrientation",
             if(length(sp@autos)==0)
               stop("Need to call mapSpatialAutocorrelation first to run gridOrientation()")
             
-
-            sp@gridOrientation<- .Call("grid_orientation_cwrap",
-                                 as.integer(sp@cellList),
-                                 length(sp@cellList),
-                                 sp@autos,
-                                 sp@nColAuto,
-                                 sp@nRowAuto,
-                                 sp@cmPerBin,
-                                 as.integer(sp@gridScoreNumberFieldsToDetect),
-                                 as.integer(sp@gridScoreMinNumBinsPerField),
-                                 sp@gridScoreFieldThreshold,
-                                 -1.0)
+# 
+#             sp@gridOrientation<- .Call("grid_orientation_cwrap",
+#                                  as.integer(sp@cellList),
+#                                  length(sp@cellList),
+#                                  sp@autos,
+#                                  sp@nColAuto,
+#                                  sp@nRowAuto,
+#                                  sp@cmPerBin,
+#                                  as.integer(sp@gridScoreNumberFieldsToDetect),
+#                                  as.integer(sp@gridScoreMinNumBinsPerField),
+#                                  sp@gridScoreFieldThreshold,
+#                                  -2.0)
             return(sp)
           }
 )
@@ -622,17 +495,17 @@ setMethod(f="gridSpacing",
             if(length(sp@autos)==0)
               stop("Need to call mapSpatialAutocorrelation first to run gridSpacing()")
             
-            sp@gridSpacing<- .Call("grid_spacing_cwrap",
-                                        as.integer(sp@cellList),
-                                        length(sp@cellList),
-                                        sp@autos,
-                                        sp@nColAuto,
-                                        sp@nRowAuto,
-                                        sp@cmPerBin,
-                                        as.integer(sp@gridScoreNumberFieldsToDetect),
-                                        as.integer(sp@gridScoreMinNumBinsPerField),
-                                        sp@gridScoreFieldThreshold,
-                                        -1.0)
+#             sp@gridSpacing<- .Call("grid_spacing_cwrap",
+#                                         as.integer(sp@cellList),
+#                                         length(sp@cellList),
+#                                         sp@autos,
+#                                         sp@nColAuto,
+#                                         sp@nRowAuto,
+#                                         sp@cmPerBin,
+#                                         as.integer(sp@gridScoreNumberFieldsToDetect),
+#                                         as.integer(sp@gridScoreMinNumBinsPerField),
+#                                         sp@gridScoreFieldThreshold,
+#                                         -1.0)
             return(sp)
           }
 )
@@ -652,8 +525,8 @@ setMethod(f="borderScore",
             results<-.Call("border_score_rectangular_environment_cwrap",
                     as.integer(sp@cellList),
                     length(sp@cellList),
-                    sp@nColMap,
                     sp@nRowMap,
+                    sp@nColMap,
                     sp@occupancy,
                     sp@maps,
                     sp@borderPercentageThresholdField,
