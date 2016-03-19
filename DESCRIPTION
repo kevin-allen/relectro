@@ -1,15 +1,15 @@
 Package: relectro
-Type: Package
 Title: Analysis of electrophysiological data
-Version: 1.0
-Date: 2016-02-28
-Author: Kevin Allen
-Maintainer: Kevin Allen <allen@uni-heidelberg.de>
-Description: R interface to analyse electropysiological data.
-License: GLP-2
+Version: 0.0.0.9001
+Authors@R: person("Kevin","Allen",email="allen@uni-heidelberg.de",role=c("aut","cre"))
+Description: relectro contains S4 objects, methods and functions to analyse data
+    from electrophysiological experiments. This will contain the code that we use to
+    do most common analysis. Many functions are written in C to speed up things.
+License: GPL-2
 Depends:
     methods
 Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: rmarkdown
+RoxygenNote: 5.0.1

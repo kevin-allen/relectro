@@ -1,6 +1,12 @@
 ############################################
 ### definition of ElectroProject Class   ###
 ############################################
+#' A S4 class to represent an electrophysiological project containing several recording sessions
+#' 
+#' @slot directory A path to a directory tree where the recording sessions can be found
+#' @slot nSessions Number of recording sessions in the project
+#' @slot sessionNameList Name of the recording sessions
+#' @slot sessionList List of RecSession objects.
 ElectroProject <- setClass(
   "ElectroProject", ## name of the class
   slots=c(directory="character",

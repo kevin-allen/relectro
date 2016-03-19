@@ -704,10 +704,10 @@ double correlation (double* x, double* y, int size, double invalid)
 SEXP detect_ttl_ups_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r)
 {
   int n=INTEGER_VALUE(n_r);
-  int* data = INTEGER_POINTER(data_r);
+  double* data = REAL(data_r);
   int* indices = (int*) malloc(n*sizeof(int));
   int nUp = 0;
-  int threshold = INTEGER_VALUE(threshold_r);
+  double threshold = REAL(threshold_r)[0];
   for(int i = 0; i < n-1;i++)
     if(data[i+1]-data[i]>threshold){
 	indices[nUp]=i+1;
@@ -728,10 +728,10 @@ SEXP detect_ttl_ups_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r)
 SEXP detect_ttl_downs_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r)
 {
   int n=INTEGER_VALUE(n_r);
-  int* data = INTEGER_POINTER(data_r);
+  double* data = REAL(data_r);
   int* indices = (int*) malloc(n*sizeof(int));
   int nDown = 0;
-  int threshold = INTEGER_VALUE(threshold_r);
+  double threshold = REAL(threshold_r)[0];
   threshold=0-threshold;
   for(int i = 0; i < n-1;i++)
     if(data[i+1]-data[i]<threshold){
