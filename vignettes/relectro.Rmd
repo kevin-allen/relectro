@@ -8,15 +8,17 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-This vignette document the use of the package relectro. relectro was developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow me to do all my data analysis without leaving the R interface. I want the user to get most things done we just few lines of code.   The package makes extensive use of C functions to speed up some analysis that would take too much time if performed directly with the R language.
+This vignette documents the use of the package relectro. relectro was developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. The user can them combine the use of relectro with other packages to get the job done quickly. relectro relies on several C functions for computationally intensive segment of the code. This increases the speed of the analysis to a respectable level. 
+
+You can get relectro from the Bitbucket repository of Kevin Allen.
+
+To install it, you can run R CMD build relectro and R CMD INSTALL relectro.
 
 Below is an introduction to the principal S4 objects within the package and how you can use them. 
 
-In the future, more details regarding individual function (e.g. arguments and returned values) can be found within R with the command `?function.name`
+More details regarding individual function (e.g. arguments and returned values) can be found within R with the command `?function.name` or by typing `library(help = relectro)`
 
-In the future, by typing `library(help = relectro)`
-
-You can list all the objects (including functions) of the package with the `ls` function
+You can list all the objects (including functions) of relectro with the `ls` function
 ```{r obj}
 library(relectro)
 ls("package:relectro")
@@ -24,10 +26,10 @@ ls("package:relectro")
 
 You can also learn more about the internal organisation of an object with the attributes function.
 ```{r attr}
-
-st<-new("SpikeTrain")
-attributes(st)
+pt<-new("Positrack")
+attributes(pt)
 ```
+
 ## SpikeTrain
 
 This object represent the spike trains of a group of neurons recorded together. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. By default, you set the slot `session` within a SpikeTrain object. This is used as main name of the files.  Then call the function `loadSpikeTrain()`. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains. 
@@ -70,10 +72,8 @@ Now here is an example from data files that are provided with the package.
 clufile<-unlist(strsplit(x=system.file("extdata", "jp4298-15022016-0106.clu", package = "relectro"), split="/"))
 datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
 session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
-setwd(datadir)
 
-st<-new("SpikeTrain") # create SpikeTrain object
-st@session=session # set session name
+st<-new("SpikeTrain",session=session,path=datadir) # create SpikeTrain object
 st<-loadSpikeTrain(st) # load res clu and sampling rate
 cross<-spikeTimeCrosscorrelation(st,binSizeMs=1,windowSizeMs = 200,probability = T) ## calculate spike-time crosscorrelation
 plot(cross$time[which(cross$clu1==2&cross$clu2==5)],cross$prob[which(cross$clu1==2&cross$clu2==5)],ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5") ## plot one crosscorrelation
@@ -82,7 +82,6 @@ st<-setEvents(st,events=st@res[which(st@clu==2)])
 cc<-spikeTimeCrosscorrelationEvents(st)
 plot(cc$time[which(cc$clu==6)],cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[which(cc$clu==6)])),ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
 rm(cross,cc,clufile)
-
 ```
 
 ## RecSession
@@ -90,9 +89,7 @@ rm(cross,cc,clufile)
 This object read few text files (.par, .desen, .desel, etc) and get the information regarding what was done during the recording session. You can use the RecSession object to get intervals for a given recording environment for example.
 
 ```{r recording_session}
-setwd(datadir)
-rs<-new("RecSession")
-rs@session<-session
+rs<-new("RecSession",session=session,path=datadir)
 ## load configuration data from file
 rs<-loadRecSession(rs)
 ## print session
@@ -102,23 +99,35 @@ getIntervalsEnvironment(rs,"lt")
 ```
 
 
+To calculate instantaneous firing rate from the spike trains
+```{r ifr}
+## calculate instantaneous firing rates
+st<-ifr(st)
+## plot ifr and spike of a cell
+n=400
+cell=1
+plot(head(st@ifrTime,n),head(st@ifr[cell,],n),type='l',xlab="Time (sec)",ylab="Rate (Hz)")
+points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),rep(0,n),col='red')
+rm(n,cell)
+```
+
+
 You can use the intervals provided by the RecSession to limit your analysis of the spike trains to this period. Let say we want to limit an analysis of the spike train to the time the animal was in the environment called sqr70.
 ```{r recording_session_intervals}
 # set the intervals in spike train using output matrix from recSession
-st<-setIntervals(st,s=getIntervalsEnvironment(rs,env="sqr70"))
+stint<-setIntervals(st,s=getIntervalsEnvironment(rs,env="sqr70"))
 # print the information of the new spike train
-st
+stint
+rm(stint)
 ```
 Now the spike train intervals are set to the trial with the sqr70 environment.
-
 
 ## Positrack
 
 Positrack objects are used to represent the path of the animal during a recording session. The data are loaded from the .whl and .whd files. The example below gives us time intervals for which the animal running speed was between 0 and 3 cm/sec. 
 
 ```{r positrack1}
-setwd(datadir)
-pt<-new("Positrack",session=session)
+pt<-new("Positrack",session=session,path=datadir)
 pt<-loadPositrack(pt)
 m<-getIntervalsAtSpeed(pt,0,3)
 m[,1:10]
@@ -131,8 +140,6 @@ pt1<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
 plot(pt1@x[1:10000],pt1@y[1:10000],col="black", type='l',xlab="x (cm)",ylab="y (cm)")
 rm(pt1)
 ```
-
-You can see that the path is limited to the sqr70 environment.
 
 You can get the speed of the animal at some define time points
 ```{r positrack3}
@@ -149,20 +156,18 @@ Now that you have a recording session, spike trains, and the position data, you 
 sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
 pt<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
 sp<-firingRateMap2d(sp,st,pt) ## make firing rate maps
-sp<-getMapStats(sp) ## get info score, sparsity from maps
+sp<-getMapStats(sp,st,pt) ## get info score, sparsity from maps
 sp<-mapSpatialAutocorrelation(sp) ## spatial autocorrelation from maps
-sp<-gridScore(sp)
-sp<-gridOrientation(sp)
-sp<-gridSpacing(sp)
-sp<-borderScore(sp)
 sp
+```
+
+There are not many plotting functions in relectro. I added just enough to be able to see some maps and spatial autocorrelations.
+```{r map_plot}
 ## plot one firing rate map
-jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
-map<-sp@maps[,,7]
-image(t(map),zlim=c(0,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-## plot one spatial autocorrelation
-map<-sp@autos[,,7]
-image(t(map),zlim=c(-1,max(map,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-rm(jet.colors,map)
+firingRateMapPlot(m=sp@maps[,,7],name=sp@cellList[7])
+firingRateMapAutoPlot(m=sp@autos[,,7],name=sp@cellList[7])
+#firingRateMapsPlot(m=sp@maps,names=sp@cellList) ## for a group of maps
+#firingRateMapAutosPlot(m=sp@autos,names=sp@cellList) ## for a group of spatial autocorrelations
+
 ```
 

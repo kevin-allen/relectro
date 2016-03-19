@@ -10,6 +10,7 @@ pt<-new("Positrack",session=session,path=datadir)
 pt<-loadPositrack(pt)
 rs<-new("RecSession",session=session,path=datadir)
 rs<-loadRecSession(rs)
+
 # linear track data
 ptlt<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="lt"))
 ptlt<-linearzeLinearTrack(ptlt)
