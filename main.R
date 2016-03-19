@@ -15,24 +15,10 @@ library(rbenchmark) # useful to test speed, or system.time
 library(devtools) # to develop the package
 library(roxygen2) # to make the documentation, etc.
 
-### choose one of the 3 options
-## option 1
-## loading the installed package
-library(relectro)
-# option 2
+
 ## loading the files as in the repository
 devtools::load_all("~/repo/r_packages/relectro/")
-#option 3
-## working directly from source files, load all you need, dyn.load to get the c files.
-source("~/repo/r_packages/relectro/R/SpikeTrain.R")
-source("~/repo/r_packages/relectro/R/Math.R")
-source("~/repo/r_packages/relectro/R/JoinIntervals.R")
-source("~/repo/r_packages/relectro/R/RecSession.R")
-source("~/repo/r_packages/relectro/R/Positrack.R")
-source("~/repo/r_packages/relectro/R/SpatialProperties2d.R")
-source("~/repo/r_packages/relectro/R/DatFiles.R")
-dyn.load("~/repo/r_packages/relectro/src/relectro.so")
-
+## ctrl shift b to rebuild and reload
 
 
 #########################################

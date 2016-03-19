@@ -39,7 +39,7 @@ setMethod(f="loadPositrack",
             if(pt@path==""){
               pt@path=getwd()
             }
-            pathSession=paste(rs@path,rs@session,sep="/")
+            pathSession=paste(pt@path,pt@session,sep="/")
             if(!file.exists(paste(pathSession,"whl",sep=".")))
               stop("need",paste(pathSession,"whl",sep="."))
             if(!file.exists(paste(pathSession,"whd",sep=".")))
