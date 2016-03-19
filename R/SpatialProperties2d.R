@@ -44,6 +44,10 @@ SpatialProperties2d<- setClass(
             nAutoRotations="numeric",
             AutoRotationDegree="numeric",
             ##
+            speedScore="numeric",
+            speedRateSlope="numeric",
+            speedRateIntercept="numeric",
+            ##
             nShufflings="numeric",
             minShiftMs="numeric",
             peakRateShuffle="numeric",
@@ -52,7 +56,8 @@ SpatialProperties2d<- setClass(
             borderScoreShuffle="numeric",
             borderCMShuffle="numeric",
             borderDMShuffle="numeric",
-            gridScoreShuffle="numeric"
+            gridScoreShuffle="numeric",
+            speedScoreShuffle="numeric"
             ),
       
   prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateMapSd=3,minValidBinsAuto=20,reduceSize=T,
@@ -85,7 +90,16 @@ setMethod("show", "SpatialProperties2d",
               print("gridScore:")
               print(paste(object@gridScore))
             }
-              
+            if(length(object@speedScore)!=0){
+              print("speedScore:")
+              print(paste(object@speedScore))
+            }
+            if(length(object@speedRateSlope)!=0){
+              print("speedRateSlope:")
+              print(paste(object@speedRateSlope))
+              print("speedRateIntercept:")
+              print(paste(object@speedRateIntercept))
+            }
             print(paste("nShufflings:",object@nShufflings))
             print(paste("shuffled values:",length(object@infoScoreShuffle)))
               
@@ -268,6 +282,15 @@ setMethod(f="getMapStatsShuffle",
             if(sp@nShufflings==0)            
               stop("sp@nShufflings==0")
 
+            
+            sp@peakRateShuffle=numeric()
+            sp@infoScoreShuffle=numeric()
+            sp@sparsityShuffle=numeric()
+            sp@borderScoreShuffle=numeric()
+            sp@borderCMShuffle=numeric()
+            sp@borderDMShuffle=numeric()
+            sp@gridScoreShuffle=numeric()
+            
             for(i in 1:sp@nShufflings){
               print(paste(i,"of",sp@nShufflings))
               
@@ -541,6 +564,96 @@ setMethod(f="borderScore",
 )
 
 
+setGeneric(name="speedScore",
+           def=function(sp,st,pt,minSpeed,maxSpeed,runLm)
+           {standardGeneric("speedScore")}
+)
+setMethod(f="speedScore",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,minSpeed=3,maxSpeed=100,runLm=F)
+          {
+            if(length(pt@speed)==0)
+              stop("pt@speed has length of 0")
+            if(dim(st@ifr)[1]!=length(sp@cellList))
+              stop(paste("ifr dim",dim(st@ifr)[1], "is not equal to number of cells", length(sp@cellList)))
+            
+            ## get the ifr and ifrTime inside st@interval
+            resTime<-st@ifrTime*st@samplingRate
+            index<-as.logical(.Call("resWithinIntervals",
+                                    length(st@startInterval),
+                                    as.integer(st@startInterval),
+                                    as.integer(st@endInterval),
+                                    length(resTime),
+                                    as.integer(resTime)))
+            ifrSel<-st@ifr[,index]
+            resTime<-resTime[index]
+            
+            
+            ## get the speed for the res values
+            speed<-getSpeedAtResValues(pt,resTime)
+            
+            ## speed filter
+            index<-which(speed>minSpeed&speed<maxSpeed)
+            ifrSel<-ifrSel[,index]
+            speed<-speed[index]
+            
+            ## do the correlation
+            sp@speedScore<-apply(ifrSel,1,cor,speed)
+            if(runLm){
+              c<-apply(ifrSel,1,function(x,y){lm(x~y)$coefficients},speed)
+              sp@speedRateSlope=c[2,]
+              sp@speedRateIntercept=c[1,]
+            }
+            return(sp)
+          }
+)
 
 
 
+setGeneric(name="speedScoreShuffle",
+           def=function(sp,st,pt,minSpeed,maxSpeed)
+           {standardGeneric("speedScoreShuffle")}
+)
+setMethod(f="speedScoreShuffle",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,minSpeed=3,maxSpeed=100)
+          {
+            if(length(pt@speed)==0)
+              stop("pt@speed has length of 0")
+            if(dim(st@ifr)[1]!=length(sp@cellList))
+              stop(paste("ifr dim",dim(st@ifr)[1], "is not equal to number of cells", length(sp@cellList)))
+            if(sp@nShufflings==0)            
+              stop("sp@nShufflings==0")
+            
+            ## get the ifr and ifrTime inside st@interval
+            resTime<-st@ifrTime*st@samplingRate
+            index<-as.logical(.Call("resWithinIntervals",
+                                    length(st@startInterval),
+                                    as.integer(st@startInterval),
+                                    as.integer(st@endInterval),
+                                    length(resTime),
+                                    as.integer(resTime)))
+            ifrSel<-st@ifr[,index]
+            resTime<-resTime[index]
+            #clear from previous data
+            sp@speedScoreShuffle<-numeric()
+            
+            for(i in 1:sp@nShufflings){
+              print(paste(i,"of",sp@nShufflings))
+              ifrSels<-ifrSel
+              resTimes<-resTime
+              # shuffle speed
+              pts<-shiftSpeedRandom(pt)
+              ## get the speed for the res values
+              speed<-getSpeedAtResValues(pts,resTimes)
+              ## speed filter
+              index<-which(speed>minSpeed&speed<maxSpeed)
+              ifrSels<-ifrSels[,index]
+              speed<-speed[index]
+              ## do the correlation
+              sp@speedScoreShuffle<-c(sp@speedScoreShuffle,
+                                     apply(ifrSels,1,cor,speed))
+            }
+            return(sp)
+          }
+)

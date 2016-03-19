@@ -126,22 +126,17 @@ setMethod(f="headDirectionHisto",
 
 #### getHistoStats
 setGeneric(name="getHistoStats",
-           def=function(hd)
+           def=function(hd,st,pt)
            {standardGeneric("getHistoStats")}
 )
 setMethod(f="getHistoStats",
           signature="HeadDirection",
-          definition=function(hd)
+          definition=function(hd,st,pt)
           {
-            
-            if(length(hd@histo)==0)
-              stop("Need to call headDirectionHisto first")
-            if(length(hd@occupancy)==0)
-              stop("hd@occupancy length ==0")
-            
+            ### create the histo
+            hd<-headDirectionHisto(hd,st,ptsqr70)
             ### get peak rates
             hd@peakRates<-apply(hd@histo,2,max)
-            
             ### get vector length and mean direction
             results<- .Call("circular_stats_rate_histogram_cwrap",
                                  as.integer(hd@cellList),
@@ -171,82 +166,21 @@ setMethod(f="getHistoStatsShuffle",
               stop("pt@session is empty")
             if(length(pt@x)==0)
               stop("pt@x has length of 0")
-            if(st@session=="")
-              stop("st@session is empty")
             if(st@nSpikes==0)
               stop("st@nSpikes==0")
             if(length(hd@vectorLengthShuffle)!=0){
               hd@vectorLengthShuffle=vector("numeric")
               hd@peakRatesShuffle=vector("numeric")
             }
-            
-            hd@cellList<-st@cellList
-            
-            ## use -1 as invalid values in c functions
-            hdir<-pt@hd
-            hdir[is.na(hdir)]<- -1.0
-            hd@nBinHisto<-as.integer(ceiling(360/hd@degPerBin))
+          
             
             for(i in 1:sp@nShufflings){
               print(paste(i,"of",sp@nShufflings))
               
-              ################################
-              # shuffle the x and y position #
-              # need to be changed           #
-              # valid position values should #
-              # not change environments      #
-              ################################
+              pts<-shiftHdRandom(pt)
               
-              hdir<-shuffle.vector(x=hdir,
-                                   time.per.sample.res=pt@resSamplesPerWhlSample,
-                                   hd@minShiftMs,
-                                   rs@samplingRate)
-              
-              ## get spike head direction
-              hd@hdSpikes<-.Call("spike_head_direction_cwrap",
-                                 hdir,
-                                 length(hdir),
-                                 as.integer(st@res),
-                                 as.integer(st@nSpikes),
-                                 as.integer(pt@resSamplesPerWhlSample),
-                                 as.integer(st@startInterval),
-                                 as.integer(st@endInterval),
-                                 length(st@startInterval))
-              
-              ## make the occupancy map
-              hd@occupancy<-.Call("occupancy_histogram_cwrap",
-                                  hd@nBinHisto,
-                                  hd@degPerBin,
-                                  hdir,
-                                  length(hdir),
-                                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
-                                  as.integer(st@startInterval),
-                                  as.integer(st@endInterval),
-                                  length(st@startInterval),
-                                  as.integer(pt@resSamplesPerWhlSample),
-                                  hd@histoRepetitions+1)
-              
-              ## smooth the occupancy map
-              hd@occupancy<- .Call("smooth_double_gaussian_circular_cwrap",
-                                   as.numeric(hd@occupancy),
-                                   hd@nBinHisto,
-                                   hd@smoothOccupancySd/hd@degPerBin,
-                                   -1.0)
-              
-              ## make the 2d maps
-              results<- .Call("firing_rate_histo_cwrap",
-                              hd@nBinHisto,
-                              hd@degPerBin,
-                              hd@hdSpikes,
-                              as.integer(st@clu),
-                              as.integer(st@nSpikes),
-                              as.integer(hd@cellList),
-                              length(hd@cellList),
-                              as.numeric(hd@occupancy),
-                              hd@smoothRateHistoSd/hd@degPerBin,
-                              hd@histoRepetitions+1)
-              hd@histo<-array(data=results,dim=(c(hd@nBinHisto,length(hd@cellList))))
-              
+              ### create the histo
+              hd<-headDirectionHisto(hd,st,ptsqr70)
               
               ### get peak rates
               hd@peakRatesShuffle<-c(hd@peakRatesShuffle,apply(hd@histo,2,max))

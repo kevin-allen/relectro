@@ -192,6 +192,7 @@ setMethod(f="speedFilter",
             pt@x[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
             pt@y[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
             pt@hd[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
+            pt@speed[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
             return(pt)
           }
 )
@@ -240,6 +241,7 @@ setMethod(f="setInvalidOutsideInterval",
             pt@x[which(!isin)]<-NA
             pt@y[which(!isin)]<-NA
             pt@hd[which(!isin)]<-NA
+            pt@speed[which(!isin)]<-NA
             return(pt)
           }
 )
@@ -342,15 +344,66 @@ setMethod(f="shiftPositionRandom",
             if(length(pt@x)==0)
               stop("pt@x has length of 0")
             
-            results<-shuffle.vectors(x=pt@x,y=pt@y,
+            ## only consider valid data points
+            xx<-pt@x[!is.na(pt@x)]
+            yy<-pt@y[!is.na(pt@x)]
+            results<-shuffle.vectors(x=xx,y=yy,
                                      time.per.sample.res=pt@resSamplesPerWhlSample,
                                      pt@minShiftMs,
                                      pt@samplingRateDat)
-            pt@x<-results[[1]]
-            pt@y<-results[[2]]
+            pt@x[!is.na(pt@x)]<-results[[1]]
+            pt@y[!is.na(pt@x)]<-results[[2]]
             return(pt)
           }
 )
+
+
+#### shiftSpeedRandom
+setGeneric(name="shiftSpeedRandom",
+           def=function(pt)
+           {standardGeneric("shiftSpeedRandom")}
+)
+setMethod(f="shiftSpeedRandom",
+          signature="Positrack",
+          definition=function(pt)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@speed)==0)
+              stop("pt@speed has length of 0")
+            ## only consider valid data points
+            pt@speed[!is.na()]<-shuffle.vector(x=pt@speed[!is.na()],
+                                     time.per.sample.res=pt@resSamplesPerWhlSample,
+                                     pt@minShiftMs,
+                                     pt@samplingRateDat)
+            return(pt)
+          }
+)
+
+
+#### shiftHdRandom
+setGeneric(name="shiftHdRandom",
+           def=function(pt)
+           {standardGeneric("shiftHdRandom")}
+)
+setMethod(f="shiftHdRandom",
+          signature="Positrack",
+          definition=function(pt)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@hd)==0)
+              stop("pt@speed has length of 0")
+            ## only consider valid data points
+            pt@hd[!is.na()]<-shuffle.vector(x=pt@hd[!is.na()],
+                                               time.per.sample.res=pt@resSamplesPerWhlSample,
+                                               pt@minShiftMs,
+                                               pt@samplingRateDat)
+            return(pt)
+          }
+)
+
+
 
 
 
