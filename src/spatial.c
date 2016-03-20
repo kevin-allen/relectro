@@ -3982,5 +3982,118 @@ void autocorrelation_doughnut_rotate(double* one_auto_map,
   free(area_field);
   return;
 }
+SEXP spike_position_1d_cwrap(SEXP x_whl_r,
+                            SEXP whl_lines_r,
+                            SEXP res_r,
+                            SEXP res_lines_r,
+                            SEXP res_samples_per_whl_sample_r,
+                            SEXP start_interval_r,
+                            SEXP end_interval_r,
+                            SEXP interval_lines_r)
+    {
+      int whl_lines=INTEGER_VALUE(whl_lines_r);
+      int res_lines=INTEGER_VALUE(res_lines_r);
+      SEXP out = PROTECT(allocVector(REALSXP,res_lines));
+      double* x_spike = (double*)malloc(res_lines*sizeof(double));
+      spike_position_1d(REAL(x_whl_r),
+                            whl_lines,
+                            INTEGER_POINTER(res_r),
+                            res_lines,
+                            x_spike,
+                            INTEGER_VALUE(res_samples_per_whl_sample_r),
+                            INTEGER_POINTER(start_interval_r),
+                            INTEGER_POINTER(end_interval_r),
+                            INTEGER_VALUE(interval_lines_r));
+      double* rans;
+      rans = REAL(out);
+      // copy the results in a SEXP
+      for(int i = 0; i < res_lines; i++) {
+        rans[i] = x_spike[i];
+      }
 
+      free(x_spike);
+      UNPROTECT(1);
+      return(out);
+    }
+    
+void spike_position_1d(double *x_whl,
+                    int whl_lines,
+                    int *res,
+                    int res_lines,
+                    double *x_spike,
+                    int res_samples_per_whl_sample,
+                    int* start_interval,
+                    int* end_interval,
+                    int interval_lines)
+{
+  ///////////////////////////////////////////////////////////////////
+  //	Function to get the position of each spike within intervals//
+  ///////////////////////////////////////////////////////////////////
+  
+  // get the res index for the intervals
+  int* start_interval_index;
+  int* end_interval_index;
+  start_interval_index = (int*)malloc(interval_lines*sizeof(int));
+  end_interval_index = (int*)malloc(interval_lines*sizeof(int));
+  res_index_for_intervals(&interval_lines,
+                          start_interval,
+                          end_interval, 
+                          res_lines, 
+                          res,
+                          start_interval_index,
+                          end_interval_index);
+  // set all the spike position to -1
+  set_array_to_value_double(x_spike,res_lines,-1.0);
+  
+  //loop for each interval and set the position when valid//
+  int whl_index;
+  int residual;
+  for (int k = 0; k < interval_lines; k++)
+  {
+    for (int i = start_interval_index[k]; i < end_interval_index[k]; i++)
+    {
+      if (res[i] != -1)
+      {
+        whl_index = (res[i] / res_samples_per_whl_sample) - 1;
+        if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
+        {
+          printf("whl file is too small for some res value\n");
+        }
+        residual = res[i] % res_samples_per_whl_sample;
+        // spikes before the first frame capture
+        if (whl_index == -1)
+        {
+          x_spike[i] = x_whl[0];
+        }
+        // spikes between the first and last frame capture
+        if ((whl_index < whl_lines -1) && (whl_index != -1))
+        {
+          x_spike[i] =
+            x_whl[whl_index] +
+            ((x_whl[whl_index+1]- x_whl[whl_index])
+               /res_samples_per_whl_sample * residual);
+          
+        }
+        
+        // if spikes after the last frame capture
+        if (whl_index == whl_lines -1)
+        {
+          x_spike[i] = x_whl[whl_index];
+        }
+        // cope with the -1 values from the whl file
+        if (x_whl[whl_index] == -1.0 || x_whl[whl_index+1]==-1.0)
+        {
+          x_spike[i] = -1.0;
+        }
+      }
+      else // the res value was set at -1
+      {
+        x_spike[i] = -1.0;
+      }
+    }
+  }
+  free(start_interval_index);
+  free(end_interval_index);
+  return;
+}
 

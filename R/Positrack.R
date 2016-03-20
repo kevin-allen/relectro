@@ -372,7 +372,8 @@ setMethod(f="shiftSpeedRandom",
             if(length(pt@speed)==0)
               stop("pt@speed has length of 0")
             ## only consider valid data points
-            pt@speed[!is.na()]<-shuffle.vector(x=pt@speed[!is.na()],
+            index<-!is.na(pt@speed)
+            pt@speed[index]<-shuffle.vector(x=pt@speed[index],
                                      time.per.sample.res=pt@resSamplesPerWhlSample,
                                      pt@minShiftMs,
                                      pt@samplingRateDat)
@@ -395,7 +396,8 @@ setMethod(f="shiftHdRandom",
             if(length(pt@hd)==0)
               stop("pt@speed has length of 0")
             ## only consider valid data points
-            pt@hd[!is.na()]<-shuffle.vector(x=pt@hd[!is.na()],
+            index<-!is.na(pt@hd)
+            pt@hd[index]<-shuffle.vector(x=pt@hd[index],
                                                time.per.sample.res=pt@resSamplesPerWhlSample,
                                                pt@minShiftMs,
                                                pt@samplingRateDat)
@@ -481,6 +483,8 @@ setMethod(f="linearzeLinearTrack",
             pt@lin[is.na(pt@lin)]<- -1.0
             ### smooth the 1d array
             pt@lin<-smoothGaussian(x=pt@lin,sd=5,invalid=-1.0)
+            pt@lin[which(pt@lin==-1.0)]<-NA
+            
             ### get the direction T or F
             pt@dir<-rep(0,length(pt@x))
             pt@dir[2:length(pt@dir)]<-ifelse(diff(pt@lin)>0,1,0)

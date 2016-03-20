@@ -180,7 +180,7 @@ setMethod(f="getHistoStatsShuffle",
               pts<-shiftHdRandom(pt)
               
               ### create the histo
-              hd<-headDirectionHisto(hd,st,ptsqr70)
+              hd<-headDirectionHisto(hd,st,pts)
               
               ### get peak rates
               hd@peakRatesShuffle<-c(hd@peakRatesShuffle,apply(hd@histo,2,max))

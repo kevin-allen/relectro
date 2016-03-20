@@ -9,7 +9,7 @@ SpatialProperties1d<- setClass(
           smoothRateHistoSd="numeric", ## in cm
           nBinRateHisto="integer",
           xSpikes="numeric",
-          rateHisto="numeric",
+          rateHisto="array",
           occupancy="numeric",
           cellList="numeric",
           reduceSize="logical",
@@ -54,3 +54,83 @@ setMethod("show", "SpatialProperties1d",
             print(paste("nShufflings:",object@nShufflings))
             print(paste("shuffled values:",length(object@infoScoreShuffle)))
           })
+
+
+### make firing rate histo
+setGeneric(name="firingRateHisto",
+           def=function(sp1,st,pt)
+           {standardGeneric("firingRateHisto")}
+)
+setMethod(f="firingRateHisto",
+          signature="SpatialProperties1d",
+          definition=function(sp1,st,pt)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@x)==0)
+              stop("pt@x has length of 0")
+            if(st@session=="")
+              stop("st@session is empty")
+            if(st@nSpikes==0)
+              stop("st@nSpikes==0")
+            if(length(pt@lin)==0)
+              stop("pt@lin has length of 0")
+
+            ## get list of cells from SpikeTrain object
+            sp1@cellList<-st@cellList
+            ## reduce the size of histo
+            if(sp1@reduceSize==T){
+              x<-pt@lin-min(pt@lin,na.rm=T)+sp1@cmPerBin
+            }else{
+              x<-pt@x
+            }
+            sp1@nBinRateHisto<-as.integer(ceiling(max(x,na.rm=T)/sp1@cmPerBin))
+            ## use -1 as invalid values in c functions
+            x[is.na(x)]<- -1.0
+            
+            ## get spike head direction
+            sp1@xSpikes<-.Call("spike_position_1d_cwrap",
+                               x,
+                               length(x),
+                               as.integer(st@res),
+                               as.integer(st@nSpikes),
+                               as.integer(pt@resSamplesPerWhlSample),
+                               as.integer(st@startInterval),
+                               as.integer(st@endInterval),
+                               length(st@startInterval))
+            ## make the occupancy map
+            sp1@occupancy<-.Call("occupancy_histogram_cwrap",
+                                sp1@nBinRateHisto,
+                                sp1@cmPerBin,
+                                x,
+                                length(x),
+                                pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
+                                as.integer(st@startInterval),
+                                as.integer(st@endInterval),
+                                length(st@startInterval),
+                                as.integer(pt@resSamplesPerWhlSample),
+                                1)
+            ## smooth the occupancy map
+            sp1@occupancy<- .Call("smooth_double_gaussian_circular_cwrap",
+                                 as.numeric(sp1@occupancy),
+                                 sp1@nBinRateHisto,
+                                 sp1@smoothOccupancySd/sp1@cmPerBin,
+                                 -1.0)
+            ## make the 1d maps
+            results<- .Call("firing_rate_histo_cwrap",
+                            sp1@nBinRateHisto,
+                            sp1@cmPerBin,
+                            sp1@xSpikes,
+                            as.integer(st@clu),
+                            as.integer(st@nSpikes),
+                            as.integer(sp1@cellList),
+                            length(sp1@cellList),
+                            as.numeric(sp1@occupancy),
+                            sp1@smoothRateHistoSd/sp1@cmPerBin,
+                            1)
+            sp1@rateHisto<-array(data=results,dim=(c(sp1@nBinRateHisto,length(sp1@cellList))))
+            return(sp1)
+          }
+)
+
+

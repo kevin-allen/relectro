@@ -164,6 +164,11 @@ SEXP autocorrelation_doughnut_cwrap(SEXP cells_r,SEXP cell_lines_r, SEXP maps_r,
 void autocorrelation_doughnut(double* one_auto_map, int auto_num_bins_x,int auto_num_bins_y,  double pixels_per_bin,int number_fields_to_detect, int min_num_bins_per_field,double field_threshold, double invalid);
 SEXP autocorrelation_doughnut_rotate_cwrap(SEXP cells_r,SEXP cell_lines_r, SEXP maps_r, SEXP x_bins_r, SEXP y_bins_r, SEXP num_fields_to_detect_r, SEXP min_num_bins_fields_r,SEXP threshold_r,SEXP px_per_bin_r,SEXP rotations_r,SEXP degree_r,SEXP invalid_r);
 void autocorrelation_doughnut_rotate(double* one_auto_map, int auto_num_bins_x, int auto_num_bins_y, double* rotated_maps,double pixels_per_bin,int number_fields_to_detect, int min_num_bins_per_field, double field_threshold, int rotations, double degree, double invalid);
+void spike_position_1d(double *x_whl,int whl_lines,int *res,int res_lines, double *x_spike, int res_samples_per_whl_sample,int* start_interval,
+int* end_interval, int interval_lines);
+SEXP spike_position_1d_cwrap(SEXP x_whl_r, SEXP whl_lines_r, SEXP res_r, SEXP res_lines_r,SEXP res_samples_per_whl_sample_r,SEXP start_interval_r,
+SEXP end_interval_r, SEXP interval_lines_r);
+
 
 // interval.c
 int check_interval_chronology_between(int num_lines, 
