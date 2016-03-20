@@ -948,18 +948,13 @@ SEXP information_score_cwrap(SEXP cells_r,
   double* one_map;
   SEXP out = PROTECT(allocVector(REALSXP,cell_lines));
   double* info = REAL(out);
-  
-
   for(int i = 0; i < cell_lines; i++){
     one_map=maps+(i*map_size);
     info[i]=information_score(one_map,occ_map,map_size);
   }
-
   UNPROTECT(1);
   return(out);
 }
-
-
 
 double information_score(double* fr_map,
 			 double* occ_map,
@@ -979,16 +974,16 @@ double information_score(double* fr_map,
   for (int i = 0; i < map_size; i++)
     {
       if (occ_map[i]!=-1.0)
-	{
-	  total_occupancy += occ_map[i];
-	} 
+    	{
+	      total_occupancy += occ_map[i];
+	    } 
     }
   for (int i = 0; i < map_size; i++)
     {
       if (occ_map[i] != -1.0)
-	{
-	  occupancy_probability[i] = occ_map[i]/ total_occupancy;
-  	} 
+	    {
+	      occupancy_probability[i] = occ_map[i]/ total_occupancy;
+  	  } 
     }
   // calculate mean firing rate 
   global_fr=0;
@@ -996,30 +991,31 @@ double information_score(double* fr_map,
   for (int i = 0; i < map_size; i++)
     {
       if (occ_map[i] != -1.0)
-	{
-	  valid++;
-	  global_fr+=fr_map[i]*occupancy_probability[i];
-	}
+	    {
+	      valid++;
+	      global_fr+=fr_map[i]*occupancy_probability[i];
+	    }
     }
-
+ 
   // information score formula
   for (int i = 0; i < map_size; i++)
     {
       if(occ_map[i] != -1.0 && fr_map[i] !=-1.0)
-	{
-	  if (fr_map[i] == 0)
 	    {
-	      info_j = 0; 
-	      info_h = 0;
-	    }
-	  else
-	    { 
-	      info_j = occupancy_probability[i]*fr_map[i]/global_fr;
-	      info_h = log2(fr_map[i]/global_fr);
-	    }
-	  information_score += info_j*info_h;
-	}
-    }
+	      if (fr_map[i] == 0)
+	      {
+	        info_j = 0; 
+	        info_h = 0;
+	      }
+	      else
+	      { 
+	        info_j = occupancy_probability[i]*fr_map[i]/global_fr;
+	        info_h = log2(fr_map[i]/global_fr);
+	      }
+	    information_score += info_j*info_h;
+	  }
+  }
+ 
   free(occupancy_probability);
   return information_score;
 }
@@ -3484,7 +3480,8 @@ SEXP firing_rate_histo_cwrap(SEXP num_bins_x_r,
 			     SEXP num_cells_r,
 			     SEXP occ_histo_r,
 			     SEXP smooth_histo_sd_r,
-			     SEXP repetitions_r)
+			     SEXP repetitions_r,
+			     SEXP circular_smooth_r)
 {
 
   int num_bins_x=INTEGER_VALUE(num_bins_x_r);
@@ -3501,16 +3498,22 @@ SEXP firing_rate_histo_cwrap(SEXP num_bins_x_r,
       // use a pointer to place give the address for each cell
       one_histo = histos + (i*num_bins_x);
       create_place_field_linear(num_bins_x,
-				REAL(pixels_per_bin_x_r)[0],
-				REAL(x_spike_r),
-				INTEGER_POINTER(clu_r),
-				INTEGER_VALUE(res_lines_r),
-				target_cell,
-				REAL(occ_histo_r),
-				one_histo,
-				INTEGER_VALUE(repetitions_r));
-      /// smooth histo
-      smooth_double_gaussian_circular(one_histo,num_bins_x, REAL(smooth_histo_sd_r)[0],-1.0);
+				                        REAL(pixels_per_bin_x_r)[0],
+				                        REAL(x_spike_r),
+				                        INTEGER_POINTER(clu_r),
+				                        INTEGER_VALUE(res_lines_r),
+				                        target_cell,
+				                        REAL(occ_histo_r),
+				                        one_histo,
+				                        INTEGER_VALUE(repetitions_r));
+      if(INTEGER_VALUE(circular_smooth_r)>0)
+      {
+        smooth_double_gaussian_circular(one_histo,num_bins_x, REAL(smooth_histo_sd_r)[0],-1.0);
+      }
+      else
+      {
+        smooth_double_gaussian(one_histo,num_bins_x, REAL(smooth_histo_sd_r)[0],-1.0);
+      }
     }
   double* ans;
   ans=REAL(out);

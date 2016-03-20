@@ -394,7 +394,7 @@ setMethod(f="shiftHdRandom",
             if(pt@session=="")
               stop("pt@session is empty")
             if(length(pt@hd)==0)
-              stop("pt@speed has length of 0")
+              stop("pt@hd has length of 0")
             ## only consider valid data points
             index<-!is.na(pt@hd)
             pt@hd[index]<-shuffle.vector(x=pt@hd[index],
@@ -405,6 +405,29 @@ setMethod(f="shiftHdRandom",
           }
 )
 
+
+#### shiftLinRandom
+setGeneric(name="shiftLinRandom",
+           def=function(pt)
+           {standardGeneric("shiftLinRandom")}
+)
+setMethod(f="shiftLinRandom",
+          signature="Positrack",
+          definition=function(pt)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@lin)==0)
+              stop("pt@lin has length of 0")
+            ## only consider valid data points
+            index<-!is.na(pt@lin)
+            pt@lin[index]<-shuffle.vector(x=pt@lin[index],
+                                         time.per.sample.res=pt@resSamplesPerWhlSample,
+                                         pt@minShiftMs,
+                                         pt@samplingRateDat)
+            return(pt)
+          }
+)
 
 
 

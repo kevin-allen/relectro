@@ -1,6 +1,6 @@
 Package: relectro
 Title: Analysis of electrophysiological data
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: person("Kevin","Allen",email="allen@uni-heidelberg.de",role=c("aut","cre"))
 Description: relectro contains S4 objects, methods and functions to analyse data
     from electrophysiological experiments. This will contain the code that we use to

@@ -28,8 +28,6 @@ SpatialProperties1d<- setClass(
   prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateHistoSd=3,reduceSize=T,
                    nShufflings=100,minShiftMs=20000))
 
-
-
 ### show ###
 setMethod("show", "SpatialProperties1d",
           function(object){
@@ -75,7 +73,6 @@ setMethod(f="firingRateHisto",
               stop("st@nSpikes==0")
             if(length(pt@lin)==0)
               stop("pt@lin has length of 0")
-
             ## get list of cells from SpikeTrain object
             sp1@cellList<-st@cellList
             ## reduce the size of histo
@@ -87,7 +84,6 @@ setMethod(f="firingRateHisto",
             sp1@nBinRateHisto<-as.integer(ceiling(max(x,na.rm=T)/sp1@cmPerBin))
             ## use -1 as invalid values in c functions
             x[is.na(x)]<- -1.0
-            
             ## get spike head direction
             sp1@xSpikes<-.Call("spike_position_1d_cwrap",
                                x,
@@ -117,7 +113,7 @@ setMethod(f="firingRateHisto",
                                  sp1@smoothOccupancySd/sp1@cmPerBin,
                                  -1.0)
             ## make the 1d maps
-            results<- .Call("firing_rate_histo_cwrap",
+            results<-.Call("firing_rate_histo_cwrap",
                             sp1@nBinRateHisto,
                             sp1@cmPerBin,
                             sp1@xSpikes,
@@ -127,10 +123,92 @@ setMethod(f="firingRateHisto",
                             length(sp1@cellList),
                             as.numeric(sp1@occupancy),
                             sp1@smoothRateHistoSd/sp1@cmPerBin,
-                            1)
+                            1,
+                            0)
+            
             sp1@rateHisto<-array(data=results,dim=(c(sp1@nBinRateHisto,length(sp1@cellList))))
             return(sp1)
           }
 )
 
 
+#### getHistoStats
+setGeneric(name="getHistoStats",
+           def=function(sp1,st,pt)
+           {standardGeneric("getHistoStats")}
+)
+setMethod(f="getHistoStats",
+          signature="SpatialProperties1d",
+          definition=function(sp1,st,pt)
+          {
+            ## make the histo
+            sp1<-firingRateHisto(sp1,st,pt)
+            ### get peak rates
+            sp1@peakRate<-apply(sp1@rateHisto,2,max)
+            ### get info scores
+            sp1@infoScore<-.Call("information_score_cwrap",
+                                 as.integer(sp1@cellList),
+                                 length(sp1@cellList),
+                                 as.numeric(sp1@rateHisto),
+                                 sp1@occupancy,
+                                 sp1@nBinRateHisto)
+            ### get sparsity scores
+            sp1@sparsity<- .Call("sparsity_score_cwrap",
+                                as.integer(sp1@cellList),
+                                length(sp1@cellList),
+                                as.numeric(sp1@rateHisto),
+                                sp1@occupancy,
+                                sp1@nBinRateHisto)
+            return(sp1)
+          }
+)
+
+
+#### getHistoStatsShuffle 
+setGeneric(name="getHistoStatsShuffle",
+           def=function(sp1,st,pt)
+           {standardGeneric("getHistoStatsShuffle")}
+)
+setMethod(f="getHistoStatsShuffle",
+          signature="SpatialProperties1d",
+          definition=function(sp1,st,pt){
+            if(sp1@nShufflings==0)            
+              stop("sp1@nShufflings==0")
+            if(sp1@session=="")
+              stop("sp1@session is empty")
+            if(length(pt@lin)==0)
+              stop("pt@lin has length of 0")
+            if(st@nSpikes==0)
+              stop("st@nSpikes==0")
+            if(length(sp1@infoScoreShuffle)!=0){
+              sp1@infoScoreShuffle=vector("numeric")
+              sp1@sparsityShuffle=vector("numeric")
+              sp1@peakRateShuffle=vector("numeric")
+            }
+            for(i in 1:sp1@nShufflings){
+              print(paste(i,"of",sp1@nShufflings))
+              ### shift position
+              pts<-shiftLinRandom(pt)
+              ### create the histo
+              sp1<-firingRateHisto(sp1,st,pts)
+              ### get peak rates
+              sp1@peakRateShuffle<-c(sp1@peakRateShuffle,apply(sp1@rateHisto,2,max))
+              ### get info scores
+              sp1@infoScoreShuffle<-c(sp1@infoScoreShuffle,
+                                      .Call("information_score_cwrap",
+                                      as.integer(sp1@cellList),
+                                      length(sp1@cellList),
+                                      as.numeric(sp1@rateHisto),
+                                      sp1@occupancy,
+                                      sp1@nBinRateHisto))
+              ### get sparsity scores
+              sp1@sparsityShuffle<-c(sp1@sparsityShuffle,
+                                     .Call("sparsity_score_cwrap",
+                                    as.integer(sp1@cellList),
+                                   length(sp1@cellList),
+                                   as.numeric(sp1@rateHisto),
+                                   sp1@occupancy,
+                                   sp1@nBinRateHisto))
+            }       
+            return(sp1)
+          })

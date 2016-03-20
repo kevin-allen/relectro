@@ -116,7 +116,8 @@ setMethod(f="headDirectionHisto",
                             length(hd@cellList),
                             as.numeric(hd@occupancy),
                             hd@smoothRateHistoSd/hd@degPerBin,
-                            hd@histoRepetitions+1)
+                            hd@histoRepetitions+1,
+                            1)
             hd@histo<-array(data=results,dim=(c(hd@nBinHisto,length(hd@cellList))))
             
             return(hd)
@@ -173,9 +174,8 @@ setMethod(f="getHistoStatsShuffle",
               hd@peakRatesShuffle=vector("numeric")
             }
           
-            
-            for(i in 1:sp@nShufflings){
-              print(paste(i,"of",sp@nShufflings))
+            for(i in 1:hd@nShufflings){
+              print(paste(i,"of",hd@nShufflings))
               
               pts<-shiftHdRandom(pt)
               
