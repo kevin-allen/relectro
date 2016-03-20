@@ -20,9 +20,13 @@ More details regarding individual function (e.g. arguments and returned values) 
 
 You can list all the objects (including functions) of relectro with the `ls` function
 ```{r obj}
-library(relectro)
+#library(relectro)
+# or
+devtools::load_all("~/repo/r_packages/relectro/")
 ls("package:relectro")
 ```
+
+The names of the classes start with an upper case letter (e.g. RecSession) whereas the names of functions and methods start a lower case letter (e.g. loadRecSession).
 
 You can also learn more about the internal organisation of an object with the attributes function.
 ```{r attr}
