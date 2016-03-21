@@ -134,13 +134,13 @@ There is a DatFiles class to read the data from one or several .dat files. In th
 df<-new("DatFiles",fileNames=paste(rs@trialNames[1],"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
 data<-datFilesGetOneChannel(df,channelNo=rs@nChannels-1,
                             firstSample=rs@trialStartRes[1],lastSample=rs@samplingRate*10)
-plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",xlim=c(84000,90000))
+plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",xlim=c(86000,88000))
 ups<-detectUps(as.numeric(data[0:100000]))
+downs<-detectDowns(as.numeric(data[0:100000]))
 points(ups,rep(0,length(ups)),col="red")
-rm(data,ups)
+points(downs,rep(0,length(ups)),col="blue")
+rm(data,ups,downs)
 ```
-
-
 
 
 ## Positrack
