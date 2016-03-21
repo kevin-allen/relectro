@@ -125,12 +125,12 @@ setMethod(f="headDirectionHisto",
 )
 
 
-#### getHistoStats
-setGeneric(name="getHistoStats",
+#### headDirectionStats
+setGeneric(name="headDirectionStats",
            def=function(hd,st,pt)
-           {standardGeneric("getHistoStats")}
+           {standardGeneric("headDirectionStats")}
 )
-setMethod(f="getHistoStats",
+setMethod(f="headDirectionStats",
           signature="HeadDirection",
           definition=function(hd,st,pt)
           {
@@ -151,12 +151,12 @@ setMethod(f="getHistoStats",
 )
 
 
-#### getHistoStatsShuffle 
-setGeneric(name="getHistoStatsShuffle",
+#### headDirectionStatsShuffle 
+setGeneric(name="headDirectionStatsShuffle",
            def=function(hd,st,pt)
-           {standardGeneric("getHistoStatsShuffle")}
+           {standardGeneric("headDirectionStatsShuffle")}
 )
-setMethod(f="getHistoStatsShuffle",
+setMethod(f="headDirectionStatsShuffle",
           signature="HeadDirection",
           definition=function(hd,st,pt){
             
