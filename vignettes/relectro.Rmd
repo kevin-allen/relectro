@@ -69,7 +69,7 @@ If you want to calculate a spike-time crosscorrelation between the spikes and so
 
 Most computations on neuronal activity need to be performed on a limited time period. This is acheived by setting some intervals in the SpikeTime object. You can do this with the function `setIntervals()`. The intervals of the SpikeTrain object are used when analyzing the spatial properties of neurons.
 
-Now here is an example from data files that are provided with the package.
+Now here is an example from data files that are provided with the package. This is part of a recording session in which we recorded the activity of the medial entorhinal cortex on a linear track and in a square open-field. In this example, we calculate the spike-time crosscorrelation between the recorded neurons. The first 3 lines of code are to get the session name and path to these files.  
 
 ```{r real_spike_trains}
 ## find the data provided with the package as example
@@ -134,7 +134,7 @@ There is a DatFiles class to read the data from one or several .dat files. In th
 df<-new("DatFiles",fileNames=paste(rs@trialNames[1],"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
 data<-datFilesGetOneChannel(df,channelNo=rs@nChannels-1,
                             firstSample=rs@trialStartRes[1],lastSample=rs@samplingRate*10)
-plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",xlim=c(86000,88000))
+plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",xlim=c(86000,89000))
 ups<-detectUps(as.numeric(data[0:100000]))
 downs<-detectDowns(as.numeric(data[0:100000]))
 points(ups,rep(0,length(ups)),col="red")
@@ -144,7 +144,6 @@ rm(data,ups,downs)
 
 
 ## Positrack
-
 Positrack objects are used to represent the path of the animal during a recording session. The data are loaded from the .whl and .whd files. The example below gives us time intervals for which the animal running speed was between 0 and 3 cm/sec. 
 
 ```{r positrack1}
