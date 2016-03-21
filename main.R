@@ -95,7 +95,6 @@ rm(s1,s2,e1,e2)
 clufile<-unlist(strsplit(x=system.file("extdata", "jp4298-15022016-0106.clu", package = "relectro"), split="/"))
 datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
 session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
-setwd(datadir)
 
 st<-new("SpikeTrain") # create SpikeTrain object
 st@session=session # set session name

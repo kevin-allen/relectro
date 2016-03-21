@@ -110,6 +110,7 @@ st<-ifr(st)
 ## plot ifr and spike of a cell
 n=400
 cell=1
+
 plot(head(st@ifrTime,n),head(st@ifr[cell,],n),type='l',xlab="Time (sec)",ylab="Rate (Hz)")
 points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),rep(0,n),col='red')
 rm(n,cell)
@@ -125,6 +126,22 @@ stint
 rm(stint)
 ```
 Now the spike train intervals are set to the trial with the sqr70 environment.
+
+## DatFiles
+
+There is a DatFiles class to read the data from one or several .dat files. In this example, we will work with the first .dat file of our recording session. Use a RecSession object to get the information needed to open the file. The .dat file is very short to be able to package it as an example. There is also a function to detect the positive deflection in the voltage (TTL pulses).
+```{r DatFiles}
+df<-new("DatFiles",fileNames=paste(rs@trialNames[1],"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
+data<-datFilesGetOneChannel(df,channelNo=rs@nChannels-1,
+                            firstSample=rs@trialStartRes[1],lastSample=rs@samplingRate*10)
+plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",xlim=c(84000,90000))
+ups<-detectUps(as.numeric(data[0:100000]))
+points(ups,rep(0,length(ups)),col="red")
+rm(data,ups)
+```
+
+
+
 
 ## Positrack
 
