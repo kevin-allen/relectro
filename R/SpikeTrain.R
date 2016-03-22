@@ -16,11 +16,14 @@ SpikeTrain <- setClass(
           startResIndexc="numeric",endResIndexc="numeric",
           events="numeric",
           cellList="numeric",cellPairList="data.frame", # cell list to limit the analysis to these cells
+          # ifr
           ifrKernelSdMs="numeric",
           ifrWindowSizeMs="numeric",
           ifrSpikeBinMs="numeric",
           ifr="matrix",
-          ifrTime="numeric"
+          ifrTime="numeric",
+          #
+          meanFiringRate="numeric"
           ),  
   prototype = list(session="",ifrKernelSdMs=50,ifrWindowSizeMs=50,ifrSpikeBinMs=1))
 
@@ -69,14 +72,15 @@ setMethod(f="loadSpikeTrain",
             
             
             if(!file.exists(paste(pathSession,"res",sep=".")))
-              stop("need",paste(pathSession,"res",sep="."))
+              stop("need ",paste(pathSession,"res",sep="."))
             if(!file.exists(paste(pathSession,"clu",sep=".")))
-              stop("need",paste(pathSession,"clu",sep="."))
+              stop("need ",paste(pathSession,"clu",sep="."))
             if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
-              stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
+              stop("need ",paste(pathSession,"sampling_rate_dat",sep="."))
             
-            st@res<-as.numeric(readLines(paste(pathSession,"res",sep=".")))
-            st@clu<-as.numeric(readLines(paste(pathSession,"clu",sep=".")))
+            st@res<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"res",sep=".")))
+            st@clu<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"clu",sep=".")))
+            
             st@samplingRate<-as.numeric(readLines(paste(pathSession,"sampling_rate_dat",sep=".")))
             if(st@samplingRate<1 | st@samplingRate > 100000)
               stop(paste("samplingRate is out of range:",st@samplingRate))
@@ -304,7 +308,7 @@ setMethod(f="meanFiringRate",
           definition=function(st)
           {
             # call cwrapper function
-            results<- .Call("meanFiringRate_cwrap",
+            st@meanFiringRate<- .Call("meanFiringRate_cwrap",
                             st@cellList,
                             length(st@cellList),
                             st@clu,
@@ -316,7 +320,7 @@ setMethod(f="meanFiringRate",
                             st@endResIndexc,
                             length(st@startResIndexc),
                             st@samplingRate)
-            return(results)
+            return(st)
           }
 )
 
@@ -416,6 +420,10 @@ setMethod("show", "SpikeTrain",
             if(length(object@cellList)!=0){
               print(paste("n cellPairList:",length(object@cellPairList[,1])))
             }
+            if(length(object@meanFiringRate)!=0){
+              print(paste(object@meanFiringRate))
+            }
+            
             if(length(object@startInterval)!=0){
               print(paste("nIntervals:",length(object@startInterval))) 
               print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))

@@ -6,6 +6,7 @@ RecSession <- setClass(
   slots=c(session="character",
           path="character",
           fileBase="character", # path+session
+          animalName="character",
           samplingRate="numeric",
           resofs="numeric",
           env="character",
@@ -19,7 +20,8 @@ RecSession <- setClass(
           nChannels="numeric",
           nTrials="numeric",
           channelsTetrode="matrix",
-          clustered="logical"),  # cell list to limit the analysis to these cells
+          clustered="logical",
+          earlyProcessed="logical"),  # cell list to limit the analysis to these cells
   prototype = list(session="",path=""))
 
 
@@ -40,8 +42,9 @@ setMethod(f="loadRecSession",
             if(rs@path=="")
               rs@path=getwd()
             
-            rs@fileBase=paste(rs@path,rs@session,sep="/")
+            rs@fileBase<-paste(rs@path,rs@session,sep="/")
             
+            rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
             
             if(!file.exists(paste(rs@fileBase,"par",sep=".")))
               stop("needs ",paste(rs@fileBase,"par",sep="."))
@@ -77,21 +80,24 @@ setMethod(f="loadRecSession",
             
             if(rs@nTrials!=length(rs@trialNames))
               stop("Problem with number of trials in par file")
+
             
+            if(!file.exists(paste(rs@fileBase,"sampling_rate_dat",sep=".")))
+              stop("needs ",paste(rs@fileBase,"sampling_rate_dat",sep="."))
+            ## get sampling rate
+            rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1
+            if(rs@samplingRate<1 | rs@samplingRate > 100000)
+              stop(paste("samplingRate is out of range:",rs@samplingRate))
+            
+                        
             ## if early process was run on this one, get more informaiton
-            if(file.exists(paste(rs@fileBase,"resofs",sep="."))&
-               file.exists(paste(rs@fileBase,"sampling_rate_dat",sep=".")))
+            if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
             {
-              ## get sampling rate
-              rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1
               ## read the resofs file  
               rs@resofs<-read.table(paste(rs@fileBase,"resofs",sep="."))$V1
-              
               if(length(rs@resofs)!=rs@nTrials)
                 stop("Problem with length of resofs")
               
-              if(rs@samplingRate<1 | rs@samplingRate > 100000)
-                stop(paste("samplingRate is out of range:",rs@samplingRate))
               
               ## trial times
               rs@trialStartRes<-c(0,rs@resofs[-length(rs@resofs)])
@@ -103,6 +109,11 @@ setMethod(f="loadRecSession",
               rs@clustered=T
             } else{
               rs@clustered=F
+            }
+            if(file.exists(paste(rs@fileBase,"resofs",sep="."))){
+              rs@earlyProcessed=T
+            } else{
+              rs@earlyProcessed=F
             }
               return(rs)
           }
@@ -119,6 +130,19 @@ setMethod(f="getIsClustered",
           definition=function(rs)
           {
             return(rs@clustered)
+          })
+
+
+### getIsEarlyProcessed ###
+setGeneric(name="getIsEarlyProcessed",
+           def=function(rs)
+           {standardGeneric("getIsEarlyProcessed")}
+)
+setMethod(f="getIsEarlyProcessed",
+          signature="RecSession",
+          definition=function(rs)
+          {
+            return(rs@earlyProcessed)
           })
 
 
@@ -197,4 +221,5 @@ setMethod("show", "RecSession",
             print(paste("Map of channels per tetrode (channelsTetrode)"))
             print(object@channelsTetrode)
             print(paste("clustered:",object@clustered))
+            print(paste("earlyProcessed:",object@earlyProcessed))
           })

@@ -185,8 +185,8 @@ setMethod(f="getHistoStatsShuffle",
               sp1@sparsityShuffle=vector("numeric")
               sp1@peakRateShuffle=vector("numeric")
             }
+            print(paste("SpatialProperties1d shuffles",sp1@nShufflings))
             for(i in 1:sp1@nShufflings){
-              print(paste(i,"of",sp1@nShufflings))
               ### shift position
               pts<-shiftLinRandom(pt)
               ### create the histo

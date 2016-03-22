@@ -42,9 +42,10 @@ int group_data_file_si_get_data_one_channel(struct group_data_file_si* gf,int ch
 int clean_group_data_file_si(struct group_data_file_si* gdf);
 SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r);
 
-
-
-
+// text_files.c
+int file_lines(const char* file_name);
+int read_one_column_int_file(const char* file_name,int* data, int lines);
+SEXP read_one_column_int_file_cwrap(SEXP file_name_r);
 
 // math.c
 double sum_double(int num_data, double* data, double invalid);

@@ -28,6 +28,8 @@ setMethod("show", "CellGroup",
             print(paste("nCells:",object@nCells))
             print("clu:")
             print(object@clu)
+            print("id:")
+            print(object@id)
             print("tetrode:")
             print(object@tetrode)
             print("cluToTetrode:")
@@ -72,6 +74,12 @@ setMethod(f="loadCellGroup",
                 cg@tetrode<-c(cg@tetrode,rep(t,n))
                 cg@cluToTetrode<-c(cg@cluToTetrode,2:(n+1))
               }
+            }
+            if(length(cg@cluToTetrode)!=length(cg@clu))
+            {
+              print("problem with the number of clusters in main clu files and in tetrode clu files")  
+              print(paste(cg@session,":",length(cg@clu),"vs",length(cg@cluToTetrode)))
+              stop()
             }
             cg@tetrodeId<-paste(cg@session,cg@tetrode,sep="_")
             if(file.exists(paste(cg@fileBase,"desel",sep="."))){

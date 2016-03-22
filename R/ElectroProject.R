@@ -54,5 +54,19 @@ setMethod("show", "ElectroProject",
             print(paste("sessionNameList:"))
             print(object@sessionNameList)
             print(paste("Clustered sessions:",sum(sapply(ep@sessionList,getIsClustered))))
+            print(paste("Early processed sessions:", sum(sapply(ep@sessionList,getIsEarlyProcessed))))
+          })
+
+setGeneric(name="getClusteredSessionList",
+           def=function(ep)
+           {standardGeneric("getClusteredSessionList")}
+)
+setMethod(f="getClusteredSessionList",
+          signature="ElectroProject",
+          definition=function(ep)
+          {
+            if(ep@directory=="")
+              stop("ep@directory not set")
+            return(ep@sessionList[sapply(ep@sessionList,getIsClustered)])
           })
 

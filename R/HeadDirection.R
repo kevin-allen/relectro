@@ -135,7 +135,7 @@ setMethod(f="headDirectionStats",
           definition=function(hd,st,pt)
           {
             ### create the histo
-            hd<-headDirectionHisto(hd,st,ptsqr70)
+            hd<-headDirectionHisto(hd,st,pt)
             ### get peak rates
             hd@peakRates<-apply(hd@histo,2,max)
             ### get vector length and mean direction
@@ -173,10 +173,9 @@ setMethod(f="headDirectionStatsShuffle",
               hd@vectorLengthShuffle=vector("numeric")
               hd@peakRatesShuffle=vector("numeric")
             }
-          
+            print(paste("HeadDirection shuffle",hd@nShufflings))
             for(i in 1:hd@nShufflings){
-              print(paste(i,"of",hd@nShufflings))
-              
+
               pts<-shiftHdRandom(pt)
               
               ### create the histo

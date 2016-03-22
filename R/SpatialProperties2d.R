@@ -77,6 +77,7 @@ setMethod("show", "SpatialProperties2d",
             print(paste("nColMap:",object@nColMap))
             print(paste("nRowMap:",object@nRowMap))
             if(length(object@cellList)!=0){
+              print(paste("nCells:",length(object@cellList)))
               print(paste("cellList:"))
               print(object@cellList)
             }
@@ -291,9 +292,8 @@ setMethod(f="getMapStatsShuffle",
             sp@borderDMShuffle=numeric()
             sp@gridScoreShuffle=numeric()
             
+            print(paste("SpatialProperties2d shuffle",sp@nShufflings))
             for(i in 1:sp@nShufflings){
-              print(paste(i,"of",sp@nShufflings))
-              
               pts<-shiftPositionRandom(pt)
               sp<-firingRateMap2d(sp,st,pts)
               sp@peakRateShuffle <- c(sp@peakRateShuffle,apply(sp@maps,3,max))
@@ -637,9 +637,9 @@ setMethod(f="speedScoreShuffle",
             resTime<-resTime[index]
             #clear from previous data
             sp@speedScoreShuffle<-numeric()
-            
+            print(paste("speed shuffle",sp@nShufflings))
             for(i in 1:sp@nShufflings){
-              print(paste(i,"of",sp@nShufflings))
+            
               ifrSels<-ifrSel
               resTimes<-resTime
               # shuffle speed

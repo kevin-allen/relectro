@@ -60,7 +60,8 @@ auto<-spikeTimeAutocorrelation(st,binSizeMs=1,windowSizeMs=200)
 ## plot the autocorrelation
 plot(auto$count,type='l',ylab="Spike count", xlab="time (ms)")
 ## get the mean firing rate
-meanFiringRate(st)
+st<-meanFiringRate(st)
+st@meanFiringRate
 rm(clu,res1,res2,res3,df,auto,st)
 ```
 
