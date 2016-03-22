@@ -658,3 +658,28 @@ setMethod(f="speedScoreShuffle",
             return(sp)
           }
 )
+
+
+
+setGeneric(name="mapsAsDataFrame",
+           def=function(sp)
+           {standardGeneric("mapsAsDataFrame")}
+)
+setMethod(f="mapsAsDataFrame",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@maps)==0)
+              stop("Need to call firingRateMap2d first to run mapsAsDataFrame()")
+            
+            data.frame(clu.id=rep(paste(sp@session,sp@cellList,sep="_"),each=sp@nRowMap*sp@nColMap),
+                       x=rep(1:sp@nRowMap,sp@nColMap),
+                       y=rep(1:sp@nColMap,each=sp@nRowMap),
+                       rate=as.numeric(sp@maps))
+          }
+)
+
+
+
+
+
