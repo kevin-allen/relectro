@@ -46,8 +46,10 @@ setMethod(f="ifr",
                   as.integer(st@cellList), length(st@cellList),
                   as.integer(st@startInterval),as.integer(st@endInterval),length(st@startInterval),
                   st@samplingRate)
+            
             st@ifrTime<-results[1,]
-            st@ifr<-results[-1,]
+            st@ifr<-matrix(results[-1,],nrow=st@nCells)
+            
             return(st)
           }
 )

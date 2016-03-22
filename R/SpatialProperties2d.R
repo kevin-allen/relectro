@@ -585,7 +585,8 @@ setMethod(f="speedScore",
                                     as.integer(st@endInterval),
                                     length(resTime),
                                     as.integer(resTime)))
-            ifrSel<-st@ifr[,index]
+            
+            ifrSel<-matrix(st@ifr[,index],nrow=length(st@cellList))
             resTime<-resTime[index]
             
             
@@ -594,7 +595,7 @@ setMethod(f="speedScore",
             
             ## speed filter
             index<-which(speed>minSpeed&speed<maxSpeed)
-            ifrSel<-ifrSel[,index]
+            ifrSel<-matrix(ifrSel[,index],nrow=length(st@cellList))
             speed<-speed[index]
             
             ## do the correlation
@@ -633,7 +634,7 @@ setMethod(f="speedScoreShuffle",
                                     as.integer(st@endInterval),
                                     length(resTime),
                                     as.integer(resTime)))
-            ifrSel<-st@ifr[,index]
+            ifrSel<-matrix(st@ifr[,index],nrow=length(st@cellList))
             resTime<-resTime[index]
             #clear from previous data
             sp@speedScoreShuffle<-numeric()
@@ -648,7 +649,7 @@ setMethod(f="speedScoreShuffle",
               speed<-getSpeedAtResValues(pts,resTimes)
               ## speed filter
               index<-which(speed>minSpeed&speed<maxSpeed)
-              ifrSels<-ifrSels[,index]
+              ifrSels<-matrix(ifrSels[,index],nrow=length(st@cellList))
               speed<-speed[index]
               ## do the correlation
               sp@speedScoreShuffle<-c(sp@speedScoreShuffle,
