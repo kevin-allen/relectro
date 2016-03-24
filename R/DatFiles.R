@@ -1,6 +1,14 @@
-############################################
-#### definition of DatFiles Class      ###
-############################################
+#' An S4 class representing a group of .dat files
+#' 
+#' This class is used to read data from one or several .dat files.
+#' Because the .dat files are binary files, you can't read them with the usual read functions within R.
+#' If several dat files are set in an object, they are treated as though they are a single file.
+#' @slot fileNames A character vector containing the names of the files
+#' @slot path The directory in which the files are located
+#' @slot nChannels Number of recorded channels in the dat files
+#' @examples
+#' df<-new("DatFile")
+#' df<-new("DatFiles",fileName="test.dat",path="~/Documents",nChannels=33)
 DatFiles <- setClass(
   "DatFiles", ## name of the class
   slots=c(fileNames="character",
@@ -10,11 +18,19 @@ DatFiles <- setClass(
           ),
   prototype = list(fileNames="",path="",nChannels=0))
 
+
+
 ### datFilesSet ###
 setGeneric(name="datFilesSet",
            def=function(df,fileNames,path,nChannels)
            {standardGeneric("datFilesSet")}
 )
+#' Function to set the parameters of a DatFile object
+#' @param df A DatFiles object
+#' @param fileNames A character vector containing the names of the .dat files
+#' @param path A directory where the files are located
+#' @param nChannels The number of channels in the dat files
+#' @return A DatFiles object with the values set.
 setMethod(f="datFilesSet",
           signature="DatFiles",
           definition=function(df,fileNames="",path="",nChannels=0)
@@ -36,6 +52,15 @@ setGeneric(name="datFilesGetOneChannel",
            def=function(df,channelNo,firstSample,lastSample)
            {standardGeneric("datFilesGetOneChannel")}
 )
+#' Function to read the data from a group of dat files
+#' 
+#' 
+#' @param df A DatFiles object
+#' @param channelNo The channel of interest
+#' @param firstSample First sample to retrieve
+#' @param lastSample Last sample to retrieve
+#' @return A integer vector containing the data read from the dat files.
+#' @aliases datFilesGetOneChannel
 setMethod(f="datFilesGetOneChannel",
           signature="DatFiles",
           definition=function(df,channelNo,firstSample,lastSample)
@@ -78,5 +103,3 @@ setMethod("show", "DatFiles",
             print(paste(object@fileNames))
             print(paste("nChannels:",object@nChannels))
           })
-
-

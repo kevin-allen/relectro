@@ -1,6 +1,21 @@
-############################################
-#### definition of CellGroup Class      ###
-############################################
+#' An S4 class representing a group of cells
+#' 
+#' This class is used to get the tetrode id and brain region associated with each cell of a recording session. 
+#' It also get the cluster id of the cell on its respective tetrode
+#' @slot session A character vector containing the names of the recording session.
+#' @slot path The directory in which the files of the session are located.
+#' @slot fileBase Is the path and session
+#' @slot nTetrodes Number of tetrodes
+#' @slot nCells Number of cells
+#' @slot id Cell id
+#' @slot animal Name of the animal
+#' @slot clu Cluster id of the cells
+#' @slot tetrode tetrode number of the cells
+#' @slot tetrodeId id of the tetrode for each cell
+#' @slot cluToTetrode clu id of the cell on its respective tetrode (used for clustering)
+#' @slot brainRetion region in which the cell was recorded
+#' @examples
+#' df<-new("CellGroup")
 CellGroup <- setClass(
   "CellGroup", ## name of the class
   slots=c(session="character",
@@ -16,31 +31,6 @@ CellGroup <- setClass(
           cluToTetrode="numeric",
           brainRegion="character"),  # cell list to limit the analysis to these cells
   prototype = list(session="",path="",nTetrodes=0))
-
-
-
-### show ###
-setMethod("show", "CellGroup",
-          function(object){
-            print(paste("session:",object@session))
-            print(paste("path:",object@path))
-            print(paste("nTetrodes:",object@nTetrodes))
-            print(paste("nCells:",object@nCells))
-            print("clu:")
-            print(object@clu)
-            print("id:")
-            print(object@id)
-            print("tetrode:")
-            print(object@tetrode)
-            print("cluToTetrode:")
-            print(object@cluToTetrode)
-            print("brainRegion")
-            print(object@brainRegion)
-            print("tetrodeId:")
-            print(object@tetrodeId)
-          })
-
-
 
 ### loadCellGroup ###
 setGeneric(name="loadCellGroup",
@@ -89,3 +79,24 @@ setMethod(f="loadCellGroup",
             return(cg)
           }
 )
+
+### show ###
+setMethod("show", "CellGroup",
+          function(object){
+            print(paste("session:",object@session))
+            print(paste("path:",object@path))
+            print(paste("nTetrodes:",object@nTetrodes))
+            print(paste("nCells:",object@nCells))
+            print("clu:")
+            print(object@clu)
+            print("id:")
+            print(object@id)
+            print("tetrode:")
+            print(object@tetrode)
+            print("cluToTetrode:")
+            print(object@cluToTetrode)
+            print("brainRegion")
+            print(object@brainRegion)
+            print("tetrodeId:")
+            print(object@tetrodeId)
+          })
