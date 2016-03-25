@@ -1,7 +1,12 @@
 ############################################
 ### definition of ElectroProject Class   ###
 ############################################
-#' A S4 class to represent an electrophysiological project containing several recording sessions
+#' A S4 class to represent an electrophysiological project containing several recording sessions.
+#' 
+#' An ElectroProject object can be used to run programs on several recording sessions.
+#' It contains a list of recording sessions. You can call lapply to run a function on each recording session.
+#' If you want to speed up things, you can try parLapply of the snow package.
+#' It can also be used to give you an overview of the progress during the data acquisition period.
 #' 
 #' @slot directory A path to a directory tree where the recording sessions can be found
 #' @slot nSessions Number of recording sessions in the project

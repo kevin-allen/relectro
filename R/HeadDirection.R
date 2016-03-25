@@ -1,6 +1,26 @@
-#################################################
-#### definition of HeadDirection Class  ###
-#################################################
+#' An S4 class used to get head direction histograms and circular statistics for each neuron.
+#'
+#' The user creates positrack and spike train objects first.
+#' Then the user calls the different methods of this class with the spike train and positrack objects as arguments.
+#' It can get the vector length of the head direction histograms and do shuffling to know the threshold for significance.
+#' 
+#' @slot session A charactor object with the name of the recording session
+#' @slot degPerBin Degrees per bin in the head direction histograms
+#' @slot smoothOccupancySd The standard deviation of the gaussian kernel used to smooth the occupancy histogram
+#' @slot smoothRateHistoSd The standard deviation of the gaussian kernel used to smooth the rate histograms
+#' @slot nBinHisto Number of bins in the histograms
+#' @slot hdSpikes Head direction of all valid spikes
+#' @slot histo An array holding the histograms of all neurons
+#' @slot occupancy A numeric holding the occupancy histogram
+#' @slot cellList A list of cluster id of the neurons
+#' @slot histoRepetition Number of repetition of the 0-360 range in the histogram. Default is 0 repetition
+#' @slot peakRates Peak firing rate in Hz in each firing rate histogram
+#' @slot vectorLength Mean vector length of each firing rate histogram
+#' @slot meanDirection Mean direction in each firing rate histogram
+#' @slot nShufflings Number of shufflings to get a distribution of vector length that would be obtained by chance
+#' @slot minShiftMs Minimum time shift of the head direction data used during the shuffling procedure
+#' @slot peakRateShuffle Numeric to hold the peak firing rates obtained during the shuffling procedure
+#' @slot vectorLengthShuffle Numeric to hold the vector length obtained during the shuffling procedure
 HeadDirection<- setClass(
   "HeadDirection", ## name of the class
   slots=c(session="character",
@@ -23,7 +43,8 @@ HeadDirection<- setClass(
           peakRatesShuffle="numeric",
           vectorLengthShuffle="numeric"
   ),
-  prototype = list(session="",degPerBin=10,smoothOccupancySd=10,smoothRateHistoSd=10,nShufflings=100,minShiftMs=20000,histoRepetitions=0))
+  prototype = list(session="",degPerBin=10,smoothOccupancySd=10,smoothRateHistoSd=10,nShufflings=100,
+                   minShiftMs=20000,histoRepetitions=0))
 
 
 ### show ###
@@ -98,7 +119,6 @@ setMethod(f="headDirectionHisto",
                                 as.integer(pt@resSamplesPerWhlSample),
                                 hd@histoRepetitions+1)
             
-            ## smooth the occupancy map
             hd@occupancy<- .Call("smooth_double_gaussian_circular_cwrap",
                                  as.numeric(hd@occupancy),
                                  hd@nBinHisto,

@@ -1,3 +1,12 @@
+#' Returns possible pairs from one or two vectors of values
+#' 
+#' If only on vector of values is given, all possible pairs within these values are returned.
+#' If two vectors of values are given, only pairs across the two vectors are returned.
+#' 
+#' @param cl1 Numeric vector containing a vector of values
+#' @param cl2 Optional argument containing a second vector of values
+#' @return A data.frame containing the pairs
+#' @examples MakePairs(cl1=1:10)
 makePairs<-function(cl1="",cl2=NULL){
   if(is.null(cl2)){
     m<-combn(cl1,m=2)
@@ -8,7 +17,18 @@ makePairs<-function(cl1="",cl2=NULL){
   }
 }
 
-smoothGaussian<-function(x,sd=2,invalid=-1.0)
+#' Smooth the values in a numeric vector using a Gaussian kernel
+#' 
+#' The values at -1.0 are consider invalid by defaults and are not used or changed. 
+#' Set the value of the argument degrees to TRUE if the data are circular. 
+#' For example, if the first and last data of the vector should be considered next to each other.
+#' 
+#' @param x Numeric vector
+#' @param sd The standard deviation of the Gaussian kernel used to smooth
+#' @param invalid Numeric indicating which value should be treated as NA, by default -1.0.
+#' @param degrees Logical indicating if the smoothing should consider the vector as circular, i.e. the first and last values are adjacent.
+#' @examples smoothGaussian(x=c(1:10,9:1),sd=2,invalid=-1.0,degrees=FALSE)
+smoothGaussian<-function(x,sd=2,invalid=-1.0,degrees=FALSE)
 {
   if(length(x)==0)
     return
@@ -16,26 +36,22 @@ smoothGaussian<-function(x,sd=2,invalid=-1.0)
     return
   if(sd<0)
     stop(paste("sd is smaller than 0:",sd))
-  results<- .Call("smooth_double_gaussian_cwrap",
+  if(class(x)=="integer"){
+    x<-as.numeric(x)
+  }
+  if(degrees==FALSE){
+    results<- .Call("smooth_double_gaussian_cwrap",
                     x, length(x), sd, invalid)
+  }
+  if(degrees==TRUE){
+    if(any(x>360))
+      stop(paste("x values larger than 360"))
+    results<- .Call("smooth_double_gaussian_degrees_cwrap",
+                    x, length(x), sd, invalid)  
+  }
   return(results)
 }
-smoothGaussianDegrees<-function(x,sd=2,invalid=-1.0)
-{
-  if(length(x)==0)
-    return
-  if(sd==0)
-    return
-  if(sd<0)
-    stop(paste("sd is smaller than 0:",sd))
-  if(any(x>360))
-    stop(paste("x values larger than 360"))
-  if(any(x<0&x!=-1.0))
-    stop(paste("x values < 0 & != -1.0"))
-  results<- .Call("smooth_double_gaussian_degrees_cwrap",
-                  x, length(x), sd, invalid)
-  return(results)
-}
+
 shift <- function (v, places, dir = "right") 
 {# shift a vector in place
   vnew <- NULL

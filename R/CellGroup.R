@@ -1,7 +1,8 @@
 #' An S4 class representing a group of cells
 #' 
 #' This class is used to get the tetrode id and brain region associated with each cell of a recording session. 
-#' It also get the cluster id of the cell on its respective tetrode
+#' It also get the cluster id of the cell on its respective tetrode. The easiest way to set it up is from the information
+#' contained in a RecSession object.
 #' @slot session A character vector containing the names of the recording session.
 #' @slot path The directory in which the files of the session are located.
 #' @slot fileBase Is the path and session
