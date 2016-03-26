@@ -218,8 +218,6 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
             nBins=(windowSizeMs*2)/binSizeMs
             windowSize=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
-            
-            dyn.load("~/repo/r_packages/relectro/src/relectro.so")
             results<- .Call("crosscorrelationEvents_cwrap",
                             st@cellList,
                             length(st@cellList),
@@ -295,7 +293,6 @@ setMethod(f="spikeTimeCrosscorrelation",
                          clu2=rep(st@cellPairList[,2],each=nBins),
                          time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
                          prob=results)
-            
           }
           )
 

@@ -22,7 +22,7 @@ You can list all the objects (including functions) of relectro with the `ls` fun
 ```{r obj}
 #library(relectro)
 # or
-devtools::load_all("~/repo/r_packages/relectro/")
+devtools::load_all("~/repo/relectro/")
 ls("package:relectro")
 ```
 
@@ -159,6 +159,7 @@ One can also use the intervals given by the RecSession object to limit the analy
 ```{r positrack2}
 pt1<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
 plot(pt1@x[1:10000],pt1@y[1:10000],col="black", type='l',xlab="x (cm)",ylab="y (cm)")
+pt1 # tells you information about valid data.
 rm(pt1)
 ```
 
@@ -192,3 +193,12 @@ firingRateMapAutoPlot(m=sp@autos[,,7],name=sp@cellList[7])
 
 ```
 
+## Running code on several recording sessions
+Use an ElectroProject object to get a list of clustered recording session. Put the code that you want to run on each session into a function that takes a RecSession object as first argument. To run your function on the list of recording sessions, simply use the \code{lapply} function.
+
+##Parallel processing
+relectro is not using parallel processing by itself. However, given that the same analysis is often run on several recording sessions, parallel processing is very simple to implement. You can use the /code{snow} package. You only need to install relectro on all the computers that you want to use for the analysis. Then build a cluster of workers that you want to use. Instead of calling \code{lapply} use \code{parLapply}. If using different computers, you need to load the relectro package at the top of the function to make sure they all have access to relectro. 
+
+If your code is almost only reading and writing files, it might be better to run the code sequencially with the lapply function. A good example of this is if you are detecting ttl pulses from the .dat files. Do this sequencially.
+
+Conversely, if your code is processor intensive and has few read/write operations, you can speed up things considerably by increasing the number of threads used.

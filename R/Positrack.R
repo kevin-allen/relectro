@@ -1,6 +1,27 @@
-############################################
-#### definition of Positrack Class      ###
-############################################
+#' An S4 class representing the path of an animal during a recording session
+#' 
+#' This class is used to manipulate and represent the position data of the animal.
+#' The first data point is at time resSamplesPerWhlSample and not 0.
+#' The data are usually loaded from .whl, .whd, .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm
+#' 
+#' @slot session A character vector containing the names of the recording session.
+#' @slot path The directory in which the files of the session are located.
+#' @slot pxPerCm Pixels per centimeter in the x and y position data.
+#' @slot samplingRateDat Sampling rate of the .dat files in this recording session
+#' @slot resSamplesPerWhlSample Number of samples in the .dat files between each position values.
+#' @slot xWhl A numeric vector containing x data loaded from the .whl file.
+#' @slot yWhl A numeric vector containing y data loaded from the .whl file.
+#' @slot hdWhd A numeric vector containing the head direction of the animal, loaded from .whd file.
+#' @slot x x position of the animal in cm
+#' @slot y y position of the animal in cm
+#' @slot hd Head direction of the animal
+#' @slot lin Linearized position of the animal. Used for linear track data.
+#' @slot dir Direction in the linearized position data (0 or 1)
+#' @slot speed Linear speed in cm per sec
+#' @slot angularSpeed Angular speed in degrees per sec
+#' @slot res Sample number associated with each position value
+#' @slot defaultXYSmoothing Default smoothing apply to the x and y position.
+#' @minShiftMs Minimum shift of the position vector during a shuffling procedure
 Positrack <- setClass(
   "Positrack", ## name of the class
   slots=c(session="character",
@@ -33,7 +54,6 @@ setMethod(f="loadPositrack",
           signature="Positrack",
           definition=function(pt)
           {
-            
             if(pt@session=="")
               stop("pt@session is empty")
             if(pt@path==""){
@@ -50,8 +70,6 @@ setMethod(f="loadPositrack",
               stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
             if(!file.exists(paste(pathSession,"px_per_cm",sep=".")))
               stop("need",paste(pathSession,"px_per_cm",sep="."))
-            
-            
             ## get sampling rate
             whl<-read.table(paste(pathSession,"whl",sep="."))
             pt@xWhl<-whl$V1
@@ -168,6 +186,8 @@ setMethod(f="smoothhd",
               stop("pt@x has length of 0")
             ## smooth x and y
             pt@hd[which(is.na(pt@hd))]<- -1.0
+            
+            print("Smoothing of hd data with an function that does not take into account that data are circular")
             pt@hd<-smoothGaussian(pt@hd,sd=sd,invalid=-1.0)
             pt@hd[which(pt@hd==-1.0)]<- NA
             return(pt)
@@ -189,10 +209,11 @@ setMethod(f="speedFilter",
               stop("pt@x has length of 0")
             
             ## set time when outside of speed to NA
-            pt@x[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
-            pt@y[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
-            pt@hd[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
-            pt@speed[which(pt@speed<minSpeed|pt@speed>maxSpeed)]<- NA
+            index<-which(pt@speed<minSpeed|pt@speed>maxSpeed)
+            pt@x[index]<- NA
+            pt@y[index]<- NA
+            pt@hd[index]<- NA
+            pt@speed[index]<- NA
             return(pt)
           }
 )
@@ -263,7 +284,6 @@ setMethod(f="getIntervalsAtSpeed",
             if(minSpeed>maxSpeed)
               stop("minSpeed>maxSpeed")
             
-            
             results<-.Call("speed_intervals_cwrap", 
                   pt@speed,
                   length(pt@speed),
@@ -290,14 +310,16 @@ setMethod("show", "Positrack",
               print("call loadPositrack")
               return()
             }
-              
             print(paste("samplingRate:",object@samplingRateDat,"Hz"))
             print(paste("resSamplesPerWhlSample:",object@resSamplesPerWhlSample))
             print(paste("pxPerCm:",object@pxPerCm))
             print(paste("number data points:", length(object@xWhl)))
             print(paste("time in data:", (length(object@xWhl)*object@resSamplesPerWhlSample)/object@samplingRateDat,"sec"))
             print(paste("min max x:",min(object@x,na.rm=T),"cm,", max(object@x,na.rm=T),"cm"))
-            print(paste("min max y:",min(object@y,na.rm=T),"cm,",max(object@y,na.rm=T),"cm"))
+            print(paste("min max y:",min(object@y,na.rm=T),"cm,", max(object@y,na.rm=T),"cm"))
+            print(paste("total valid time:", 
+                        sum(!is.na(object@x))*object@resSamplesPerWhlSample/object@samplingRateDat,
+                        "sec"))
           })
 
 #### getSpeedAtResValues
@@ -347,8 +369,8 @@ setMethod(f="shiftPositionRandom",
             ## only consider valid data points
             xx<-pt@x[!is.na(pt@x)]
             yy<-pt@y[!is.na(pt@x)]
-            results<-shuffle.vectors(x=xx,y=yy,
-                                     time.per.sample.res=pt@resSamplesPerWhlSample,
+            results<-shiftPositionVectors(x=xx,y=yy,
+                                     timePerSampleRes=pt@resSamplesPerWhlSample,
                                      pt@minShiftMs,
                                      pt@samplingRateDat)
             pt@x[!is.na(pt@x)]<-results[[1]]
@@ -373,8 +395,8 @@ setMethod(f="shiftSpeedRandom",
               stop("pt@speed has length of 0")
             ## only consider valid data points
             index<-!is.na(pt@speed)
-            pt@speed[index]<-shuffle.vector(x=pt@speed[index],
-                                     time.per.sample.res=pt@resSamplesPerWhlSample,
+            pt@speed[index]<-shiftPositionVector(x=pt@speed[index],
+                                     timePerSampleRes=pt@resSamplesPerWhlSample,
                                      pt@minShiftMs,
                                      pt@samplingRateDat)
             return(pt)
@@ -397,8 +419,8 @@ setMethod(f="shiftHdRandom",
               stop("pt@hd has length of 0")
             ## only consider valid data points
             index<-!is.na(pt@hd)
-            pt@hd[index]<-shuffle.vector(x=pt@hd[index],
-                                               time.per.sample.res=pt@resSamplesPerWhlSample,
+            pt@hd[index]<-shiftPositionVector(x=pt@hd[index],
+                                               timePerSampleRes=pt@resSamplesPerWhlSample,
                                                pt@minShiftMs,
                                                pt@samplingRateDat)
             return(pt)
@@ -421,15 +443,13 @@ setMethod(f="shiftLinRandom",
               stop("pt@lin has length of 0")
             ## only consider valid data points
             index<-!is.na(pt@lin)
-            pt@lin[index]<-shuffle.vector(x=pt@lin[index],
-                                         time.per.sample.res=pt@resSamplesPerWhlSample,
+            pt@lin[index]<-shiftPositionVector(x=pt@lin[index],
+                                         timePerSampleRes=pt@resSamplesPerWhlSample,
                                          pt@minShiftMs,
                                          pt@samplingRateDat)
             return(pt)
           }
 )
-
-
 
 
 #### linearzeLinearTrack

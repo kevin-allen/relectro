@@ -52,6 +52,14 @@ smoothGaussian<-function(x,sd=2,invalid=-1.0,degrees=FALSE)
   return(results)
 }
 
+#' Shift values in a vector by a certain number of places and in a given direction
+#' 
+#' The vector is wrapped around so that values that would end up after the end of the vector are place at the beginning.
+#' 
+#' @param v A vector
+#' @param places Number of places the values will be moved.
+#' @param dir Direction of the shift, values should be right or left (or r or l).
+#' @examples shift(v=1:10, place=2, dir="r")
 shift <- function (v, places, dir = "right") 
 {# shift a vector in place
   vnew <- NULL
@@ -80,21 +88,38 @@ shift <- function (v, places, dir = "right")
   return(vnew)
 }
 
-shuffle.vector<-function(x,
-                         time.per.sample.res,
-                         min.mv.ms,
-                         sampling_rate){
-  min.mv<- min.mv.ms*(sampling_rate/1000)/time.per.sample.res
-  mv<-sample(min.mv:length(x)-min.mv,1)
+#' Shift a the values of a vector by a random amount that is at least as large as the argument minMvMs
+#' 
+#' @param x A vector
+#' @param timePerSampleRes Time in sample values (from the .dat files) between the position sample
+#' @param minMvMs Minimum shift in ms 
+#' @param samplingRate Sampling rate of the .dat files.
+#' @examples shift.position.vector(x=1:100, timePerSamplesRes=400, minMvMs = 1000, samplingRate=20000)
+shiftPositionVector<-function(x,
+                         timePerSampleRes,
+                         minMvMs,
+                         samplingRate){
+  minMv<- minMvMs*(samplingRate/1000)/timePerSampleRes
+  mv<-sample(minMv:length(x)-minMv,1)
   return(shift(x,mv))
 }
 
-shuffle.vectors<-function(x,y,
-                         time.per.sample.res,
-                         min.mv.ms,
-                         sampling_rate){
-  min.mv<- min.mv.ms*(sampling_rate/1000)/time.per.sample.res
-  mv<-sample(min.mv:length(x)-min.mv,1)
+#' Shift a the values of two vectors by a random amount that is at least as large as the argument minMvMs
+#' 
+#' The two vectors are shifted by the same amount.
+#' 
+#' @param x A vector
+#' @param y A second vector
+#' @param timePerSampleRes Time in sample values (from the .dat files) between the position sample
+#' @param minMvMs Minimum shift in ms 
+#' @param samplingRate Sampling rate of the .dat files.
+#' @examples shift.position.vector(x=1:100,y=201:300, timePerSamplesRes=400, minMvMs = 1000, samplingRate=20000)
+shiftPositionVectors<-function(x,y,
+                         timePerSampleRes,
+                         minMvMs,
+                         samplingRate){
+  minMv<- minMvMs*(samplingRate/1000)/timePerSampleRes
+  mv<-sample(minMv:length(x)-minMv,1)
   x<-shift(x,mv)
   y<-shift(y,mv)
   return(list(x=x,y=y))
