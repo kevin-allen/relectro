@@ -152,13 +152,6 @@ void res_index_for_intervals(int* interval_lines,
   return;
 }
 
-
-
-
-
-
-
-
 // wrapper to call resIndexForIntervals from .Call()
 SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
 				SEXP start_r, 
