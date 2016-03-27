@@ -2286,7 +2286,7 @@ double gridness_score(double* one_auto_map,
   
   if(max_radius<=min_radius)
     {
-      printf("max_radius: %lf, min_radius: %lf, min_radius adjusted to %lf\n", max_radius, min_radius, max_radius/2);
+     // printf("max_radius: %lf, min_radius: %lf, min_radius adjusted to %lf\n", max_radius, min_radius, max_radius/2);
       min_radius=max_radius/2;
     }
 

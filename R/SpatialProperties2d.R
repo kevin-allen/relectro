@@ -680,6 +680,47 @@ setMethod(f="mapsAsDataFrame",
 )
 
 
+setGeneric(name="statsAsDataFrame",
+           def=function(sp,shuffle)
+           {standardGeneric("statsAsDataFrame")}
+)
+setMethod(f="statsAsDataFrame",
+          signature="SpatialProperties2d",
+          definition=function(sp,shuffle=FALSE)
+          {
+            
+            if(shuffle==FALSE){
+              if(length(sp@maps)==0)
+                stop("Need to call getMapStats() before statsAsDataFrame")
+              if(length(sp@infoScore)==0)
+                stop("Need to call getMapStats() before statsAsDataFrame")
+              df<-data.frame(clu.id=paste(sp@session,sp@cellList,sep="_"),
+                         peakRate=sp@peakRate,
+                         infoScore=sp@infoScore,
+                         sparsity=sp@sparsity,
+                         borderScore=sp@borderScore,
+                         borderCM=sp@borderCM,
+                         borderDM=sp@borderDM,
+                         gridScore=sp@gridScore)
+            }
+            if(shuffle==TRUE){
+              if(length(sp@maps)==0)
+                stop("Need to call getMapStatsShuffle() before statsAsDataFrame with shuffle=T")
+              if(length(sp@infoScoreShuffl)==0)
+                stop("Need to call getMapStatsShuffle() before statsAsDataFrame with shuffle=T")
+              df<-data.frame(clu.id=paste(sp@session,sp@cellList,sep="_"),
+                         peakRate=sp@peakRateShuffle,
+                         infoScore=sp@infoScoreShuffle,
+                         sparsity=sp@sparsityShuffle,
+                         borderScore=sp@borderScoreShuffle,
+                         borderCM=sp@borderCMShuffle,
+                         borderDM=sp@borderDMShuffle,
+                         gridScore=sp@gridScoreShuffle)
+            }
+            return(df)
+          }
+)
+
 
 
 

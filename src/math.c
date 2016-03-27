@@ -668,11 +668,11 @@ double correlation (double* x, double* y, int size, double invalid)
   for (int i = 0; i < size; i++)
     {
       if (x[i]!=invalid && y[i]!=invalid)
-	{
-	  sum_x=sum_x+x[i];
-	  sum_y=sum_y+y[i];
-	  n++;
-	}
+	    {
+	      sum_x=sum_x+x[i];
+	      sum_y=sum_y+y[i];
+	      n++;
+	    }
     }
   mean_x=sum_x/n;
   mean_y=sum_y/n;
@@ -693,9 +693,15 @@ double correlation (double* x, double* y, int size, double invalid)
     {
       r=sum_prod_diff_mean/sqrt((sum_x_mean*sum_y_mean));
     }
-  if (r<-1||r>1)
+  // allow for some small rounding error, this should be negligable for most analysis
+  if(r<-1.0&&r>-1.00000000001)
+    r=-1.0;
+  if(r>1.0&&r<1.00000000001)
+    r=1.0;
+  if (r<-1.0||r>1.0) 
     {
-      printf("problem with correlation function, value of r out of range\n");
+      printf("problem with correlation function, value of r out of range: %lf\n",r);
+      printf("size: %d n: %d\n",size,n);
     }
   return r;
 }

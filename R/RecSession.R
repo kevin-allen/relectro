@@ -35,15 +35,14 @@ setMethod(f="loadRecSession",
           definition=function(rs)
           {
             
-            #setwd("~/repo/r_packages/data")
-            #session="jp4298-15022016-0106"
             if(rs@session=="")
               stop("rs@session is empty")
             if(rs@path=="")
               rs@path=getwd()
             
+            rs@clustered=FALSE
+            rs@earlyProcessed<-FALSE
             rs@fileBase<-paste(rs@path,rs@session,sep="/")
-            
             rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
             
             if(!file.exists(paste(rs@fileBase,"par",sep=".")))
@@ -77,19 +76,15 @@ setMethod(f="loadRecSession",
                 stop("Problem with length of par and desel files")
             }
             
-            
             if(rs@nTrials!=length(rs@trialNames))
               stop("Problem with number of trials in par file")
 
+            if(file.exists(paste(rs@fileBase,"sampling_rate_dat",sep="."))){
+              rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1
+              if(rs@samplingRate<1 | rs@samplingRate > 100000)
+                stop(paste("samplingRate is out of range:",rs@samplingRate))
+            }
             
-            if(!file.exists(paste(rs@fileBase,"sampling_rate_dat",sep=".")))
-              stop("needs ",paste(rs@fileBase,"sampling_rate_dat",sep="."))
-            ## get sampling rate
-            rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1
-            if(rs@samplingRate<1 | rs@samplingRate > 100000)
-              stop(paste("samplingRate is out of range:",rs@samplingRate))
-            
-                        
             ## if early process was run on this one, get more informaiton
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
             {
@@ -97,25 +92,16 @@ setMethod(f="loadRecSession",
               rs@resofs<-read.table(paste(rs@fileBase,"resofs",sep="."))$V1
               if(length(rs@resofs)!=rs@nTrials)
                 stop("Problem with length of resofs")
-              
-              
               ## trial times
               rs@trialStartRes<-c(0,rs@resofs[-length(rs@resofs)])
               rs@trialEndRes<-rs@resofs
               rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
               rs@sessionDurationSec<-sum(rs@trialDurationSec)
             }
-            if(file.exists(paste(rs@fileBase,"clu",sep="."))){
-              rs@clustered=T
-            } else{
-              rs@clustered=F
-            }
-            if(file.exists(paste(rs@fileBase,"resofs",sep="."))){
-              rs@earlyProcessed=T
-            } else{
-              rs@earlyProcessed=F
-            }
-              return(rs)
+            if(file.exists(paste(rs@fileBase,"clu",sep="."))) rs@clustered=T
+            
+            if(file.exists(paste(rs@fileBase,"resofs",sep=".")))rs@earlyProcessed=T
+            return(rs)
           }
 )
 

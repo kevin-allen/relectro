@@ -212,3 +212,54 @@ setMethod(f="getHistoStatsShuffle",
             }       
             return(sp1)
           })
+
+
+setGeneric(name="rateHistoAsDataFrame",
+           def=function(sp1)
+           {standardGeneric("rateHistoAsDataFrame")}
+)
+setMethod(f="rateHistoAsDataFrame",
+          signature="SpatialProperties1d",
+          definition=function(sp1)
+          {
+            if(length(sp1@rateHisto)==0)
+              stop("Need to call firingRateHisto first to run rateHistoAsDataFrame()")
+            data.frame(clu.id=rep(paste(sp1@session,sp1@cellList,sep="_"),each=sp1@nBinRateHisto),
+                       x=1:sp1@nBinRateHisto,
+                       rate=as.numeric(sp1@rateHisto))
+          }
+)
+
+setGeneric(name="histoStatsAsDataFrame",
+           def=function(sp1,shuffle)
+           {standardGeneric("histoStatsAsDataFrame")}
+)
+setMethod(f="histoStatsAsDataFrame",
+          signature="SpatialProperties1d",
+          definition=function(sp1,shuffle=FALSE)
+          {
+            if(shuffle==FALSE){
+              if(length(sp1@rateHisto)==0)
+                stop("Need to call getHistoStats() before histoStatsAsDataFrame")
+              if(length(sp1@infoScore)==0)
+                stop("Need to call getHistoStats() before histoStatsAsDataFrame")
+              df<-data.frame(clu.id=paste(sp1@session,sp1@cellList,sep="_"),
+                             peakRate=sp1@peakRate,
+                             infoScore=sp1@infoScore,
+                             sparsity=sp1@sparsity)
+            }
+            if(shuffle==TRUE){
+              if(length(sp1@rateHisto)==0)
+                stop("Need to call getHistoStatsShuffle() before histoStatsAsDataFrame with shuffle=T")
+              if(length(sp1@infoScoreShuffl)==0)
+                stop("Need to call getHistoStatsShuffle() before histoStatsAsDataFrame with shuffle=T")
+              df<-data.frame(clu.id=paste(sp1@session,sp1@cellList,sep="_"),
+                             peakRate=sp1@peakRateShuffle,
+                             infoScore=sp1@infoScoreShuffle,
+                             sparsity=sp1@sparsityShuffle)
+            }
+            return(df)
+          }
+)
+
+

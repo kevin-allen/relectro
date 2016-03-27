@@ -218,6 +218,38 @@ setMethod(f="speedFilter",
           }
 )
 
+
+### filter for direction ###
+setGeneric(name="directionFilter",
+           def=function(pt,direction)
+           {standardGeneric("directionFilter")}
+)
+setMethod(f="directionFilter",
+          signature="Positrack",
+          definition=function(pt,direction=0)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@x)==0)
+              stop("pt@x has length of 0")
+            if(length(pt@lin)==0)
+              stop(paste("pt@lin has length of 0 in direction filter. Need to linearized the position data first  with linearzeLinearTrack(ptlt)"))
+            if(direction!=0&direction!=1)
+              stop(paste("direction should have value of 0 or 1"))
+            
+            ## set time when outside of speed to NA
+            index<-which(pt@dir!=direction)
+            pt@x[index]<- NA
+            pt@y[index]<- NA
+            pt@hd[index]<- NA
+            pt@speed[index]<- NA
+            pt@lin[index]<-NA
+            return(pt)
+          }
+)
+
+
+
 #### setInvalidOutsideInterval
 setGeneric(name="setInvalidOutsideInterval",
            def=function(pt,s,e)
@@ -263,6 +295,8 @@ setMethod(f="setInvalidOutsideInterval",
             pt@y[which(!isin)]<-NA
             pt@hd[which(!isin)]<-NA
             pt@speed[which(!isin)]<-NA
+            if(length(pt@lin)!=0) pt@lin[which(!isin)]<-NA
+            if(length(pt@dir)!=0) pt@dir[which(!isin)]<-NA
             return(pt)
           }
 )
