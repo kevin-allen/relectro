@@ -336,6 +336,10 @@ setMethod(f="setIntervals",
             
             ## if s is a matrix, then e is ignored
             if(class(s)=="matrix"){
+              if(dim(s)[2]!=2){
+                stop("matrix should have 2 columns")
+              }
+              
               startIntervals<-as.numeric(s[,1])
               endIntervals<-as.numeric(s[,2])
               
@@ -343,7 +347,6 @@ setMethod(f="setIntervals",
               startIntervals<-s
               endIntervals<-e
             }
-            
             if(length(startIntervals)!=length(endIntervals))
               stop("problem with length of startIntervals and endIntervals")
             if(any(startIntervals>endIntervals))

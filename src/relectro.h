@@ -169,7 +169,9 @@ void spike_position_1d(double *x_whl,int whl_lines,int *res,int res_lines, doubl
 int* end_interval, int interval_lines);
 SEXP spike_position_1d_cwrap(SEXP x_whl_r, SEXP whl_lines_r, SEXP res_r, SEXP res_lines_r,SEXP res_samples_per_whl_sample_r,SEXP start_interval_r,
 SEXP end_interval_r, SEXP interval_lines_r);
-
+int direction_intervals_count(int* direction, int whl_lines, int res_samples_per_whl_sample, int target_direction);
+void direction_intervals(int* direction, int whl_lines, int res_samples_per_whl_sample,int target_direction,int* start,int* end);
+SEXP direction_intervals_cwrap(SEXP direction_r, SEXP whl_lines_r, SEXP res_samples_per_whl_sample_r, SEXP target_direction_r);
 
 // interval.c
 int check_interval_chronology_between(int num_lines, 
@@ -323,24 +325,14 @@ SEXP autocorrelation_cwrap(SEXP cell_list_r,
 
 // intervals.c
 void res_index_for_intervals(int* interval_lines, // value passed by reference in c
-			     int* start, 
-			     int* end, 
-			     int res_lines, 
-			     int* res, 
-			     int* start_interval_index,
-			     int* end_interval_index);
+			     int* start, int* end, int res_lines,  int* res, int* start_interval_index, int* end_interval_index);
 SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
-				SEXP start_r, 
-				SEXP end_r, 
-				SEXP res_lines_r, 
-				SEXP res_r);
-
-SEXP resWithinIntervals(SEXP interval_lines_r,
-			SEXP start_r, 
-			SEXP end_r, 
-			SEXP res_lines_r, 
-			SEXP res_r);
-
+				SEXP start_r, SEXP end_r, SEXP res_lines_r, SEXP res_r);
+SEXP resWithinIntervals(SEXP interval_lines_r, SEXP start_r, SEXP end_r, SEXP res_lines_r, SEXP res_r);
+int num_intervals_after_joining_AND(int* start_1, int* end_1, int num_1, int* start_2, int* end_2, int num_2);
+void join_two_lists_of_intervals_AND(int* start_1, int* end_1, int num_1, int* start_2, int* end_2, int num_2,
+                                     int* start_res, int* end_res);  
+SEXP joinIntervalsAND_cwrap(SEXP s1_r, SEXP e1_r, SEXP l1_r, SEXP s2_r, SEXP e2_r, SEXP l2_r);
 
 
 // firing_rate.c

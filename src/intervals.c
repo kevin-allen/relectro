@@ -248,3 +248,160 @@ SEXP resWithinIntervals(SEXP interval_lines_r,
   UNPROTECT(1);
   return(results);
 }
+
+
+
+void join_adjacent_intervals(int* start,
+                             int* end,
+                             int* num) // num of intervals
+{
+  /* joins adjacent intervals (end = next start) into single intervals
+  warning : the arrays and num will be modified
+  */
+
+  int index=0;
+  int same, j, k;
+  for (int i = 0; i < *num; i++)
+  {
+    same=1;
+    j=i+1;
+    k=i;
+    // check if next interval has the same start as 
+    while((same==1) && (j < *num))
+    {
+      if (end[k] == start[j])
+      {
+        same=1;
+        j++;
+        k++;
+      }
+      else
+      {
+        same=0;
+      }
+    }
+    start[index] = start[i];
+    end[index] =  end[j-1];
+    i=j-1;
+    index++;
+  }
+  *num=index; // to return the number of intervals after joining
+  return;
+}
+
+int num_intervals_after_joining_AND(int* start_1,
+                                    int* end_1,
+                                    int num_1,
+                                    int* start_2,
+                                    int* end_2,
+                                    int num_2)
+{
+  /* gives the number of intervals that would result
+  if two lists of intervals were joined in a AND fashon
+  this means that a period needs to be covered by both series of intervals
+  to be there at the end
+  So the number is the number of time two intervals overlap
+  */
+ 
+  int num_intervals = 0;
+  for (int i = 0; i < num_1; i++)
+  {
+    for (int j = 0 ; j < num_2; j++)
+    {
+      // check if there is overlap between the two intervals
+      if ((start_2[j]>=start_1[i] && start_2[j] < end_1[i]) ||
+          (start_1[i]>=start_2[j] && start_1[i] < end_2[j]))
+      {
+        num_intervals++;
+      }
+    }
+  }
+  return num_intervals;
+}
+void join_two_lists_of_intervals_AND(int* start_1,
+                                     int* end_1,
+                                     int num_1,
+                                     int* start_2,
+                                     int* end_2,
+                                     int num_2,
+                                     int* start_res,
+                                     int* end_res)
+{
+  /* joins intervals using and AND logic
+  this means that a period needs to be covered by both series of intervals
+  to be there at the end
+  */
+  
+  int index=0;
+  for (int i = 0; i < num_1; i++)
+  {
+    for (int j = 0 ; j < num_2; j++)
+    {
+      // check if there is overlap between the two intervals
+      if ((start_2[j]>=start_1[i] && start_2[j] < end_1[i]) ||
+          (start_1[i]>=start_2[j] && start_1[i] < end_2[j]))
+      {
+        // find the beginning of overlap, largest start
+        if (start_1[i]>= start_2[j])
+        {
+          start_res[index]=start_1[i];
+        }
+        else
+        {
+          start_res[index]=start_2[j];
+        }
+        // find the end of overlap, smallest end
+        if (end_1[i]<= end_2[j])
+        {
+          end_res[index]=end_1[i];
+        }
+        else
+        {
+          end_res[index]=end_2[j];
+        }
+        index++;
+      }
+    }
+  }
+  return;
+}
+
+
+
+SEXP joinIntervalsAND_cwrap(SEXP s1_r,
+                            SEXP e1_r, 
+                            SEXP l1_r,
+                            SEXP s2_r,
+                            SEXP e2_r,
+                            SEXP l2_r)
+{
+  int* s1=INTEGER_POINTER(s1_r);
+  int* e1=INTEGER_POINTER(e1_r);
+  int l1=INTEGER_VALUE(l1_r);
+  int* s2=INTEGER_POINTER(s2_r);
+  int* e2=INTEGER_POINTER(e2_r);
+  int l2=INTEGER_VALUE(l2_r);
+  int* s3;
+  int* e3;
+  int l3;
+  
+  join_adjacent_intervals(s1, e1, &l1);
+  join_adjacent_intervals(s2, e2, &l2);
+  l3=num_intervals_after_joining_AND(s1, e1,l1, s2, e2, l1);
+  if(l3<1) return(R_NilValue);
+  s3 = (int*) malloc(sizeof(int)*l3);
+  e3 = (int*) malloc(sizeof(int)*l3);
+  join_two_lists_of_intervals_AND(s1, e1, l1,
+                                  s2, e2, l2,
+                                  s3, e3);
+  SEXP out = PROTECT(allocMatrix(INTSXP,l3,2));
+  int* ptr=INTEGER_POINTER(out);
+  for(int i = 0; i < l3;i++){
+    ptr[i]=s3[i];
+    ptr[i+l3]=e3[i];
+  }
+  free(s3);
+  free(e3);
+  UNPROTECT(1);
+  return(out);
+}

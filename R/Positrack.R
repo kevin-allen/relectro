@@ -21,7 +21,7 @@
 #' @slot angularSpeed Angular speed in degrees per sec
 #' @slot res Sample number associated with each position value
 #' @slot defaultXYSmoothing Default smoothing apply to the x and y position.
-#' @minShiftMs Minimum shift of the position vector during a shuffling procedure
+#' @slot minShiftMs Minimum shift of the position vector during a shuffling procedure
 Positrack <- setClass(
   "Positrack", ## name of the class
   slots=c(session="character",
@@ -314,22 +314,46 @@ setMethod(f="getIntervalsAtSpeed",
               stop("pt@session is empty")
             if(length(pt@x)==0)
               stop("pt@x has length of 0")
-            
             if(minSpeed>maxSpeed)
               stop("minSpeed>maxSpeed")
-            
             results<-.Call("speed_intervals_cwrap", 
                   pt@speed,
                   length(pt@speed),
                   pt@resSamplesPerWhlSample,
                   minSpeed,
                   maxSpeed)
-            
-            rownames(results)<-c("start","end")
+            colnames(results)<-c("start","end")
             return(results)
           }
 )
-
+#### getIntervalsAtDirection
+setGeneric(name="getIntervalsAtDirection",
+           def=function(pt,direction)
+           {standardGeneric("getIntervalsAtDirection")}
+)
+setMethod(f="getIntervalsAtDirection",
+          signature="Positrack",
+          definition=function(pt,direction=0)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@x)==0)
+              stop("pt@x has length of 0")
+            if(length(pt@dir)==0)
+              stop("pt@dir has length of 0")
+            if(direction!=0& direction!=1)
+              stop("direction should have a value of 0 or 1")
+            x<-pt@dir
+            x[is.na(x)]<- -1.0
+            results<-.Call("direction_intervals_cwrap", 
+                           as.integer(x),
+                           length(x),
+                           as.integer(pt@resSamplesPerWhlSample),
+                           as.integer(direction))
+            colnames(results)<-c("start","end")
+            return(results)
+          }
+)
 
 
 

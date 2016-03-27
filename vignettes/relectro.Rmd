@@ -111,7 +111,6 @@ st<-ifr(st)
 ## plot ifr and spike of a cell
 n=400
 cell=1
-
 plot(head(st@ifrTime,n),head(st@ifr[cell,],n),type='l',xlab="Time (sec)",ylab="Rate (Hz)")
 points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),rep(0,n),col='red')
 rm(n,cell)
@@ -151,7 +150,7 @@ Positrack objects are used to represent the path of the animal during a recordin
 pt<-new("Positrack",session=session,path=datadir)
 pt<-loadPositrack(pt)
 m<-getIntervalsAtSpeed(pt,0,3)
-m[,1:10]
+m[1:10,]
 rm(m)
 ```
 
@@ -167,6 +166,37 @@ You can get the speed of the animal at some define time points
 ```{r positrack3}
 plot(getSpeedAtResValues(pt,res=seq(100000,300000,20)),type='l',xlab="res index",ylab="Running speed (cm/sec)")
 ```
+
+There is a function to linearize the 2d position data into a 1d representation. This is useful to analyze the data from a linear track. The linear data can be accessed via \code{pt@lin}.
+```{r positrack4}
+getIntervalsEnvironment(rs,"lt")
+pt1<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="lt"))
+pt1<-linearzeLinearTrack(pt1)
+n=10000
+plot(head(pt1@x[!is.na(pt1@x)],n),
+     head(pt1@y[!is.na(pt1@x)],n),
+     xlim=c(0,85),ylim=c(0,85))
+points(head(pt1@lin[!is.na(pt1@x)],n),
+       head(pt1@y[!is.na(pt1@x)],n),
+       col="red")
+rm(n)
+```
+
+You can get intervals of time when the animal was running in a given direction in the linear data as follows.
+```{r positrack5}
+int<-getIntervalsAtDirection(pt1,direction=1)
+## plot an example
+s<-140000
+e<-s+700
+plot(pt1@lin[s:e],ylim=c(0,80))
+lines(pt1@dir[s:e]*10,col="red")
+points(int[,1]/pt1@resSamplesPerWhlSample-s,
+        rep(20,length(int[,1])),col="blue")
+points(int[,2]/pt1@resSamplesPerWhlSample-s,
+       rep(22,length(int[,1])),col="green")
+```
+
+
 
 ## SpatialProperties2d
 

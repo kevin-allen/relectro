@@ -311,7 +311,7 @@ SEXP speed_intervals_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_samples_per_
     }
   int* start = (int*)malloc(interval_lines*sizeof(int));
   int* end = (int*)malloc(interval_lines*sizeof(int));
-  SEXP out = PROTECT(allocMatrix(REALSXP,2,interval_lines));
+  SEXP out = PROTECT(allocMatrix(REALSXP,interval_lines,2));
   speed_intervals(REAL(speed_r), 
 		  whl_lines, 
 		  INTEGER_VALUE(res_samples_per_whl_sample_r),
@@ -321,19 +321,15 @@ SEXP speed_intervals_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_samples_per_
 		  end);
   double* rans;
   rans = REAL(out);
-  // copy the results in a SEXP
   for(int i = 0; i < interval_lines; i++) {
-    rans[i*2] = start[i];
-    rans[i*2+1]=end[i];
+    rans[i] = start[i];
+    rans[i+interval_lines]=end[i];
   }
   free(start);
   free(end);
   UNPROTECT(1);
   return(out);
 }
-
-
-
 int speed_intervals_count(double* speed, int whl_lines, int res_samples_per_whl_sample,double min_speed,double max_speed)
 { // returns how many intervals will be found
   int minus_one=0;
@@ -344,56 +340,55 @@ int speed_intervals_count(double* speed, int whl_lines, int res_samples_per_whl_
   int jj=0;
   int num_intervals=0;
   for (int i = 0; i < whl_lines; i++)
+  {
+    if (speed[i]==-1)
     {
-      if (speed[i]==-1)
-	{
-	  minus_one++;
-	  if (was_in==1 && minus_one > max_minus_one_before_out)
-	    { // to exit of interval when we lose track of animal
-	      end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-	      was_in=0;
-	      jj=0;
-	      num_intervals++;
-	      //	      cout << start_int << " " << end_int << '\n';
-	    }
-	}
-      if (speed[i]!=-1)
-	{
-	  minus_one=0;
-	  if (was_in==1) // look for exit time and print
-	    {
-	      if (speed[i]<min_speed||speed[i]>max_speed)
-		{
-		  end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-		  jj=0;
-		  //  cout << start_int << " " << end_int << '\n';
-		  num_intervals++;
-		}
-	    }
-	  if (was_in==0) // look for entry time in the speed interval
-	    {
-	      if(speed[i]>=min_speed&&speed[i]<=max_speed)
-		{
-		  start_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-		  jj=1;
-		}
-	    }
-	  was_in=jj;
-	}
-      
-      // to print exit time if the animal is within speed interval and reach the end of file
-      if (i==whl_lines-1 && was_in==1)
-	{
-	  end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-	  if (start_int != end_int)
-	    {
-	      jj=0;
-	      num_intervals++;
-	      //	      cout << start_int << " " << end_int << '\n';
-	    }
-	}
-
+      minus_one++;
+      if (was_in==1 && minus_one > max_minus_one_before_out)
+      { // to exit of interval when we lose track of animal
+        end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+        was_in=0;
+        jj=0;
+        num_intervals++;
+        //	      cout << start_int << " " << end_int << '\n';
+      }
     }
+    if (speed[i]!=-1)
+    {
+      minus_one=0;
+      if (was_in==1) // look for exit time and print
+      {
+        if (speed[i]<min_speed||speed[i]>max_speed)
+        {
+          end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=0;
+          //  cout << start_int << " " << end_int << '\n';
+          num_intervals++;
+        }
+      }
+      if (was_in==0) // look for entry time in the speed interval
+      {
+        if(speed[i]>=min_speed&&speed[i]<=max_speed)
+        {
+          start_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=1;
+        }
+      }
+      was_in=jj;
+    }
+    
+    // to print exit time if the animal is within speed interval and reach the end of file
+    if (i==whl_lines-1 && was_in==1)
+    {
+      end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+      if (start_int != end_int)
+      {
+        jj=0;
+        num_intervals++;
+        //	      cout << start_int << " " << end_int << '\n';
+      }
+    }
+  }
   return(num_intervals);
 }
 void speed_intervals(double* speed, int whl_lines, int res_samples_per_whl_sample,double min_speed,double max_speed,int* start,int* end)
@@ -406,64 +401,232 @@ void speed_intervals(double* speed, int whl_lines, int res_samples_per_whl_sampl
   int jj=0;
   int num_intervals=0;
   for (int i = 0; i < whl_lines; i++)
+  {
+    if (speed[i]==-1)
     {
-      if (speed[i]==-1)
-	{
-	  minus_one++;
-	  if (was_in==1 && minus_one > max_minus_one_before_out)
-	    { // to exit of interval when we lose track of animal
-	      end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-	      was_in=0;
-	      jj=0;
-	      start[num_intervals]=start_int;
-	      end[num_intervals]=end_int;
-	      num_intervals++;
-	      //	      cout << start_int << " " << end_int << '\n';
-	    }
-	}
-      if (speed[i]!=-1)
-	{
-	  minus_one=0;
-	  if (was_in==1) // look for exit time and print
-	    {
-	      if (speed[i]<min_speed||speed[i]>max_speed)
-		{
-		  end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-		  jj=0;
-		  start[num_intervals]=start_int;
-		  end[num_intervals]=end_int;
-		  //  cout << start_int << " " << end_int << '\n';
-		  num_intervals++;
-		}
-	    }
-	  if (was_in==0) // look for entry time in the speed interval
-	    {
-	      if(speed[i]>=min_speed&&speed[i]<=max_speed)
-		{
-		  start_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-		  jj=1;
-		}
-	    }
-	  was_in=jj;
-	}
-      
-      // to print exit time if the animal is within speed interval and reach the end of file
-      if (i==whl_lines-1 && was_in==1)
-	{
-	  end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
-	  if (start_int != end_int)
-	    {
-	      jj=0;
-	      start[num_intervals]=start_int;
-	      end[num_intervals]=end_int;
-	      num_intervals++;
-	      //	      cout << start_int << " " << end_int << '\n';
-	    }
-	}
-
+      minus_one++;
+      if (was_in==1 && minus_one > max_minus_one_before_out)
+      { // to exit of interval when we lose track of animal
+        end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+        was_in=0;
+        jj=0;
+        start[num_intervals]=start_int;
+        end[num_intervals]=end_int;
+        num_intervals++;
+        //	      cout << start_int << " " << end_int << '\n';
+      }
     }
+    if (speed[i]!=-1)
+    {
+      minus_one=0;
+      if (was_in==1) // look for exit time and print
+      {
+        if (speed[i]<min_speed||speed[i]>max_speed)
+        {
+          end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=0;
+          start[num_intervals]=start_int;
+          end[num_intervals]=end_int;
+          //  cout << start_int << " " << end_int << '\n';
+          num_intervals++;
+        }
+      }
+      if (was_in==0) // look for entry time in the speed interval
+      {
+        if(speed[i]>=min_speed&&speed[i]<=max_speed)
+        {
+          start_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=1;
+        }
+      }
+      was_in=jj;
+    }
+    
+    // to print exit time if the animal is within speed interval and reach the end of file
+    if (i==whl_lines-1 && was_in==1)
+    {
+      end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+      if (start_int != end_int)
+      {
+        jj=0;
+        start[num_intervals]=start_int;
+        end[num_intervals]=end_int;
+        num_intervals++;
+        //	      cout << start_int << " " << end_int << '\n';
+      }
+    }
+    
+  }
   return;
 }
+int direction_intervals_count(int* direction, int whl_lines, int res_samples_per_whl_sample, int target_direction)
+{ // returns how many intervals will be found
+  int minus_one=0;
+  int was_in=0;
+  int max_minus_one_before_out=10;
+  int end_int=-1;
+  int start_int=-1;
+  int jj=0;
+  int num_intervals=0;
+  for (int i = 0; i < whl_lines; i++)
+  {
+    if (direction[i]==-1)
+    {
+      minus_one++;
+      if (was_in==1 && minus_one > max_minus_one_before_out)
+      { // to exit of interval when we lose track of animal
+        end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+        was_in=0;
+        jj=0;
+        num_intervals++;
+      }
+    }
+    if (direction[i]!=-1)
+    {
+      minus_one=0;
+      if (was_in==1) // look for exit time and print
+      {
+        if (direction[i]!=target_direction)
+        {
+          end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=0;
+          num_intervals++;
+        }
+      }
+      if (was_in==0) // look for entry time in the speed interval
+      {
+        if(direction[i]==target_direction)
+        {
+          start_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=1;
+        }
+      }
+      was_in=jj;
+    }
+    // to print exit time if the animal is within speed interval and reach the end of file
+    if (i==whl_lines-1 && was_in==1)
+    {
+      end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+      if (start_int != end_int)
+      {
+        jj=0;
+        num_intervals++;
+      }
+    }
+  }
+  return(num_intervals);
+}
+void direction_intervals(int* direction, int whl_lines, int res_samples_per_whl_sample,int target_direction,int* start,int* end)
+{ // returns the intervals
+  int minus_one=0;
+  int was_in=0;
+  int max_minus_one_before_out=10;
+  int end_int=-1;
+  int start_int=-1;
+  int jj=0;
+  int num_intervals=0;
+  for (int i = 0; i < whl_lines; i++)
+  {
+    if (direction[i]==-1)
+    {
+      minus_one++;
+      if (was_in==1 && minus_one > max_minus_one_before_out)
+      { // to exit of interval when we lose track of animal
+        end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+        was_in=0;
+        jj=0;
+        start[num_intervals]=start_int;
+        end[num_intervals]=end_int;
+        num_intervals++;
+      }
+    }
+    if (direction[i]!=-1)
+    {
+      minus_one=0;
+      if (was_in==1) // look for exit time and print
+      {
+        if (direction[i]!=target_direction)
+        {
+          end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=0;
+          start[num_intervals]=start_int;
+          end[num_intervals]=end_int;
+          //  cout << start_int << " " << end_int << '\n';
+          num_intervals++;
+        }
+      }
+      if (was_in==0) // look for entry time in the speed interval
+      {
+        if(direction[i]==target_direction)
+        {
+          start_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+          jj=1;
+        }
+      }
+      was_in=jj;
+    }
+    
+    // to print exit time if the animal is within speed interval and reach the end of file
+    if (i==whl_lines-1 && was_in==1)
+    {
+      end_int=(i*res_samples_per_whl_sample)+res_samples_per_whl_sample;
+      if (start_int != end_int)
+      {
+        jj=0;
+        start[num_intervals]=start_int;
+        end[num_intervals]=end_int;
+        num_intervals++;
+      }
+    }
+  }
+  return;
+}
+
+SEXP direction_intervals_cwrap(SEXP direction_r, SEXP whl_lines_r, SEXP res_samples_per_whl_sample_r, 
+                               SEXP target_direction_r)
+{
+  int whl_lines=INTEGER_VALUE(whl_lines_r);
+  int interval_lines;
+  interval_lines=direction_intervals_count(INTEGER_POINTER(direction_r), 
+                                            whl_lines,
+                                            INTEGER_VALUE(res_samples_per_whl_sample_r),
+                                            INTEGER_VALUE(target_direction_r));
+  if(interval_lines<1)
+  {
+    printf("direction_intervals_cwrap: number of intervals < 1");
+    return(R_NilValue);
+  }
+  int* start = (int*)malloc(interval_lines*sizeof(int));
+  int* end = (int*)malloc(interval_lines*sizeof(int));
+  SEXP out = PROTECT(allocMatrix(REALSXP,interval_lines,2));
+  direction_intervals(INTEGER_POINTER(direction_r), 
+                      whl_lines, 
+                      INTEGER_VALUE(res_samples_per_whl_sample_r),
+                      INTEGER_VALUE(target_direction_r),
+                      start,
+                      end);
+  double* rans;
+  rans = REAL(out);
+  for(int i = 0; i < interval_lines; i++) {
+    rans[i] = start[i];
+    rans[i+interval_lines]=end[i];
+  }
+  free(start);
+  free(end);
+  UNPROTECT(1);
+  return(out);
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 
