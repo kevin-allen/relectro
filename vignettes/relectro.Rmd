@@ -8,9 +8,9 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-This vignette documents the use of the package relectro. relectro was developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. The user can them combine the use of relectro with other packages to get the job done quickly. relectro relies on several C functions for computationally intensive segment of the code. This increases the speed of the analysis to a respectable level. 
+This vignette documents the use of the package relectro. relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. The user can them combine the use of relectro with other packages to get the job done quickly. relectro relies on several C functions for computationally intensive segment of the code. This increases the speed of the analysis to a respectable level. 
 
-You can get relectro from the Bitbucket repository of Kevin Allen.
+You can get relectro from the Bitbucket repository of Kevin Allen. If you work with the source code of the package, I would recommand using the \code{devtools} package to load an build the package. This is especially usefull if you are developping new functions or object for relectro. The package \code{roxygen2} can be used to add the comments to the code you write.
 
 To install it, you can run R CMD build relectro and R CMD INSTALL relectro.
 
@@ -227,7 +227,7 @@ firingRateMapAutoPlot(m=sp@autos[,,7],name=sp@cellList[7])
 Use an ElectroProject object to get a list of clustered recording session. Put the code that you want to run on each session into a function that takes a RecSession object as first argument. To run your function on the list of recording sessions, simply use the \code{lapply} function.
 
 ##Parallel processing
-relectro is not using parallel processing by itself. However, given that the same analysis is often run on several recording sessions, parallel processing is very simple to implement. You can use the /code{snow} package. You only need to install relectro on all the computers that you want to use for the analysis. Then build a cluster of workers that you want to use. Instead of calling \code{lapply} use \code{parLapply}. If using different computers, you need to load the relectro package at the top of the function to make sure they all have access to relectro. 
+relectro is not using parallel processing by itself. However, given that the same analysis is often run on several recording sessions, parallel processing is very simple to implement. You can use the /code{snow} package. You only need to install snow and relectro on all the computers that you want to use for the analysis. Then build a cluster of workers that you want to use. Instead of calling \code{lapply} use \code{parLapply}. If using different computers, you need to load the relectro package at the top of the function to make sure they all have access to relectro.
 
 If your code is almost only reading and writing files, it might be better to run the code sequencially with the lapply function. A good example of this is if you are detecting ttl pulses from the .dat files. Do this sequencially.
 
