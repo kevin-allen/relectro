@@ -66,6 +66,8 @@ setMethod("show", "HeadDirection",
               print(paste(round(object@meanDirection,1)))
               print("vectorLength:")
               print(paste(round(object@vectorLength,3)))
+              print("peakRates:")
+              print(paste(round(object@peakRates,3)))
             }
           })
 
