@@ -34,121 +34,119 @@ void res_index_for_intervals(int* interval_lines,
   int invalid_int;
   int pre_end_index;
   int start_looping_index;
-
+  
   // check that the intervals are in the recorded time
   if ((max_start > max_res + 1)||(max_end>max_res+1))
+  {
+    invalid_int=0;
+    for (int i = 0; i < *interval_lines;i++)
     {
-      invalid_int=0;
-      for (int i = 0; i < *interval_lines;i++)
-	{
-	  if ((start[i]< max_res)&&(end[i]>max_res))
-	    {
-	      end[i]=max_res;
-	    }
-	  if (start[i]> max_res)
-	    {
-	
-	      printf("invalid interval because start is larger than largest res value\n");
-	      invalid_int++;
-	    }
-	}
-      (*interval_lines)=(*interval_lines)-invalid_int;
-      if (invalid_int>0)
-	{
-	  // this assumes that the intervals are chronologically ordered
-	  printf("start of an interval is larger than largest res value\n");
-	  printf("%d intervals have been eliminated\n",invalid_int);
-	}
+      if ((start[i]< max_res)&&(end[i]>max_res))
+      {
+        end[i]=max_res;
+      }
+      if (start[i]> max_res)
+      {
+        invalid_int++;
+      }
     }
-
-
+    (*interval_lines)=(*interval_lines)-invalid_int;
+    if (invalid_int>0)
+    {
+      // this assumes that the intervals are chronologically ordered
+      printf("start of an interval is larger than largest res value\n");
+      printf("%d intervals have been eliminated\n",invalid_int);
+    }
+  }
+  
+  
   /// depending on whether the intervals are chronologically organized /// 
   if(check_interval_chronology_between(*interval_lines, 
-				       start, 
-				       end)==0)
-    {
-      // chronology between interval not assumed, slows things down a bit
-      for(int i = 0; i < *interval_lines; i++)
-	{ 
-	  start_interval_index[i]=0;
-	  end_interval_index[i]=res_lines-1; // should this be res_lines-1, was res_lines, which is out of bound of the res array?
-	  
-	  // find at which approximate res index you should start to loop
-	  if (start[i]<res[res_lines/2])
-	    {
-	      if (start[i]<res[res_lines/4])
-		{
-		  start_looping_index=0;
-		}
-	      else
-		{
-		  start_looping_index=res_lines/4;
-		}
-	    }
-	  else
-	    {
-	      if (start[i]>=res[(res_lines*3)/4])
-		{
-		  start_looping_index=(res_lines*3)/4;
-		}
-	      else
-		{
-		  start_looping_index=res_lines/2;
-		}
-	    }
-	  
-	  for(int j=start_looping_index; j < res_lines; j++)
-	    {
-	      if(res[j] >= start[i])
-		{
-		  start_interval_index[i] = j;
-		  j = res_lines;
-		}
-	    }
-	  for(int j=start_interval_index[i]; j < res_lines; j++)
-	    {
-	      if(res[j]>= end[i])
-		{
-		  end_interval_index[i] = j-1;
-		  j = res_lines;
-		}
-	    }
-	}
+                                       start, 
+                                       end)==0)
+  {
+    // chronology between interval not assumed, slows things down a bit
+    for(int i = 0; i < *interval_lines; i++)
+    { 
+      start_interval_index[i]=0;
+      end_interval_index[i]=res_lines-1; // should this be res_lines-1, was res_lines, which is out of bound of the res array?
+      
+      // find at which approximate res index you should start to loop
+      if (start[i]<res[res_lines/2])
+      {
+        if (start[i]<res[res_lines/4])
+        {
+          start_looping_index=0;
+        }
+        else
+        {
+          start_looping_index=res_lines/4;
+        }
+      }
+      else
+      {
+        if (start[i]>=res[(res_lines*3)/4])
+        {
+          start_looping_index=(res_lines*3)/4;
+        }
+        else
+        {
+          start_looping_index=res_lines/2;
+        }
+      }
+      
+      for(int j=start_looping_index; j < res_lines; j++)
+      {
+        if(res[j] >= start[i])
+        {
+          start_interval_index[i] = j;
+          j = res_lines;
+        }
+      }
+      for(int j=start_interval_index[i]; j < res_lines; j++)
+      {
+        if(res[j]>= end[i])
+        {
+          end_interval_index[i] = j-1;
+          j = res_lines;
+        }
+      }
     }
+  }
   else // that is chronology between and within interval is assumed, speed up the loop
-    {
-      for(int i = 0; i < *interval_lines; i++)
-	{ 
-	  start_interval_index[i]=0;
-	  end_interval_index[i]=res_lines;
-	  if (i==0)
-	    {	 
-	      pre_end_index=0;
-	    }
-	  else
-	    {
-	      pre_end_index=end_interval_index[i-1];
-	    }
-	  // find the start index
-	  for(int j= pre_end_index; j < res_lines; j++)
-	    {
-	      if(res[j] > start[i])
-		{
-		  start_interval_index[i] = j;
-		  j = res_lines;
-		}
-	    }
-	  // find the end index
-	  for(int j= pre_end_index; j < res_lines; j++)
-	    {
-	      if(res[j]>=end[i])
-		{
-		  end_interval_index[i] = j-1;
-		  j = res_lines;
-		}
-	    }
-	}
+  {
+    for(int i = 0; i < *interval_lines; i++)
+    { 
+      start_interval_index[i]=0;
+      end_interval_index[i]=res_lines;
+      if (i==0)
+      {	 
+        pre_end_index=0;
+      }
+      else
+      {
+        pre_end_index=end_interval_index[i-1];
+      }
+      // find the start index
+      for(int j= pre_end_index; j < res_lines; j++)
+      {
+        if(res[j] > start[i])
+        {
+          start_interval_index[i] = j;
+          j = res_lines;
+        }
+      }
+      // find the end index
+      for(int j= pre_end_index; j < res_lines; j++)
+      {
+        if(res[j]>=end[i])
+        {
+          end_interval_index[i] = j-1;
+          j = res_lines;
+        }
+      }
     }
+  }
   return;
 }
 
