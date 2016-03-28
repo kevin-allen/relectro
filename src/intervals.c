@@ -312,6 +312,7 @@ int num_intervals_after_joining_AND(int* start_1,
       if ((start_2[j]>=start_1[i] && start_2[j] < end_1[i]) ||
           (start_1[i]>=start_2[j] && start_1[i] < end_2[j]))
       {
+     //   printf("i: %d, j: %d, start_1: %d, end_1: %d, start_2: %d, end_2: %d\n",i,j,start_1[i],end_1[i],start_2[j],end_2[j]);
         num_intervals++;
       }
     }
@@ -387,7 +388,9 @@ SEXP joinIntervalsAND_cwrap(SEXP s1_r,
   
   join_adjacent_intervals(s1, e1, &l1);
   join_adjacent_intervals(s2, e2, &l2);
-  l3=num_intervals_after_joining_AND(s1, e1,l1, s2, e2, l1);
+  //printf("Number of intervals after join_adjacent_intervals, l1: %d l2: %d\n",l1,l2);
+  l3=num_intervals_after_joining_AND(s1, e1,l1, s2, e2, l2);
+  //printf("num_intervals_after_joining_AND: %d\n",l3);
   if(l3<1) return(R_NilValue);
   s3 = (int*) malloc(sizeof(int)*l3);
   e3 = (int*) malloc(sizeof(int)*l3);

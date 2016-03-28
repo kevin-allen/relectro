@@ -30,6 +30,6 @@ joinIntervalsAND<-function(s1,e1,s2,e2){
         as.integer(s2),
         as.integer(e2),
         length(s2))
-  colnames(res)<-c("start","end")
+  if(!is.null(res)) colnames(res)<-c("start","end")
   return(res)
 }
