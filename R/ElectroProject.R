@@ -59,7 +59,12 @@ setMethod("show", "ElectroProject",
             print(paste("sessionNameList:"))
             print(object@sessionNameList)
             print(paste("Clustered sessions:",sum(sapply(ep@sessionList,getIsClustered))))
+            print(object@sessionNameList[sapply(ep@sessionList,getIsClustered)])
+            print(paste("Not clustered sessions:",sum(!sapply(ep@sessionList,getIsClustered))))
+            print(object@sessionNameList[!sapply(ep@sessionList,getIsClustered)])
             print(paste("Early processed sessions:", sum(sapply(ep@sessionList,getIsEarlyProcessed))))
+            print(paste("Not early processed sessions:", sum(!sapply(ep@sessionList,getIsEarlyProcessed))))
+            print(object@sessionNameList[!sapply(ep@sessionList,getIsEarlyProcessed)])
           })
 
 setGeneric(name="getClusteredSessionList",
