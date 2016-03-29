@@ -181,7 +181,32 @@ setMethod(f="getIntervalsEnvironment",
           return(matrix(data=c(rs@trialStartRes[which(rs@env==env)],rs@trialEndRes[which(rs@env==env)]),ncol=2,
                  dimnames=list(rep(env,length(which(rs@env==env))),c("start","end"))))
           })
- 
+
+### getRecSessionObjects ###
+setGeneric(name="getRecSessionObjects",
+           def=function(rs)
+           {standardGeneric("getRecSessionObjects")}
+)
+setMethod(f="getRecSessionObjects",
+          signature="RecSession",
+          definition=function(rs)
+          {
+            if(rs@session=="")
+              stop("rs@session is empty")
+            if(rs@path=="")
+              stop("rs@path not set")
+            if(rs@clustered==FALSE)
+              stop("rs is not clustered")
+              
+            st<-new("SpikeTrain",session=rs@session,path=rs@path)
+            st<-loadSpikeTrain(st)
+            pt<-new("Positrack",session=rs@session,path=rs@path)
+            pt<-loadPositrack(pt)
+            df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
+            cg<-new("CellGroup",session=rs@session,path=rs@path,nTetrodes=rs@nElectrodes)
+            cg<-loadCellGroup(cg)
+            return(list(st=st,pt=pt,df=df,cg=cg))
+          })
 
 
 ### show ###

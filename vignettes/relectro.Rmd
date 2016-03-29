@@ -221,6 +221,29 @@ firingRateMapAutoPlot(m=sp@autos[,,7],name=sp@cellList[7])
 
 ```
 
+## Loading most objects in a recording session
+It is often useful to create and load the spike trains, position data, dat file information, cell infomration when analysing data in a recording session. You can do this by calling \code{getRecSessionObjects}. This will return a list of loaded objects ready to use.
+```{r loadObject}
+  ## the long way
+  st<-new("SpikeTrain",session=rs@session,path=rs@path)
+  st<-loadSpikeTrain(st)
+  pt<-new("Positrack",session=rs@session,path=rs@path)
+  pt<-loadPositrack(pt)
+  df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),
+          path=rs@path,nChannels=rs@nChannels)
+  cg<-new("CellGroup",session=rs@session,path=rs@path,nTetrodes=rs@nElectrodes)
+  cg<-loadCellGroup(cg)
+  
+  ## the short way
+  myList<-getRecSessionObjects(rs)
+  st<-myList$st
+  pt<-myList$pt
+  df<-myList$df
+  cg<-myList$cg
+  rm(myList)
+```
+
+
 ## Running code on several recording sessions
 Use an ElectroProject object to get a list of clustered recording session. Put the code that you want to run on each session into a function that takes a RecSession object as first argument. To run your function on the list of recording sessions, simply use the \code{lapply} function.
 
