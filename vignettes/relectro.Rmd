@@ -222,7 +222,7 @@ firingRateMapAutoPlot(m=sp@autos[,,7],name=sp@cellList[7])
 ```
 
 ## Loading most objects in a recording session
-It is often useful to create and load the spike trains, position data, dat file information, cell infomration when analysing data in a recording session. You can do this by calling \code{getRecSessionObjects}. This will return a list of loaded objects ready to use.
+It is often useful to create and load the spike trains, position data, dat file information, cell infomration when analysing data in a recording session. You can do this by calling \code{getRecSessionObjects}. This will return a list of loaded objects ready for you to use.
 ```{r loadObject}
   ## the long way
   st<-new("SpikeTrain",session=rs@session,path=rs@path)
