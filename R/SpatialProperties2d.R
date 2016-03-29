@@ -673,8 +673,8 @@ setMethod(f="mapsAsDataFrame",
               stop("Need to call firingRateMap2d first to run mapsAsDataFrame()")
             
             data.frame(clu.id=rep(paste(sp@session,sp@cellList,sep="_"),each=sp@nRowMap*sp@nColMap),
-                       x=rep(1:sp@nRowMap,sp@nColMap),
-                       y=rep(1:sp@nColMap,each=sp@nRowMap),
+                       x=rep(1:sp@nRowMap,sp@nColMap), ## warning the x and y were swapped
+                       y=rep(1:sp@nColMap,each=sp@nRowMap), ## warning the x and y were swapped
                        rate=as.numeric(sp@maps))
           }
 )

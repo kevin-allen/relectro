@@ -89,6 +89,18 @@ plot(cc$time[which(cc$clu==6)],cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[
 rm(cross,cc,clufile)
 ```
 
+To calculate instantaneous firing rate from the spike trains
+```{r ifr}
+## calculate instantaneous firing rates
+st<-ifr(st)
+## plot ifr and spike of a cell
+n=400
+cell=1
+plot(head(st@ifrTime,n),head(st@ifr[cell,],n),type='l',xlab="Time (sec)",ylab="Rate (Hz)")
+points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),rep(0,n),col='red')
+rm(n,cell)
+```
+
 ## RecSession
 
 This object read few text files (.par, .desen, .desel, etc) and get the information regarding what was done during the recording session. You can use the RecSession object to get intervals for a given recording environment for example.
@@ -102,20 +114,6 @@ rs
 ## get intervals with a given environment
 getIntervalsEnvironment(rs,"lt")
 ```
-
-
-To calculate instantaneous firing rate from the spike trains
-```{r ifr}
-## calculate instantaneous firing rates
-st<-ifr(st)
-## plot ifr and spike of a cell
-n=400
-cell=1
-plot(head(st@ifrTime,n),head(st@ifr[cell,],n),type='l',xlab="Time (sec)",ylab="Rate (Hz)")
-points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),rep(0,n),col='red')
-rm(n,cell)
-```
-
 
 You can use the intervals provided by the RecSession to limit your analysis of the spike trains to this period. Let say we want to limit an analysis of the spike train to the time the animal was in the environment called sqr70.
 ```{r recording_session_intervals}
