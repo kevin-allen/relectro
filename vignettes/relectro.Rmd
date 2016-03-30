@@ -2,7 +2,8 @@
 title: "relectro"
 author: "Kevin Allen"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+#output: rmarkdown::html_vignette
+output: pdf_document
 vignette: >
   %\VignetteIndexEntry{relectro}
   %\VignetteEngine{knitr::rmarkdown}
@@ -165,7 +166,7 @@ You can get the speed of the animal at some define time points
 plot(getSpeedAtResValues(pt,res=seq(100000,300000,20)),type='l',xlab="res index",ylab="Running speed (cm/sec)")
 ```
 
-There is a function to linearize the 2d position data into a 1d representation. This is useful to analyze the data from a linear track. The linear data can be accessed via \code{pt@lin}.
+There is a function to linearize the 2d position data into a 1d representation. This is useful to analyze the data from a linear track. The linear data can be accessed via `pt@lin`.
 ```{r positrack4}
 getIntervalsEnvironment(rs,"lt")
 pt1<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="lt"))
