@@ -38,7 +38,7 @@ setMethod(f="ifr",
           definition=function(st)
           {
             if(st@nSpikes==0)
-              stop("ifr(): there are no spike in the SpikeTrain object")
+              stop(paste("ifr(): there are no spike in the SpikeTrain object",st@session))
 
             results<-.Call("ifr_from_spike_density",
                   as.integer(st@res),as.integer(st@clu), as.integer(st@nSpikes), 
@@ -82,18 +82,20 @@ setMethod(f="loadSpikeTrain",
             
             st@res<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"res",sep=".")))
             st@clu<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"clu",sep=".")))
-            
+  
             st@samplingRate<-as.numeric(readLines(paste(pathSession,"sampling_rate_dat",sep=".")))
             if(st@samplingRate<1 | st@samplingRate > 100000)
-              stop(paste("samplingRate is out of range:",st@samplingRate))
+              stop(paste("samplingRate is out of range:",st@samplingRate,st@session))
             st@clu<-st@clu[-1] ## remove first number
             if(length(st@res)!=length(st@clu))
-              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu)))
+              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu),st@session))
             # remove noise cluster 1 or 0
             df<-data.frame(res=st@res,clu=st@clu)
             df<-df[which(df$clu>1),]
             st@res<-df$res
             st@clu<-df$clu
+            if(length(st@res)==0)
+              stop(paste("No valid spike in session",st@session))
             # get time in sec
             st@time<-st@res/st@samplingRate
             st@nSpikes<-length(st@res)
@@ -129,10 +131,10 @@ setMethod(f="setSpikeTrain",
             st@samplingRate<-samplingRate
             
             if(st@samplingRate<1 | st@samplingRate > 100000)
-              stop(paste("samplingRate is out of range:",st@samplingRate))
+              stop(paste("samplingRate is out of range:",st@samplingRate,st@session))
             
             if(length(st@res)!=length(st@clu))
-              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu)))
+              stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu),st@session))
             
             # get time in sec
             st@time<-st@res/st@samplingRate
@@ -348,15 +350,15 @@ setMethod(f="setIntervals",
               endIntervals<-e
             }
             if(length(startIntervals)!=length(endIntervals))
-              stop("problem with length of startIntervals and endIntervals")
+              stop(paste("problem with length of startIntervals and endIntervals in set intervals",st@session))
             if(any(startIntervals>endIntervals))
-              stop("startIntervals>endIntervals")
+              stop(paste("startIntervals>endIntervals",st@session))
             if(any(diff(startIntervals)<0))
-              stop("problem with chonology within startIntervals")
+              stop(paste("problem with chonology within startIntervals in set intervals",st@session))
             if(any(diff(endIntervals)<0))
-              stop("problem with chonology within endIntervals")
+              stop(paste("problem with chonology within endIntervals in set intervals",st@session))
             if(any(startIntervals[-1]-endIntervals[-length(endIntervals)]<0))
-              stop("problem with chronology between intervals, from end to next start")
+              stop(paste("problem with chronology between intervals, from end to next start in set intervals",st@session))
             
             st@startInterval<-startIntervals
             st@endInterval<-endIntervals
@@ -392,11 +394,11 @@ setMethod(f="setEvents",
           definition=function(st,events=NULL)
           {
             if(is.null(events))
-              stop("events is empty")
+              stop(paste("events is empty",st@session))
             if(any(events<0))
-              stop("negative values as events")
+              stop(paste("negative values as events",st@session))
             if(any(diff(events)<0))
-              stop("problem with the chronology of the events")
+              stop(paste("problem with the chronology of the events",st@session))
             
             st@events<-events
             return(st)

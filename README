@@ -10,20 +10,9 @@ R CMD INSTALL relectro
 R object [xdim*y +x]
 C 2d array [ydim*x +y]
 
-KNOWN BUGS: 
-
-maps are not read the same way in R object and C 2d maps, did some transposition.
-spacing and orientation of grid needs testing.
 
 NEXT STEPS
 
----- over current situation, need to improve ease of plotting and making figures for papers ----
-Maybe we want a separate package for plotting? 
-Think about plotting common objects: maps, maps autocorrelations, st-auto, st-cross, etc.
-If they were a Class, we could have a plot function for them.
-What about a default plot function for RecSession, ElectroProject, Positrack, SpikeTrain, SpatialProperties2d?
-That would be the only plots in relectro
-
-
+Add better error message (identify function and session causing the error)
 Add documentation for all classes, methods and functions
 

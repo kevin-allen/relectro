@@ -37,7 +37,7 @@ attributes(pt)
 
 ## SpikeTrain
 
-This object represent the spike trains of a group of neurons recorded together. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. By default, you set the slot `session` within a SpikeTrain object. This is used as main name of the files.  Then call the function `loadSpikeTrain()`. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains. 
+This object represents the spike trains of a group of neurons recorded together. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. By default, you set the slot `session` within a SpikeTrain object. This is used as main name of the files.  Then call the function `loadSpikeTrain()`. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains. 
 
 Once a SpikeTrain object is set, you can use different functions to do analysis on the spike trains. For example you can calculate spike-train autocorrelations using the function `spikeTimeAutocorrelation()`. You can also calculate the firing rate using `meanFiringRate()`.
 
@@ -74,7 +74,7 @@ Most computations on neuronal activity need to be performed on a limited time pe
 Now here is an example from data files that are provided with the package. This is part of a recording session in which we recorded the activity of the medial entorhinal cortex on a linear track and in a square open-field. In this example, we calculate the spike-time crosscorrelation between the recorded neurons. The first 3 lines of code are to get the session name and path to these files.  
 
 ```{r real_spike_trains}
-## find the data provided with the package as example
+## find the data provided with the package
 clufile<-unlist(strsplit(x=system.file("extdata", "jp4298-15022016-0106.clu", package = "relectro"), split="/"))
 datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
 session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
@@ -118,7 +118,7 @@ getIntervalsEnvironment(rs,"lt")
 
 You can use the intervals provided by the RecSession to limit your analysis of the spike trains to this period. Let say we want to limit an analysis of the spike train to the time the animal was in the environment called sqr70.
 ```{r recording_session_intervals}
-# set the intervals in spike train using output matrix from recSession
+# set the intervals in spike train using output matrix from recSession in set intervals
 stint<-setIntervals(st,s=getIntervalsEnvironment(rs,env="sqr70"))
 # print the information of the new spike train
 stint
@@ -268,7 +268,7 @@ myFunction<-function(x){
   }
 ## run the function on a single session
 myFunction(oneRs)
-list.res<-lapply(rss,myFunction) ## returns a list of list
+list.res<-lapply(rss,myFunction) ## returns a list of lists
 ## merge the recTime together
 do.call("rbind", sapply(list.res,function(x){x["recTime"]}))
 
@@ -282,6 +282,16 @@ It is really easy to run code in parallel in R. It is often the case that same a
 
 If using different computers, you need to load the `relectro` package at the top of the function to make sure they all have access to relectro. You also need to make sure that the other computers have an up-to-date version of relectro.
 
-If your code is almost only reading and writing files, it might be better to run the code sequencially with the lapply function. A good example of this is if you are detecting ttl pulses from the .dat files. Do this sequencially.
+```{r parallel}
+library(snow)
+#workers<-c(rep("localhost",3),rep("hm001-pc034",3),rep("hc001-pc030",3)) ## to use different computers
+workers<-c(rep("localhost",4))# one computer
+cl<-makeCluster(workers, type = "SOCK")
+system.time(list.res<-parLapply(cl,rss,myFunction))
+system.time(list.res<-lapply(rss,myFunction))
+stopCluster(cl)
+```
 
-Conversely, if your code is processor intensive and has few read/write operations, you can speed up things considerably by increasing the number of threads used.
+In this example, it is slower to work in parallel.
+
+If your code is almost only reading and writing files, it is better to run the code sequencially with the lapply function. A good example of this is if you are detecting ttl pulses from the .dat files. Do this sequencially. Conversely, if your code is processor intensive and has few read/write operations, you can speed up things considerably by increasing the number of threads used.
