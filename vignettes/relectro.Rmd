@@ -10,7 +10,7 @@ vignette: >
 ---
 This vignette documents the use of the package relectro. relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. The user can them combine the use of relectro with other packages to get the job done quickly. relectro relies on several C functions for computationally intensive segment of the code. This increases the speed of the analysis to a respectable level. 
 
-You can get relectro from the Bitbucket repository of Kevin Allen. If you work with the source code of the package, I would recommand using the \code{devtools} package to load an build the package. This is especially usefull if you are developping new functions or object for relectro. The package \code{roxygen2} can be used to add the comments to the code you write.
+You can get relectro from the Bitbucket repository of Kevin Allen. If you work with the source code of the package, I would recommand using the `devtools` package to load an build the package. This is especially usefull if you are developping new functions or object for relectro. The package `roxygen2` can be used to add the comments to the code you write.
 
 To install it, you can run R CMD build relectro and R CMD INSTALL relectro.
 
@@ -222,7 +222,7 @@ firingRateMapAutoPlot(m=sp@autos[,,7],name=sp@cellList[7])
 ```
 
 ## Loading most objects in a recording session
-It is often useful to create and load the spike trains, position data, dat file information, cell infomration when analysing data in a recording session. You can do this by calling \code{getRecSessionObjects}. This will return a list of loaded objects ready for you to use.
+It is often useful to create and load the spike trains, position data, dat file information, cell infomration when analysing data in a recording session. You can do this by calling `getRecSessionObjects`. This will return a list of loaded objects ready for you to use.
 ```{r loadObject}
   ## the long way
   st<-new("SpikeTrain",session=rs@session,path=rs@path)
@@ -243,12 +243,43 @@ It is often useful to create and load the spike trains, position data, dat file 
   rm(myList)
 ```
 
+## ElectroProject
+
+Projects usually contains several recording sessions from different animals. ElectroProject is a class to represent all your recording session.
+Here is an example of a project we have. Normally you would create it with `ep<-new("ElectroProject",directory="/data/projects/vtrack")` and `ep<-setSessionList(ep)` but since you might not have the project on your computer we will load it from the object saved with the package.
+
+```{r electroProject}
+  load(paste(datadir,"ep",sep="/"))
+  ep
+  rss<-getClusteredSessionList(ep)
+  oneRs<-rss[[11]] ## get a particular session from the list
+  oneRs
+```
+
+
 
 ## Running code on several recording sessions
-Use an ElectroProject object to get a list of clustered recording session. Put the code that you want to run on each session into a function that takes a RecSession object as first argument. To run your function on the list of recording sessions, simply use the \code{lapply} function.
+Now you might want to do some analysis on individual recording session. The trick is to create a function to do the analysis on a single session and then use `lapply` to run the function to individual recording session. 
+
+```{r severalSessions}
+myFunction<-function(x){
+  return(list(recTime=x@sessionDurationSec,nElectrodes=x@nElectrodes))
+  }
+## run the function on a single session
+myFunction(oneRs)
+list.res<-lapply(rss,myFunction) ## returns a list of list
+## merge the recTime together
+do.call("rbind", sapply(list.res,function(x){x["recTime"]}))
+
+```
+
+You can do all sorts of analysis in your function. I usually return a list of data.frames (e.g. firing rate maps, autocorrelations, etc) and use the  `do.call("rbind")` to merge them together as one data.frame.
+
 
 ##Parallel processing
-relectro is not using parallel processing by itself. However, given that the same analysis is often run on several recording sessions, parallel processing is very simple to implement. You can use the /code{snow} package. You only need to install snow and relectro on all the computers that you want to use for the analysis. Then build a cluster of workers that you want to use. Instead of calling \code{lapply} use \code{parLapply}. If using different computers, you need to load the relectro package at the top of the function to make sure they all have access to relectro.
+It is really easy to run code in parallel in R. It is often the case that same analysis is often run on several recording sessions. This is a perfect situation for parallel processing. You can use the `snow` package. You only need to install `snow` and of course `relectro` on all the computers that you want to use for the analysis. Then build a cluster of `workers` that you want to use. Instead of calling `lapply` use `parLapply`. 
+
+If using different computers, you need to load the `relectro` package at the top of the function to make sure they all have access to relectro. You also need to make sure that the other computers have an up-to-date version of relectro.
 
 If your code is almost only reading and writing files, it might be better to run the code sequencially with the lapply function. A good example of this is if you are detecting ttl pulses from the .dat files. Do this sequencially.
 

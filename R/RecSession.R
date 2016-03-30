@@ -205,7 +205,10 @@ setMethod(f="getRecSessionObjects",
             df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
             cg<-new("CellGroup",session=rs@session,path=rs@path,nTetrodes=rs@nElectrodes)
             cg<-loadCellGroup(cg)
-            return(list(st=st,pt=pt,df=df,cg=cg))
+            sp<-new("SpatialProperties2d",session=rs@session)
+            sp1<-new("SpatialProperties1d",session=rs@session)
+            hd<-new("HeadDirection",session=rs@session)
+            return(list(st=st,pt=pt,df=df,cg=cg,sp=sp,sp1=sp1,hd=hd))
           })
 
 
