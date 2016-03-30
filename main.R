@@ -21,6 +21,23 @@ devtools::load_all("~/repo/r_packages/relectro/")
 ## ctrl shift b to rebuild and reload
 
 
+
+################################################
+#### runOnSessionList ##########################
+rss<-list(rs)
+runOnSessionList(sessionList=rss,fnct=function(x){return(list(session=x@session))},overwrite=T)
+
+
+
+
+
+
+
+
+
+
+
+
 #########################################
 #### EXAMPLES RANDOM DATA SpikeTrain ####
 ########################################

@@ -79,4 +79,55 @@ setMethod(f="getClusteredSessionList",
               stop("ep@directory not set")
             return(ep@sessionList[sapply(ep@sessionList,getIsClustered)])
           })
+# 
+# setGeneric(name="runOnSessionList",
+#            def=function(ep,...)
+#            {standardGeneric("runOnSessionList")}
+# )
+# setMethod(f="runOnSessionList",
+#           signature="ElectroProject",
+#           definition=function(ep,)
+#           {
+#             
+#           })
 
+## should be a method of ElectroProject
+runOnSessionList<-function(sessionList,fnct=function(x){NA},overwrite=T,parallel=F,cluster=""){
+  if(!is.list(sessionList))
+    stop("runOnSessionList needs a list as first argument")
+  if(length(sessionList)==0)
+    stop("runOnSessionList, sessionList has size 0")
+  if(!is.function(fnct))
+    stop("runOnSessionList, fnct needs to be a function")
+  if(parallel==T&cluster="")
+    stop("runOnSessionList, give a valid snow cluster if you want to run the function on several threads")
+  if(parallel==T){
+    list.res<-parLapply(cluster,sessionList,fnct)   
+  } else {
+    list.res<-lapply(sessionList,fnct)
+  }
+  
+  ## check that list.res is a list of list
+  if(!is.list(list.res))
+    stop("runOnSessionList, list.res is not a list")
+  if(!is.list(list.res[[1]]))
+    stop(paste("runOnSessionList, first item of the list list.res is not a list, fnct should return a list"))
+  
+  ## list of objects to merge and save
+  objectNames<-names(list.res[[1]])
+   
+  if(overwrite==T){
+    for(n in objectNames){
+      #merge and assig
+      #save in results directory
+    }
+  } else{
+    for(n in objectNames){
+      # merge and assign to a new name
+      # load the existing object
+      # remove data from same cells
+      # merge new and existing object
+      # save object
+    }
+  }
+}
