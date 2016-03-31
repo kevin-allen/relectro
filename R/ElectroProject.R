@@ -15,6 +15,7 @@
 ElectroProject <- setClass(
   "ElectroProject", ## name of the class
   slots=c(directory="character",
+          resultsDirectory="character",
           nSessions="numeric",
           sessionNameList="character",
           sessionList="list"),
@@ -31,6 +32,8 @@ setMethod(f="setSessionList",
           {
             if(ep@directory=="")
               stop("ep@directory not set")
+            
+            ep@resultsDirectory=paste(ep@directory,"results",sep="/")
             
             ## list all directories in the project path
             dirs<-list.dirs(path=ep@directory)
@@ -58,13 +61,13 @@ setMethod("show", "ElectroProject",
             print(paste("nSessions:",object@nSessions))
             print(paste("sessionNameList:"))
             print(object@sessionNameList)
-            print(paste("Clustered sessions:",sum(sapply(ep@sessionList,getIsClustered))))
-            print(object@sessionNameList[sapply(ep@sessionList,getIsClustered)])
-            print(paste("Not clustered sessions:",sum(!sapply(ep@sessionList,getIsClustered))))
-            print(object@sessionNameList[!sapply(ep@sessionList,getIsClustered)])
-            print(paste("Early processed sessions:", sum(sapply(ep@sessionList,getIsEarlyProcessed))))
-            print(paste("Not early processed sessions:", sum(!sapply(ep@sessionList,getIsEarlyProcessed))))
-            print(object@sessionNameList[!sapply(ep@sessionList,getIsEarlyProcessed)])
+            m<-matrix(c(sapply(ep@sessionList,getIsClustered),sapply(ep@sessionList,getIsEarlyProcessed)),ncol=2)
+            print(paste("Clustered sessions:",sum(m[,1])))
+            print(object@sessionNameList[m[,1]])
+            print(paste("Not clustered, but early processed sessions:",length(which(m[,1]==F&m[,2]==T))))
+            print(object@sessionNameList[which(m[,1]==F&m[,2]==T)])
+            print(paste("Not early processed sessions:", length(which(m[,1]==F&m[,2]==F))))
+            print(object@sessionNameList[which(m[,1]==F&m[,2]==F)])
           })
 
 setGeneric(name="getClusteredSessionList",
@@ -79,55 +82,79 @@ setMethod(f="getClusteredSessionList",
               stop("ep@directory not set")
             return(ep@sessionList[sapply(ep@sessionList,getIsClustered)])
           })
-# 
-# setGeneric(name="runOnSessionList",
-#            def=function(ep,...)
-#            {standardGeneric("runOnSessionList")}
-# )
-# setMethod(f="runOnSessionList",
-#           signature="ElectroProject",
-#           definition=function(ep,)
-#           {
-#             
-#           })
+ 
+#' Running a function on a set of recording sessions
+#'
+#' This applies a function to a list of RecSession objects.
+#' If save is set to TRUE, the results returned by the function will be saved. 
+#' Not that the function should return the results in a list. 
+#' The results are saved in the resultsDirectory of the ElectroProject object.
+#' The names of the files saved will be the name of the elements in the list returned by the function
+#' The data from each recording session will be concatenated.
+#' You can use parLapply instead of lapply by setting parallel to TRUE and passing a valid cluster to the function
+#' If save is set to FALSE, the data returned by the function will not be saved.
+#'
+#' @param ep ElectroProject object
+#' @param sessionList List of RecSession objects on which the function will be applied
+#' @param fnct A function to run on each RecSession
+#' @param save Whether you want to save the data returned by the function
+#' @param overwrite Whether you want to overwrite the previous data when saving the results
+#' @param parallel Whether you want to run the function in parallel
+#' @param cluster A cluster generated from the makeCluster function of the snow package
+#' @return NULL
+#' 
+#' @docType methods
+#' @rdname runOnSessionList-methods
+setGeneric(name="runOnSessionList",
+            def=function(ep,sessionList,fnct=function(x){NA},save=T,overwrite=T,parallel=F,cluster="")
+            {standardGeneric("runOnSessionList")}
+          )
 
-## should be a method of ElectroProject
-runOnSessionList<-function(sessionList,fnct=function(x){NA},overwrite=T,parallel=F,cluster=""){
-  if(!is.list(sessionList))
-    stop("runOnSessionList needs a list as first argument")
-  if(length(sessionList)==0)
-    stop("runOnSessionList, sessionList has size 0")
-  if(!is.function(fnct))
-    stop("runOnSessionList, fnct needs to be a function")
-  if(parallel==T&cluster="")
-    stop("runOnSessionList, give a valid snow cluster if you want to run the function on several threads")
-  if(parallel==T){
-    list.res<-parLapply(cluster,sessionList,fnct)   
-  } else {
-    list.res<-lapply(sessionList,fnct)
-  }
-  
-  ## check that list.res is a list of list
-  if(!is.list(list.res))
-    stop("runOnSessionList, list.res is not a list")
-  if(!is.list(list.res[[1]]))
-    stop(paste("runOnSessionList, first item of the list list.res is not a list, fnct should return a list"))
-  
-  ## list of objects to merge and save
-  objectNames<-names(list.res[[1]])
-   
-  if(overwrite==T){
-    for(n in objectNames){
-      #merge and assig
-      #save in results directory
-    }
-  } else{
-    for(n in objectNames){
-      # merge and assign to a new name
-      # load the existing object
-      # remove data from same cells
-      # merge new and existing object
-      # save object
-    }
-  }
-}
+#' @rdname runOnSessionList-methods
+#' @aliases runOnSessionList,ANY,ANY-method
+setMethod(f="runOnSessionList",
+         signature="ElectroProject",
+         definition=function(ep,sessionList,fnct=function(x){NA},save=T,overwrite=T,parallel=F,cluster="")
+         {
+           if(class(ep)!="ElectroProject")
+             stop("runOnSessionList, ep should be a ElectroProject object")
+           if(!is.list(sessionList))
+             stop("runOnSessionList, sessionList has to be a list")
+           if(length(sessionList)==0)
+             stop("runOnSessionList, sessionList has size 0")
+           if(class(sessionList[[1]])!="RecSession")
+             stop("runOnSessionList, sessionList should contain RecSession objects")
+           if(!is.function(fnct))
+             stop("runOnSessionList, fnct needs to be a function")
+           if(parallel==T)
+             if(class(cluster)[2]!="cluster")
+               stop("runOnSessionList, give a valid snow cluster if you want to run the function on several threads")
+           if(parallel==T){
+             list.res<-parLapply(cluster,sessionList,fnct)   
+           } else {
+             list.res<-lapply(sessionList,fnct)
+           }
+           
+           if(save==T){
+             ## check that list.res is a list of list
+             if(!is.list(list.res))
+               stop("runOnSessionList, list.res is not a list")
+             if(!is.list(list.res[[1]]))
+               stop(paste("runOnSessionList, first item of the list list.res is not a list, fnct should return a list"))
+             
+             ## list of objects to merge and save
+             objectNames<-names(list.res[[1]])
+             for(n in objectNames){
+               
+               if(overwrite==T){assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
+               }else{## concatonate to existing data
+                 assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
+                 load(file=paste(ep@resultsDirectory,n,sep="/"))
+                 assign(n,rbind(get(n),get(paste(n,"new",sep="."))))
+               }
+               print(paste("saving",paste(ep@resultsDirectory,n,sep="/")))
+               save(list=n,file=paste(ep@resultsDirectory,n,sep="/"))
+             }
+           }
+           return(NULL)
+         })
