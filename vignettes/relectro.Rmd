@@ -75,18 +75,30 @@ Now here is an example from data files that are provided with the package. This 
 
 ```{r real_spike_trains}
 ## find the data provided with the package
-clufile<-unlist(strsplit(x=system.file("extdata", "jp4298-15022016-0106.clu", package = "relectro"), split="/"))
+clufile<-unlist(strsplit(x=system.file("extdata", 
+                                       "jp4298-15022016-0106.clu", 
+                                       package = "relectro"), split="/"))
 datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
 session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
-
-st<-new("SpikeTrain",session=session,path=datadir) # create SpikeTrain object
+# create SpikeTrain object
+st<-new("SpikeTrain",session=session,path=datadir)
 st<-loadSpikeTrain(st) # load res clu and sampling rate
-cross<-spikeTimeCrosscorrelation(st,binSizeMs=1,windowSizeMs = 200,probability = T) ## calculate spike-time crosscorrelation
-plot(cross$time[which(cross$clu1==2&cross$clu2==5)],cross$prob[which(cross$clu1==2&cross$clu2==5)],ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5") ## plot one crosscorrelation
+## calculate spike-time crosscorrelation
+cross<-spikeTimeCrosscorrelation(st,
+                                 binSizeMs=1,
+                                 windowSizeMs = 200,
+                                 probability = T)
+plot(cross$time[which(cross$clu1==2&cross$clu2==5)],
+     cross$prob[which(cross$clu1==2&cross$clu2==5)],
+     ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),
+     type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5")
 ## set some events, in this case the spikes of clu 2
 st<-setEvents(st,events=st@res[which(st@clu==2)])
 cc<-spikeTimeCrosscorrelationEvents(st)
-plot(cc$time[which(cc$clu==6)],cc$count[which(cc$clu==6)],ylim=c(0,max(cc$count[which(cc$clu==6)])),ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
+plot(cc$time[which(cc$clu==6)],
+     cc$count[which(cc$clu==6)],
+     ylim=c(0,max(cc$count[which(cc$clu==6)])),
+     ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
 rm(cross,cc,clufile)
 ```
 
@@ -97,8 +109,10 @@ st<-ifr(st)
 ## plot ifr and spike of a cell
 n=400
 cell=1
-plot(head(st@ifrTime,n),head(st@ifr[cell,],n),type='l',xlab="Time (sec)",ylab="Rate (Hz)")
-points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),rep(0,n),col='red')
+plot(head(st@ifrTime,n),head(st@ifr[cell,],n),
+     type='l',xlab="Time (sec)",ylab="Rate (Hz)")
+points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),
+       rep(0,n),col='red')
 rm(n,cell)
 ```
 
@@ -130,10 +144,13 @@ Now the spike train intervals are set to the trial with the sqr70 environment.
 
 There is a DatFiles class to read the data from one or several .dat files. In this example, we will work with the first .dat file of our recording session. Use a RecSession object to get the information needed to open the file. The .dat file is very short to be able to package it as an example. There is also a function to detect the positive deflection in the voltage (TTL pulses).
 ```{r DatFiles}
-df<-new("DatFiles",fileNames=paste(rs@trialNames[1],"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
+df<-new("DatFiles",fileNames=paste(rs@trialNames[1],"dat",sep="."),
+        path=rs@path,nChannels=rs@nChannels)
 data<-datFilesGetOneChannel(df,channelNo=rs@nChannels-1,
-                            firstSample=rs@trialStartRes[1],lastSample=rs@samplingRate*10)
-plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",xlim=c(86000,89000))
+                            firstSample=rs@trialStartRes[1],
+                            lastSample=rs@samplingRate*10)
+plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",
+     xlim=c(86000,89000))
 ups<-detectUps(as.numeric(data[0:100000]))
 downs<-detectDowns(as.numeric(data[0:100000]))
 points(ups,rep(0,length(ups)),col="red")
@@ -155,15 +172,18 @@ rm(m)
 
 One can also use the intervals given by the RecSession object to limit the analysis of the path to these intervals.
 ```{r positrack2}
-pt1<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70"))
-plot(pt1@x[1:10000],pt1@y[1:10000],col="black", type='l',xlab="x (cm)",ylab="y (cm)")
+pt1<-setInvalidOutsideInterval(pt,
+                               s=getIntervalsEnvironment(rs,env="sqr70"))
+plot(pt1@x[1:10000],pt1@y[1:10000],
+     col="black", type='l',xlab="x (cm)",ylab="y (cm)")
 pt1 # tells you information about valid data.
 rm(pt1)
 ```
 
 You can get the speed of the animal at some define time points
 ```{r positrack3}
-plot(getSpeedAtResValues(pt,res=seq(100000,300000,20)),type='l',xlab="res index",ylab="Running speed (cm/sec)")
+plot(getSpeedAtResValues(pt,res=seq(100000,300000,20)),
+     type='l',xlab="res index",ylab="Running speed (cm/sec)")
 ```
 
 There is a function to linearize the 2d position data into a 1d representation. This is useful to analyze the data from a linear track. The linear data can be accessed via `pt@lin`.
@@ -203,12 +223,16 @@ Now that you have a recording session, spike trains, and the position data, you 
 
 
 ```{r spatial_properties1}
-
-sp<-new("SpatialProperties2d",session=session) ## object to get spatial properties
-pt<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) ## select position data for one environment
-sp<-firingRateMap2d(sp,st,pt) ## make firing rate maps
-sp<-getMapStats(sp,st,pt) ## get info score, sparsity from maps
-sp<-mapSpatialAutocorrelation(sp) ## spatial autocorrelation from maps
+## object to get spatial properties
+sp<-new("SpatialProperties2d",session=session) 
+## select position data for one environment
+pt<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="sqr70")) 
+## make firing rate maps
+sp<-firingRateMap2d(sp,st,pt) 
+## get info score, sparsity from maps
+sp<-getMapStats(sp,st,pt) 
+## spatial autocorrelation from maps
+sp<-mapSpatialAutocorrelation(sp) 
 sp
 ```
 
@@ -218,7 +242,7 @@ There are not many plotting functions in relectro. I added just enough to be abl
 firingRateMapPlot(m=sp@maps[,,7],name=sp@cellList[7])
 firingRateMapAutoPlot(m=sp@autos[,,7],name=sp@cellList[7])
 #firingRateMapsPlot(m=sp@maps,names=sp@cellList) ## for a group of maps
-#firingRateMapAutosPlot(m=sp@autos,names=sp@cellList) ## for a group of spatial autocorrelations
+#firingRateMapAutosPlot(m=sp@autos,names=sp@cellList) ## for a group
 
 ```
 
@@ -260,7 +284,7 @@ Here is an example of a project we have. Normally you would create it with `ep<-
 
 
 ## Running code on several recording sessions
-Now you might want to do some analysis on individual recording session. The trick is to create a function to do the analysis on a single session and then use `lapply` to run the function to individual recording session. 
+Now you might want to do some analysis on individual recording session. The trick is to create a function to do the analysis on a single session. This function should return a list of named elements. Then use `lapply` to run the function to individual recording session.
 
 ```{r severalSessions}
 myFunction<-function(x){
@@ -276,6 +300,18 @@ do.call("rbind", sapply(list.res,function(x){x["recTime"]}))
 
 You can do all sorts of analysis in your function. I usually return a list of data.frames (e.g. firing rate maps, autocorrelations, etc) from the function. Because the function runs on a list of sessions, we end up with a list of lists of data.frames. You can use the  `do.call("rbind")` to merge each of the matching data.frames together.
 
+To simplify this process, there is a function called `runOnSessionList`. Have a look at the help to know how it works.
+```{r runOnSessionList}
+ep@resultsDirectory<-"/tmp"
+runOnSessionList(ep,sessionList=rss,fnct=myFunction,save=T,overwrite=T,parallel=F)
+```
+To load the data that were saved use `load`. The file names is determined by the name of the object returned by the function in our case `recTime` and `nElectrodes`.
+```{r load}
+load(paste(ep@resultsDirectory,"recTime",sep="/"))
+head(recTime)
+rm(recTime)
+```
+
 
 ##Parallel processing
 It is really easy to run code in parallel in R. It is often the case that same analysis is often run on several recording sessions. This is a perfect situation for parallel processing. You can use the `snow` package. You only need to install `snow` and of course `relectro` on all the computers that you want to use for the analysis. Then build a cluster of `workers` that you want to use. Instead of calling `lapply` use `parLapply`. 
@@ -284,14 +320,18 @@ If using different computers, you need to load the `relectro` package at the top
 
 ```{r parallel}
 library(snow)
-#workers<-c(rep("localhost",3),rep("hm001-pc034",3),rep("hc001-pc030",3)) ## to use different computers
 workers<-c(rep("localhost",4))# one computer
 cl<-makeCluster(workers, type = "SOCK")
-system.time(list.res<-parLapply(cl,rss,myFunction))
-system.time(list.res<-lapply(rss,myFunction))
+system.time(runOnSessionList(ep,sessionList=rss,fnct=myFunction,
+                             save=T,overwrite=T,parallel=T,cluster=cl))
+system.time(runOnSessionList(ep,sessionList=rss,fnct=myFunction,
+                             save=T,overwrite=T,parallel=F))
 stopCluster(cl)
 ```
 
 In this example, it is slower to work in parallel.
 
 If your code is almost only reading and writing files, it is better to run the code sequencially with the lapply function. A good example of this is if you are detecting ttl pulses from the .dat files. Do this sequencially. Conversely, if your code is processor intensive and has few read/write operations, you can speed up things considerably by increasing the number of threads used.
+
+There is nothing stopping you from running the code on several computers. Just give the ip of the computers you want to use when listing your workers. I have used up to 20 threads without any problems.
+

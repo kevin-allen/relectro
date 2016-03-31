@@ -101,7 +101,7 @@ setMethod(f="getClusteredSessionList",
 #' @param overwrite Whether you want to overwrite the previous data when saving the results
 #' @param parallel Whether you want to run the function in parallel
 #' @param cluster A cluster generated from the makeCluster function of the snow package
-#' @return NULL
+#'
 #' 
 #' @docType methods
 #' @rdname runOnSessionList-methods
@@ -156,5 +156,4 @@ setMethod(f="runOnSessionList",
                save(list=n,file=paste(ep@resultsDirectory,n,sep="/"))
              }
            }
-           return(NULL)
          })
