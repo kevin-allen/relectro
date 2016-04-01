@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-This vignette documents the use of the package relectro. relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. The user can them combine the use of relectro with other packages to get the job done quickly. relectro relies on several C functions for computationally intensive segment of the code. This increases the speed of the analysis to a respectable level. 
+This vignette documents the use of the relectro package. relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. relectro relies on several C functions for computationally intensive segment of the code. This increases the speed of the analysis to a respectable level. 
 
 You can get relectro from the Bitbucket repository of Kevin Allen. If you work with the source code of the package, I would recommand using the `devtools` package to load an build the package. This is especially usefull if you are developping new functions or object for relectro. The package `roxygen2` can be used to add the comments to the code you write.
 
@@ -216,7 +216,6 @@ points(int[,2]/pt1@resSamplesPerWhlSample-s,
 ```
 
 
-
 ## SpatialProperties2d
 
 Now that you have a recording session, spike trains, and the position data, you can get the spatial properties of the neurons. This is done with the SpatialProperties2d object. Note that the analysis will be limited to the data points that are valid in the Positrack object and within the intervals set in the SpikeTrain object.
@@ -284,7 +283,7 @@ Here is an example of a project we have. Normally you would create it with `ep<-
 
 
 ## Running code on several recording sessions
-Now you might want to do some analysis on individual recording session. The trick is to create a function to do the analysis on a single session. This function should return a list of named elements. Then use `lapply` to run the function to individual recording session.
+Now you might want to do some analysis on individual recording session. The trick is to create a function to do the analysis on a single session. For reasons explain below, if you function returns data, put them into a list of named elements. Then use `lapply` to run the function to individual recording session.
 
 ```{r severalSessions}
 myFunction<-function(x){
@@ -298,10 +297,11 @@ do.call("rbind", sapply(list.res,function(x){x["recTime"]}))
 
 ```
 
-You can do all sorts of analysis in your function. I usually return a list of data.frames (e.g. firing rate maps, autocorrelations, etc) from the function. Because the function runs on a list of sessions, we end up with a list of lists of data.frames. You can use the  `do.call("rbind")` to merge each of the matching data.frames together.
+You can do all sorts of analysis in your function. I usually return a list of data.frames (e.g. firing rate maps, autocorrelations, etc) from the function. Because the function runs on a list of sessions, we end up with a list of lists of data.frames.
 
-To simplify this process, there is a function called `runOnSessionList`. Have a look at the help to know how it works.
+To simplify the process process of running functions on a list of session, there is a function called `runOnSessionList`. Have a look at the help to know how it works.
 ```{r runOnSessionList}
+?runOnSessionList
 ep@resultsDirectory<-"/tmp"
 runOnSessionList(ep,sessionList=rss,fnct=myFunction,save=T,overwrite=T,parallel=F)
 ```
@@ -333,5 +333,5 @@ In this example, it is slower to work in parallel.
 
 If your code is almost only reading and writing files, it is better to run the code sequencially with the lapply function. A good example of this is if you are detecting ttl pulses from the .dat files. Do this sequencially. Conversely, if your code is processor intensive and has few read/write operations, you can speed up things considerably by increasing the number of threads used.
 
-There is nothing stopping you from running the code on several computers. Just give the ip of the computers you want to use when listing your workers. I have used up to 20 threads without any problems.
+There is nothing stopping you from running the code on several computers. Just give the ip of the computers you want to use when listing your workers. I have used up to 18 threads without any problems.
 
