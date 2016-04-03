@@ -13,7 +13,7 @@
 #' @slot histo An array holding the histograms of all neurons
 #' @slot occupancy A numeric holding the occupancy histogram
 #' @slot cellList A list of cluster id of the neurons
-#' @slot histoRepetition Number of repetition of the 0-360 range in the histogram. Default is 0 repetition
+#' @slot histoRepetitions Number of repetition of the 0-360 range in the histogram. Default is 0 repetition
 #' @slot peakRates Peak firing rate in Hz in each firing rate histogram
 #' @slot vectorLength Mean vector length of each firing rate histogram
 #' @slot meanDirection Mean direction in each firing rate histogram

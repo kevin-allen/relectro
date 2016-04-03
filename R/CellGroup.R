@@ -14,7 +14,7 @@
 #' @slot tetrode tetrode number of the cells
 #' @slot tetrodeId id of the tetrode for each cell
 #' @slot cluToTetrode clu id of the cell on its respective tetrode (used for clustering)
-#' @slot brainRetion region in which the cell was recorded
+#' @slot brainRegion region in which the cell was recorded
 #' @examples
 #' df<-new("CellGroup")
 CellGroup <- setClass(
@@ -33,11 +33,26 @@ CellGroup <- setClass(
           brainRegion="character"),  # cell list to limit the analysis to these cells
   prototype = list(session="",path="",nTetrodes=0))
 
-### loadCellGroup ###
+#' Load the information regarding a group of cells
+#'
+#' The object will get the tetrode id and 
+#' cluster number on the tetrode for each cluster. 
+#' The object also load the brain region associated with each cell.
+#' This infomration is read from the .desel file and the clu file
+#' of each tetrode.
+#'
+#' @param cg A CellGroup object
+#' @return A CellGroup object with the information loaded
+#' 
+#' @docType methods
+#' @rdname loadCellGroup-methods
 setGeneric(name="loadCellGroup",
            def=function(cg)
            {standardGeneric("loadCellGroup")}
 )
+
+#' @rdname loadCellGroup-methods
+#' @aliases loadCellGroup,ANY,ANY-method
 setMethod(f="loadCellGroup",
           signature="CellGroup",
           definition=function(cg)

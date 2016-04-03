@@ -5,6 +5,7 @@
 #' If several dat files are set in an object, they are treated as though they are a single file.
 #' @slot fileNames A character vector containing the names of the files
 #' @slot path The directory in which the files are located
+#' @slot resofs The number of samples in each file.
 #' @slot nChannels Number of recorded channels in the dat files
 #' @examples
 #' df<-new("DatFile")
