@@ -7,9 +7,6 @@
 #' @slot path The directory in which the files are located
 #' @slot resofs The number of samples in each file.
 #' @slot nChannels Number of recorded channels in the dat files
-#' @examples
-#' df<-new("DatFile")
-#' df<-new("DatFiles",fileName="test.dat",path="~/Documents",nChannels=33)
 DatFiles <- setClass(
   "DatFiles", ## name of the class
   slots=c(fileNames="character",
@@ -20,18 +17,21 @@ DatFiles <- setClass(
   prototype = list(fileNames="",path="",nChannels=0))
 
 
-
-### datFilesSet ###
-setGeneric(name="datFilesSet",
-           def=function(df,fileNames,path,nChannels)
-           {standardGeneric("datFilesSet")}
-)
 #' Function to set the parameters of a DatFile object
 #' @param df A DatFiles object
 #' @param fileNames A character vector containing the names of the .dat files
 #' @param path A directory where the files are located
 #' @param nChannels The number of channels in the dat files
 #' @return A DatFiles object with the values set.
+#'
+setGeneric(name="datFilesSet",
+           def=function(df,fileNames,path,nChannels)
+           {standardGeneric("datFilesSet")}
+)
+
+#' @rdname datFilesSet-methods
+#' @aliases datFilesSet,ANY,ANY-method
+#' 
 setMethod(f="datFilesSet",
           signature="DatFiles",
           definition=function(df,fileNames="",path="",nChannels=0)
@@ -48,11 +48,6 @@ setMethod(f="datFilesSet",
             df@nChannels=nChannels
             return(df)                        
           })
-
-setGeneric(name="datFilesGetOneChannel",
-           def=function(df,channelNo,firstSample,lastSample)
-           {standardGeneric("datFilesGetOneChannel")}
-)
 #' Function to read the data from a group of dat files
 #' 
 #' 
@@ -62,6 +57,13 @@ setGeneric(name="datFilesGetOneChannel",
 #' @param lastSample Last sample to retrieve
 #' @return A integer vector containing the data read from the dat files.
 #' @aliases datFilesGetOneChannel
+setGeneric(name="datFilesGetOneChannel",
+           def=function(df,channelNo,firstSample,lastSample)
+           {standardGeneric("datFilesGetOneChannel")}
+)
+
+#' @rdname datFilesGetOneChannel-methods
+#' @aliases datFilesGetOneChannel,ANY,ANY-method
 setMethod(f="datFilesGetOneChannel",
           signature="DatFiles",
           definition=function(df,channelNo,firstSample,lastSample)

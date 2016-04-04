@@ -21,11 +21,26 @@ ElectroProject <- setClass(
           sessionList="list"),
   prototype = list(directory=""))
 
-### setSessionList ###
+
+
+
+#' Create a list of RecSession objects for the ElectroProject
+#'
+#' Will list directories in the project directories
+#' The one with a hyphen will be considered recSession directories.
+#' loadRecSession will be called on each recSession object
+#'
+#' @param ep ElectroProject object
+#' @return ElectroProject object with RecSession loaded
+#' 
+#' @docType methods
+#' @rdname setSessionList-methods
 setGeneric(name="setSessionList",
            def=function(ep)
            {standardGeneric("setSessionList")}
 )
+#' @rdname setSessionList-methods
+#' @aliases setSessionList,ANY,ANY-method
 setMethod(f="setSessionList",
           signature="ElectroProject",
           definition=function(ep)
@@ -54,26 +69,21 @@ setMethod(f="setSessionList",
           })
 
 
-### show ###
-setMethod("show", "ElectroProject",
-          function(object){
-            print(paste("directory:",object@directory))
-            print(paste("nSessions:",object@nSessions))
-            print(paste("sessionNameList:"))
-            print(object@sessionNameList)
-            m<-matrix(c(sapply(ep@sessionList,getIsClustered),sapply(ep@sessionList,getIsEarlyProcessed)),ncol=2)
-            print(paste("Clustered sessions:",sum(m[,1])))
-            print(object@sessionNameList[m[,1]])
-            print(paste("Not clustered, but early processed sessions:",length(which(m[,1]==F&m[,2]==T))))
-            print(object@sessionNameList[which(m[,1]==F&m[,2]==T)])
-            print(paste("Not early processed sessions:", length(which(m[,1]==F&m[,2]==F))))
-            print(object@sessionNameList[which(m[,1]==F&m[,2]==F)])
-          })
 
+#' Return a list of clustered RecSession objects
+#'
+#'
+#' @param ep ElectroProject object
+#' @return list of clustered RecSession objects
+#' 
+#' @docType methods
+#' @rdname getClusteredSessionList-methods
 setGeneric(name="getClusteredSessionList",
            def=function(ep)
            {standardGeneric("getClusteredSessionList")}
 )
+#' @rdname getClusteredSessionList-methods
+#' @aliases getClusteredSessionList,ANY,ANY-method
 setMethod(f="getClusteredSessionList",
           signature="ElectroProject",
           definition=function(ep)
@@ -157,3 +167,20 @@ setMethod(f="runOnSessionList",
              }
            }
          })
+
+### show ###
+setMethod("show", "ElectroProject",
+          function(object){
+            print(paste("directory:",object@directory))
+            print(paste("nSessions:",object@nSessions))
+            print(paste("sessionNameList:"))
+            print(object@sessionNameList)
+            m<-matrix(c(sapply(ep@sessionList,getIsClustered),sapply(ep@sessionList,getIsEarlyProcessed)),ncol=2)
+            print(paste("Clustered sessions:",sum(m[,1])))
+            print(object@sessionNameList[m[,1]])
+            print(paste("Not clustered, but early processed sessions:",length(which(m[,1]==F&m[,2]==T))))
+            print(object@sessionNameList[which(m[,1]==F&m[,2]==T)])
+            print(paste("Not early processed sessions:", length(which(m[,1]==F&m[,2]==F))))
+            print(object@sessionNameList[which(m[,1]==F&m[,2]==F)])
+          })
+
