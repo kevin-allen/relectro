@@ -14,21 +14,24 @@ void meanFiringRate(int* cells, // cells of interest
 		    int sampling_rate,
 		    double* rate)
 {
+  set_array_to_value_double(rate,cell_lines,0);
+  
   // count the spikes in intervals
   for (int j = 0; j < interval_lines ; j++)
     for (int i = 0; i < cell_lines; i++)
-      {
-	for (int x = start_interval_index[j]; x <= end_interval_index[j]; x++)
-	  if (clu[x] == cells[i])
-	    rate[i]++;
-      }
+    {
+      for (int x = start_interval_index[j]; x <= end_interval_index[j]; x++)
+        if (clu[x] == cells[i])
+          rate[i]++;
+    }
   int time_res=0;
   double time_sec=0;
   for (int i = 0; i < interval_lines ; i++)
     time_res = time_res + (end_interval[i]-start_interval[i]);
   time_sec = (double)time_res/(double)sampling_rate; // in hz
-  for (int i = 0; i < cell_lines; i++)
+  for (int i = 0; i < cell_lines; i++){
     rate[i]=rate[i]/time_sec;
+  }
   return;
 }
 
@@ -64,15 +67,6 @@ SEXP meanFiringRate_cwrap(SEXP cell_list_r,
   int interval_lines;
   int sampling_rate;
   
-  // protect R object created in c code so that R does not delete them
-  PROTECT(cell_list_r=AS_INTEGER(cell_list_r));
-  PROTECT(clu_r=AS_INTEGER(clu_r));
-  PROTECT(res_r=AS_INTEGER(res_r));
-  PROTECT(start_interval_r=AS_INTEGER(start_interval_r));
-  PROTECT(end_interval_r=AS_INTEGER(end_interval_r));
-  PROTECT(start_interval_index_r=AS_INTEGER(start_interval_index_r));
-  PROTECT(end_interval_index_r=AS_INTEGER(end_interval_index_r));
- 
   /* // coersion */
   cell_list=INTEGER_POINTER(cell_list_r);
   cell_list_lines=INTEGER_VALUE(cell_list_lines_r); //get an integer
@@ -86,11 +80,10 @@ SEXP meanFiringRate_cwrap(SEXP cell_list_r,
   interval_lines=INTEGER_VALUE(interval_lines_r);
   sampling_rate=INTEGER_VALUE(sampling_rate_r);
   
-
   // prepare a SEXP object with the data from the histogram
   SEXP out = PROTECT(allocVector(REALSXP, cell_list_lines));
   // allocate memory for histo
-  double* rate = (double*)malloc(cell_list_lines*sizeof(double));
+  double* rate = REAL(out);
   // call the c function from electrophys library
   meanFiringRate(cell_list, // cells of interest
 		 cell_list_lines,
@@ -104,12 +97,8 @@ SEXP meanFiringRate_cwrap(SEXP cell_list_r,
 		 interval_lines,
 		 sampling_rate,
 		 rate);
-  // copy the results in a SEXP
-  for(int i = 0; i < cell_list_lines;i++)
-    REAL(out)[i]=rate[i];
   //free memory for rate
-  free(rate);
-  UNPROTECT(8);
+  UNPROTECT(1);
   return(out);
 }
 

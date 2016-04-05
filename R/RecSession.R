@@ -34,7 +34,6 @@ setMethod(f="loadRecSession",
           signature="RecSession",
           definition=function(rs)
           {
-            
             if(rs@session=="")
               stop("rs@session is empty")
             if(rs@path=="")
@@ -62,27 +61,31 @@ setMethod(f="loadRecSession",
             max.channelsTetrode<-max(unlist(lapply(chan,length))-1)
             rs@channelsTetrode<-matrix(nrow=rs@nElectrodes,ncol=max.channelsTetrode)
             
-            for(i in 1:rs@nElectrodes)
-              rs@channelsTetrode[i,]<-as.numeric(chan[[i]][-1])
-            
+            for(i in 1:rs@nElectrodes){
+              l1<-length((rs@channelsTetrode[i,]))
+              l2<-length((as.numeric(chan[[i]][-1])))
+              if(l2>l1)
+                stop(paste("loadRecSession, problem with number of channels on a tetrode",rs@session))
+              rs@channelsTetrode[i,1:l2]<-as.numeric(chan[[i]][-1])
+            }
             if(file.exists(paste(rs@fileBase,"desen",sep="."))){
               rs@env<-as.character(read.table(paste(rs@fileBase,"desen",sep="."))$V1)
               if(length(rs@env)!=length(rs@trialNames))
-                stop("Problem with length of par and desen files")
+                stop(paste("loadRecSession, problem with length of par and desen files",rs@session))
             }
             if(file.exists(paste(rs@fileBase,"desel",sep="."))){
                 rs@electrodeLocation<-as.character(read.table(paste(rs@fileBase,"desel",sep="."))$V1)
               if(rs@nElectrodes!=length(rs@electrodeLocation))
-                stop("Problem with length of par and desel files")
+                stop(paste("loadRecSession, problem with length of par and desel files",rs@session))
             }
             
             if(rs@nTrials!=length(rs@trialNames))
-              stop("Problem with number of trials in par file")
+              stop(paste("loadRecSession, problem with number of trials in par file",rs@session))
 
             if(file.exists(paste(rs@fileBase,"sampling_rate_dat",sep="."))){
               rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1
               if(rs@samplingRate<1 | rs@samplingRate > 100000)
-                stop(paste("samplingRate is out of range:",rs@samplingRate))
+                stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }
             
             ## if early process was run on this one, get more informaiton
@@ -91,7 +94,7 @@ setMethod(f="loadRecSession",
               ## read the resofs file  
               rs@resofs<-read.table(paste(rs@fileBase,"resofs",sep="."))$V1
               if(length(rs@resofs)!=rs@nTrials)
-                stop("Problem with length of resofs")
+                stop(paste("loadRecSession, problem with length of resofs",rs@session))
               ## trial times
               rs@trialStartRes<-c(0,rs@resofs[-length(rs@resofs)])
               rs@trialEndRes<-rs@resofs

@@ -23,7 +23,8 @@ DatFiles <- setClass(
 #' @param path A directory where the files are located
 #' @param nChannels The number of channels in the dat files
 #' @return A DatFiles object with the values set.
-#'
+#' @docType methods
+#' @rdname datFilesSet-methods
 setGeneric(name="datFilesSet",
            def=function(df,fileNames,path,nChannels)
            {standardGeneric("datFilesSet")}
@@ -56,7 +57,8 @@ setMethod(f="datFilesSet",
 #' @param firstSample First sample to retrieve
 #' @param lastSample Last sample to retrieve
 #' @return A integer vector containing the data read from the dat files.
-#' @aliases datFilesGetOneChannel
+#' @docType methods
+#' @rdname datFilesGetOneChannel-methods
 setGeneric(name="datFilesGetOneChannel",
            def=function(df,channelNo,firstSample,lastSample)
            {standardGeneric("datFilesGetOneChannel")}

@@ -310,17 +310,17 @@ setMethod(f="meanFiringRate",
           {
             # call cwrapper function
             st@meanFiringRate<- .Call("meanFiringRate_cwrap",
-                            st@cellList,
-                            length(st@cellList),
-                            st@clu,
-                            st@res,
-                            st@nSpikes,
-                            st@startInterval,
-                            st@endInterval,
-                            st@startResIndexc,
-                            st@endResIndexc,
-                            length(st@startResIndexc),
-                            st@samplingRate)
+                                      as.integer(st@cellList),
+                                      length(st@cellList),
+                                      as.integer(st@clu),
+                                      as.integer(st@res),
+                                      as.integer(st@nSpikes),
+                                      as.integer(st@startInterval),
+                                      as.integer(st@endInterval),
+                                      as.integer(st@startResIndexc),
+                                      as.integer(st@endResIndexc),
+                                      length(st@startResIndexc),
+                                      as.integer(st@samplingRate))
             return(st)
           }
 )
@@ -341,10 +341,8 @@ setMethod(f="setIntervals",
               if(dim(s)[2]!=2){
                 stop("matrix should have 2 columns")
               }
-              
               startIntervals<-as.numeric(s[,1])
               endIntervals<-as.numeric(s[,2])
-              
             }else{
               startIntervals<-s
               endIntervals<-e

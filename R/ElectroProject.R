@@ -18,6 +18,7 @@ ElectroProject <- setClass(
           resultsDirectory="character",
           nSessions="numeric",
           sessionNameList="character",
+          sessionPathList="character",
           sessionList="list"),
   prototype = list(directory=""))
 
@@ -28,22 +29,22 @@ ElectroProject <- setClass(
 #'
 #' Will list directories in the project directories
 #' The one with a hyphen will be considered recSession directories.
-#' loadRecSession will be called on each recSession object
 #'
 #' @param ep ElectroProject object
-#' @return ElectroProject object with RecSession loaded
+#' @param loadSessions logical, whether the RecSession object should be created
+#' @return ElectroProject object with a list of session names and directories
 #' 
 #' @docType methods
 #' @rdname setSessionList-methods
 setGeneric(name="setSessionList",
-           def=function(ep)
+           def=function(ep,loadSessions=TRUE)
            {standardGeneric("setSessionList")}
 )
 #' @rdname setSessionList-methods
 #' @aliases setSessionList,ANY,ANY-method
 setMethod(f="setSessionList",
           signature="ElectroProject",
-          definition=function(ep)
+          definition=function(ep,loadSessions=TRUE)
           {
             if(ep@directory=="")
               stop("ep@directory not set")
@@ -54,19 +55,76 @@ setMethod(f="setSessionList",
             dirs<-list.dirs(path=ep@directory)
             
             ## only keep the directory with a hyphen in the name
-            dirs<-dirs[grepl(pattern="-",dirs)]
+            ep@sessionPathList<-dirs<-dirs[grepl(pattern="-",dirs)]
+            ep@sessionPathList
             ep@nSessions<-length(dirs)
             
-            dirDepth<-length(strsplit(dirs,split="/")[[1]])
-            ep@sessionNameList<-unlist(strsplit(dirs,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
-              
-            for (i in 1:length(dirs))
-            {
-              ep@sessionList[i]<-new("RecSession",session=ep@sessionNameList[i],path=dirs[i])
+            ## make sure all directories have the same depth
+            x<-sapply(ep@sessionPathList,function(x){length(unlist(strsplit(x,split="/")))})
+            if(any(x!=x[1])){
+              stop("the depth of some session directories differs")
             }
-          ep@sessionList<-lapply(ep@sessionList,loadRecSession)  
-          return(ep)
+            
+            dirDepth<-as.numeric(x[1])
+            ep@sessionNameList<-unlist(strsplit(dirs,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
+            if(loadSessions){
+              loadSessionsInList(ep)
+            }
+            return(ep)
           })
+
+
+#' Create a List of RecSessions objects from the SessionNameList
+#' 
+#' The RecSession objects will be initialized
+#'
+#' @param ep ElectroProject object
+#' @return ElectroProject object with RecSession loaded
+#' 
+#' @docType methods
+#' @rdname setSessionList-methods
+setGeneric(name="loadSessionsInList",
+           def=function(ep)
+           {standardGeneric("loadSessionsInList")}
+)
+#' @rdname loadSessionsInList-methods
+#' @aliases loadSessionsInList,ANY,ANY-method
+setMethod(f="loadSessionsInList",
+          signature="ElectroProject",
+          definition=function(ep)
+          {
+            if(ep@directory=="")
+              stop("ep@directory not set")
+            
+            if(length(ep@sessionNameList)==0)
+              stop("ep@sessionNameList has length of 0")
+            if(length(ep@sessionPathList)==0)
+              stop("ep@sessionPathList has length of 0")
+            
+            for (i in 1:length(ep@sessionNameList))
+            {
+              ep@sessionList[i]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])
+            }
+            ep@sessionList<-lapply(ep@sessionList,loadRecSession)     
+            
+            return(ep)
+          })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -173,14 +231,17 @@ setMethod("show", "ElectroProject",
           function(object){
             print(paste("directory:",object@directory))
             print(paste("nSessions:",object@nSessions))
-            print(paste("sessionNameList:"))
-            print(object@sessionNameList)
-            m<-matrix(c(sapply(ep@sessionList,getIsClustered),sapply(ep@sessionList,getIsEarlyProcessed)),ncol=2)
-            print(paste("Clustered sessions:",sum(m[,1])))
-            print(object@sessionNameList[m[,1]])
-            print(paste("Not clustered, but early processed sessions:",length(which(m[,1]==F&m[,2]==T))))
-            print(object@sessionNameList[which(m[,1]==F&m[,2]==T)])
-            print(paste("Not early processed sessions:", length(which(m[,1]==F&m[,2]==F))))
-            print(object@sessionNameList[which(m[,1]==F&m[,2]==F)])
+            if(length(object@sessionNameList)!=0){
+              print(paste("sessionNameList:"))
+              print(object@sessionNameList)
+              if(length(object@sessionList)!=0){
+                m<-matrix(c(sapply(object@sessionList,getIsClustered),sapply(object@sessionList,getIsEarlyProcessed)),ncol=2)
+                print(paste("Clustered sessions:",sum(m[,1])))
+                print(object@sessionNameList[m[,1]])
+                print(paste("Not clustered, but early processed sessions:",length(which(m[,1]==F&m[,2]==T))))
+                print(object@sessionNameList[which(m[,1]==F&m[,2]==T)])
+                print(paste("Not early processed sessions:", length(which(m[,1]==F&m[,2]==F))))
+                print(object@sessionNameList[which(m[,1]==F&m[,2]==F)])
+              }
+            }
           })
-
