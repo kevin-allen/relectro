@@ -101,7 +101,8 @@ setMethod(f="loadRecSession",
               rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
               rs@sessionDurationSec<-sum(rs@trialDurationSec)
             }
-            if(file.exists(paste(rs@fileBase,"clu",sep="."))) rs@clustered=T
+            if(file.exists(paste(rs@fileBase,"clu",sep="."))&
+               file.exists(paste(rs@fileBase,"res",sep="."))) rs@clustered=T
             
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))rs@earlyProcessed=T
             return(rs)

@@ -112,22 +112,6 @@ setMethod(f="loadSessionsInList",
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #' Return a list of clustered RecSession objects
 #'
 #'
@@ -150,6 +134,65 @@ setMethod(f="getClusteredSessionList",
               stop("ep@directory not set")
             return(ep@sessionList[sapply(ep@sessionList,getIsClustered)])
           })
+
+
+
+
+#' Return a list of RecSession objects that have some common properties
+#'
+#'
+#' @param ep ElectroProject object
+#' @param clustered logical indicating whether the session should be clustered or not
+#' @param region Set to a given brain region to select only sessions with tetrodes in this brain region
+#' @param env Set to a given environment code to select only sessions during which this environment was presented
+#' @return list of RecSession objects
+#' 
+#' @docType methods
+#' @rdname getSessionList-methods
+setGeneric(name="getSessionList",
+           def=function(ep,clustered="",region="",env="")
+           {standardGeneric("getSessionList")}
+)
+#' @rdname getSessionList-methods
+#' @aliases getSessionList,ANY,ANY-method
+setMethod(f="getSessionList",
+          signature="ElectroProject",
+          definition=function(ep,clustered="",region="",env="")
+          {
+            if(ep@directory=="")
+              stop("ep@directory not set")
+            if(length(ep@sessionList)==0)
+              stop("sp@sessionList has a length of 0")
+            myList<-ep@sessionList
+            length(myList)
+            if(clustered==T)
+              myList<-myList[sapply(myList,getIsClustered)]
+            length(myList)
+            if(region!=""){
+              myList<-myList[sapply(myList,containsElectrodeLocation,location=region)]
+            }
+            if(env!=""){
+              myList<-myList[sapply(myList,containsEnvironment,environment=env)]
+            }
+            return(myList)
+          })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
 #' Running a function on a set of recording sessions
 #'
