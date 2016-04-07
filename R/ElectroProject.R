@@ -3,12 +3,19 @@
 ############################################
 #' A S4 class to represent an electrophysiological project containing several recording sessions.
 #' 
-#' An ElectroProject object can be used to run programs on several recording sessions.
-#' It contains a list of recording sessions. You can call lapply to run a function on each recording session.
-#' If you want to speed up things, you can try parLapply of the snow package.
-#' It can also be used to give you an overview of the progress during the data acquisition period.
+#' An ElectroProject object contains a group of RecSession objects. It can be used to run functions on several recording sessions.
 #' 
-#' @slot directory A path to a directory tree where the recording sessions can be found
+#' It assumes that your data are organized in a specific way on your hard drive.
+#' There should be a top directory containing one directory for each subject of the experiment.
+#' Within each subject directory, there should be a directory for each recording session with this subject.
+#' By convention, the names of the session directories contain at least one hyphen.
+#' There should be no other directories with a hyphen in their names.
+#' 
+#' This object can be used to get an overview of the progress during the data acquisition period.
+#' 
+#' Two useful methods are getSessionList and runOnSessionList
+#' 
+#' @slot directory Top directory of the project
 #' @slot nSessions Number of recording sessions in the project
 #' @slot sessionNameList Name of the recording sessions
 #' @slot sessionList List of RecSession objects.
@@ -28,7 +35,7 @@ ElectroProject <- setClass(
 #' Create a list of RecSession objects for the ElectroProject
 #'
 #' Will list directories in the project directories
-#' The one with a hyphen will be considered recSession directories.
+#' Only directories with an hyphen in their names are considered recSession directories.
 #'
 #' @param ep ElectroProject object
 #' @param loadSessions logical, whether the RecSession object should be created
@@ -136,8 +143,6 @@ setMethod(f="getClusteredSessionList",
           })
 
 
-
-
 #' Return a list of RecSession objects that have some common properties
 #'
 #'
@@ -176,21 +181,6 @@ setMethod(f="getSessionList",
             }
             return(myList)
           })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
  

@@ -275,7 +275,7 @@ Here is an example of a project we have. Normally you would create it with `ep<-
 ```{r electroProject}
   load(paste(datadir,"ep",sep="/"))
   ep
-  rss<-getClusteredSessionList(ep)
+  rss<-getSessionList(ep,clustered=T,region="mec",env="lt")
   oneRs<-rss[[11]] ## get a particular session from the list
   oneRs
 ```
@@ -301,7 +301,6 @@ You can do all sorts of analysis in your function. I usually return a list of da
 
 To simplify the process process of running functions on a list of session, there is a function called `runOnSessionList`. Have a look at the help to know how it works.
 ```{r runOnSessionList}
-?runOnSessionList
 ep@resultsDirectory<-"/tmp"
 runOnSessionList(ep,sessionList=rss,fnct=myFunction,save=T,overwrite=T,parallel=F)
 ```
