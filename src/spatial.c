@@ -254,7 +254,7 @@ void spike_position_no_interval(double *x_whl,
 	  whl_index = (res[i] / res_samples_per_whl_sample) - 1;
 	  if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
 	    {
-	      printf("whl file is too small for some res values:%d\n",res[i]);
+	      Rprintf("whl file is too small for some res values:%d\n",res[i]);
 	    }
 	  residual = res[i] % res_samples_per_whl_sample;
 	  // spikes before the first frame capture
@@ -306,7 +306,7 @@ SEXP speed_intervals_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_samples_per_
 				       REAL(max_speed_r)[0]);
   if(interval_lines<1)
     {
-      printf("speed_intervals_cwrap: number of intervals < 1");
+      Rprintf("speed_intervals_cwrap: number of intervals < 1");
       return(R_NilValue);
     }
   int* start = (int*)malloc(interval_lines*sizeof(int));
@@ -593,7 +593,7 @@ SEXP direction_intervals_cwrap(SEXP direction_r, SEXP whl_lines_r, SEXP res_samp
                                             INTEGER_VALUE(target_direction_r));
   if(interval_lines<1)
   {
-    printf("direction_intervals_cwrap: number of intervals < 1");
+    Rprintf("direction_intervals_cwrap: number of intervals < 1");
     return(R_NilValue);
   }
   int* start = (int*)malloc(interval_lines*sizeof(int));
@@ -723,7 +723,7 @@ void spike_position(double *x_whl,
 	      whl_index = (res[i] / res_samples_per_whl_sample) - 1;
 	      if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
 		{
-		  printf("whl file is too small for some res value\n");
+		  Rprintf("whl file is too small for some res value\n");
 		}
 	      residual = res[i] % res_samples_per_whl_sample;
 	      // spikes before the first frame capture
@@ -2204,7 +2204,7 @@ void map_rotate(double* map,
   
   if (deg < 0 || deg > 360)
     {
-      printf("deg needs to be between 0 and 360 in map_rotate\n");
+      Rprintf("deg needs to be between 0 and 360 in map_rotate\n");
       return ;
     }
   new_map = (double*)malloc(map_size*sizeof(double));
@@ -2449,7 +2449,7 @@ double gridness_score(double* one_auto_map,
   
   if(max_radius<=min_radius)
     {
-     // printf("max_radius: %lf, min_radius: %lf, min_radius adjusted to %lf\n", max_radius, min_radius, max_radius/2);
+     // Rprintf("max_radius: %lf, min_radius: %lf, min_radius adjusted to %lf\n", max_radius, min_radius, max_radius/2);
       min_radius=max_radius/2;
     }
 
@@ -3352,7 +3352,7 @@ void spike_head_direction(double *hd_whl,
 	      whl_index = (res[i] / res_samples_per_whl_sample) - 1;
 	      if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
 		{
-		  printf("whl file is too small for some res value\n");
+		  Rprintf("whl file is too small for some res value\n");
 		}
 	      residual = res[i] % res_samples_per_whl_sample;
 	      // spikes before the first frame capture
@@ -3912,8 +3912,8 @@ void autocorrelation_doughnut(double* one_auto_map,
   min_radius=radius[0]/pixels_per_bin; 
   if (min_radius >= auto_num_bins_x/4 || min_radius >= auto_num_bins_y/4)
   {
-    printf("autocorrelation_doughnut\n");
-    printf("radius of central field was as big as the map\n");
+    Rprintf("autocorrelation_doughnut\n");
+    Rprintf("radius of central field was as big as the map\n");
     min_radius=min_radius/2;
   }
   max_radius=0;
@@ -4089,8 +4089,8 @@ void autocorrelation_doughnut_rotate(double* one_auto_map,
   min_radius=radius[0]/pixels_per_bin; 
   if (min_radius >= auto_num_bins_x/4 || min_radius >= auto_num_bins_y/4)
   {
-    printf("autocorrelation_doughnut\n");
-    printf("radius of central field was as big as the map\n");
+    Rprintf("autocorrelation_doughnut\n");
+    Rprintf("radius of central field was as big as the map\n");
     min_radius=min_radius/2;
   }
   max_radius=0;
@@ -4223,7 +4223,7 @@ void spike_position_1d(double *x_whl,
         whl_index = (res[i] / res_samples_per_whl_sample) - 1;
         if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
         {
-          printf("whl file is too small for some res value\n");
+          Rprintf("whl file is too small for some res value\n");
         }
         residual = res[i] % res_samples_per_whl_sample;
         // spikes before the first frame capture

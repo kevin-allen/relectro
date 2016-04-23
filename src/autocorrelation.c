@@ -237,7 +237,7 @@ SEXP autocorrelation_cwrap(SEXP cell_list_r,
   // might want to check the arguments here
   if(probability!=0&probability!=1)
     {
-      printf("probability needs to be 0 or 1 but was %d\n",probability);
+      Rprintf("probability needs to be 0 or 1 but was %d\n",probability);
       UNPROTECT(5);
       return(R_NilValue);
     }

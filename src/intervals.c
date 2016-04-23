@@ -54,8 +54,8 @@ void res_index_for_intervals(int* interval_lines,
     if (invalid_int>0)
     {
       // this assumes that the intervals are chronologically ordered
-      printf("start of an interval is larger than largest res value\n");
-      printf("%d intervals have been eliminated\n",invalid_int);
+      Rprintf("start of an interval is larger than largest res value\n");
+      Rprintf("%d intervals have been eliminated\n",invalid_int);
     }
   }
   
@@ -227,7 +227,7 @@ SEXP resWithinIntervals(SEXP interval_lines_r,
   int* res = INTEGER_POINTER(res_r);
   SEXP results;
 
-  //  printf("res_lines: %d, interval_lines: %d\n",res_lines,interval_lines);
+  //  Rprintf("res_lines: %d, interval_lines: %d\n",res_lines,interval_lines);
   PROTECT(results = allocVector(INTSXP,res_lines));
   
   for(int i = 0; i < res_lines; i++){
@@ -236,7 +236,7 @@ SEXP resWithinIntervals(SEXP interval_lines_r,
 
   for(int i = 0; i < res_lines; i++)
     for(int j = 0; j < interval_lines;j++){
-      //    printf("res index: %d, interval index: %d\n",i,j);
+      //    Rprintf("res index: %d, interval index: %d\n",i,j);
       if(res[i]>=start[j]&&res[i]<=end[j])
 	{
 	  INTEGER(results)[i]=1;
@@ -310,7 +310,7 @@ int num_intervals_after_joining_AND(int* start_1,
       if ((start_2[j]>=start_1[i] && start_2[j] < end_1[i]) ||
           (start_1[i]>=start_2[j] && start_1[i] < end_2[j]))
       {
-     //   printf("i: %d, j: %d, start_1: %d, end_1: %d, start_2: %d, end_2: %d\n",i,j,start_1[i],end_1[i],start_2[j],end_2[j]);
+     //   Rprintf("i: %d, j: %d, start_1: %d, end_1: %d, start_2: %d, end_2: %d\n",i,j,start_1[i],end_1[i],start_2[j],end_2[j]);
         num_intervals++;
       }
     }
@@ -386,9 +386,9 @@ SEXP joinIntervalsAND_cwrap(SEXP s1_r,
   
   join_adjacent_intervals(s1, e1, &l1);
   join_adjacent_intervals(s2, e2, &l2);
-  //printf("Number of intervals after join_adjacent_intervals, l1: %d l2: %d\n",l1,l2);
+  //Rprintf("Number of intervals after join_adjacent_intervals, l1: %d l2: %d\n",l1,l2);
   l3=num_intervals_after_joining_AND(s1, e1,l1, s2, e2, l2);
-  //printf("num_intervals_after_joining_AND: %d\n",l3);
+  //Rprintf("num_intervals_after_joining_AND: %d\n",l3);
   if(l3<1) return(R_NilValue);
   s3 = (int*) malloc(sizeof(int)*l3);
   e3 = (int*) malloc(sizeof(int)*l3);

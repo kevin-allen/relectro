@@ -1,6 +1,26 @@
-#################################################
-#### definition of SpatialProperties2d Class  ###
-#################################################
+#' A S4 class to analyze spatial properties in a 1D environment
+#' 
+#' Use to get firing rate histogram of 1D environment (e.g. linear track).
+#' You can get information scores, sparsity, etc. 
+#' 
+#' @slot session Name of the recording session
+#' @slot cmPerBin Number of cm in each bin of a linear firing rate map, 2 by default
+#' @slot smoothOccupancySd Standard deviation in cm of the gaussian kernel used to smooth the occupancy map, 3 by default
+#' @slot smoothRateHistoSd Standard deviation in cm of the gaussian kernel used to smooth the firing rate histograms, 3 by default
+#' @slot nBinRateHisto Number of bins in the firing rate histograms, set according to the max position value.
+#' @slot xSpikes Position of the animal at each spike time
+#' @slot rateHisto Firing rate histogram of all neurons, stored in an array
+#' @slot occupancy Occupancy histogram
+#' @slot cellList Cell list to analyze
+#' @slot reduceSize Logical, if set to TRUE, position data will be shifted so that the minimum has a value of 0, TRUE by default
+#' @slot peakRate Vector containing the peak firing rates from the firing rate histograms
+#' @slot infoScore Information scores of the firing rate histograms
+#' @slot sparsity Sparsity of the firing rate histograms
+#' @slot nShufflings Number of shufflings to get chance levels, by default 100
+#' @slot minShiftMs Minimum time shift of the position data when doing shuffling
+#' @slot peakRateShuffle peak firing rate in the shuffling analysis
+#' @slot infoScoreShuffle Information score from the shuffling analysis
+#' @slot sparsityShuffle Sparsity from the shuffling analysis
 SpatialProperties1d<- setClass(
   "SpatialProperties1d", ## name of the class
   slots=c(session="character",
@@ -13,11 +33,9 @@ SpatialProperties1d<- setClass(
           occupancy="numeric",
           cellList="numeric",
           reduceSize="logical",
-          ##
           peakRate="numeric",
           infoScore="numeric",
           sparsity="numeric",
-          ##
           nShufflings="numeric",
           minShiftMs="numeric",
           peakRateShuffle="numeric",

@@ -46,7 +46,7 @@ double find_max_double_index(int num_data,double* data, int* index)
   double max;
   if(num_data<=0)
     {
-      printf("find_max: size of array is %d\n", num_data);
+      Rprintf("find_max: size of array is %d\n", num_data);
       max=-1;
       *index=0;
     }
@@ -82,8 +82,8 @@ double degree_to_radian(double degree)
       warning: -1 is invalid*/
   if ( (degree <0 || degree>=360) && (degree != -1))
     {
-      printf("function degree_to_radian(double)\n");
-      printf("(degree<0|| degree>=360)&&degree!=-1: %lf\n", degree);
+      Rprintf("function degree_to_radian(double)\n");
+      Rprintf("(degree<0|| degree>=360)&&degree!=-1: %lf\n", degree);
       return -1;
     }
   if (degree == -1)
@@ -101,8 +101,8 @@ double radian_to_degree(double radian)
   /* return degree */
   if ((radian < 0 || radian > 2*M_PI) && radian != -1)
     {
-      printf("function radian_to_degree(double) \n");
-      printf("(radian[i]<0|| radian[i]>=2*M_PI)&& radian !=-1: %lf\n", radian);
+      Rprintf("function radian_to_degree(double) \n");
+      Rprintf("(radian[i]<0|| radian[i]>=2*M_PI)&& radian !=-1: %lf\n", radian);
       return -1;
     }
   if ( radian == -1)
@@ -121,12 +121,12 @@ void gaussian_kernel(double* kernel,
   /* function to build a 1d gaussian kernel */
   if (size%2==0)
     {
-      printf("size of gaussian kernel should be an odd number\n");
+      Rprintf("size of gaussian kernel should be an odd number\n");
       return;
     }
   if (standard_deviation<=0)
     {
-      printf("standard deviation for gaussian_kernel is <= 0\n");
+      Rprintf("standard deviation for gaussian_kernel is <= 0\n");
       return;
     }
   int x;
@@ -158,7 +158,7 @@ void smooth_double_gaussian(double* array, int array_size, double smooth, double
   */
   if(array_size<=0)
     {
-      printf("in smooth_double_gaussian size of data <=0\n");
+      Rprintf("in smooth_double_gaussian size of data <=0\n");
       return;
     }
   if(smooth==0)
@@ -167,7 +167,7 @@ void smooth_double_gaussian(double* array, int array_size, double smooth, double
     }
   if(smooth<=0)
     {
-      printf("in smooth_double_gaussian standard deviation of gaussian kernel is <= 0\n");
+      Rprintf("in smooth_double_gaussian standard deviation of gaussian kernel is <= 0\n");
       return;
     }
   int num_standard_deviations_in_kernel=3;
@@ -276,12 +276,12 @@ void smooth_double_gaussian_degrees(double* array, int array_size,double smooth,
     {
       if(array[i]!=-1.0&&array[i]<0)
 	{
-	  printf(": function smooth_double_gaussian_degrees, there are values that are not -1 and negative\n");
+	  Rprintf(": function smooth_double_gaussian_degrees, there are values that are not -1 and negative\n");
 	  return;
 	}
       if(array[i]>360)
 	{
-	  printf("function smooth_double_gaussian_degrees, there are values that are larger than 360\n");
+	  Rprintf("function smooth_double_gaussian_degrees, there are values that are larger than 360\n");
 	  return;
 	}
     }
@@ -388,7 +388,7 @@ void smooth_double_gaussian_2d(double* array, int x_size,int y_size, double smoo
   */
   if(x_size<=0 || y_size<=0)
     {
-      printf("in smooth_double_gaussian_2d x_size or y_size of data <=0\n");
+      Rprintf("in smooth_double_gaussian_2d x_size or y_size of data <=0\n");
       return;
     }
   if(smooth==0)
@@ -397,7 +397,7 @@ void smooth_double_gaussian_2d(double* array, int x_size,int y_size, double smoo
     }
   if(smooth<=0)
     {
-      printf("in smooth_double_gaussian_2d standard deviation of gaussian kernel is <= 0\n");
+      Rprintf("in smooth_double_gaussian_2d standard deviation of gaussian kernel is <= 0\n");
       return;
     }
 
@@ -484,7 +484,7 @@ void smooth_double_gaussian_circular(double* array, int array_size, double smoot
   */
   if(array_size<=0)
     {
-      printf("in smooth_double_gaussian_circular size of data <=0\n");
+      Rprintf("in smooth_double_gaussian_circular size of data <=0\n");
       return;
     }
   if(smooth==0)
@@ -493,7 +493,7 @@ void smooth_double_gaussian_circular(double* array, int array_size, double smoot
     }
   if(smooth<=0)
     {
-      printf("in smooth_double_gaussian_circular standard deviation of gaussian kernel is <= 0\n");
+      Rprintf("in smooth_double_gaussian_circular standard deviation of gaussian kernel is <= 0\n");
       return;
     }
   int num_standard_deviations_in_kernel=3;
@@ -539,7 +539,7 @@ void smooth_double_gaussian_circular(double* array, int array_size, double smoot
 		index_value_for_kernel_wrapped=index_value_for_kernel%array_size;
 	      if(index_value_for_kernel_wrapped<0||index_value_for_kernel_wrapped>=array_size)
 		{
-		  printf("in smooth_double_gaussian_circular problem with wrapping function\n");
+		  Rprintf("in smooth_double_gaussian_circular problem with wrapping function\n");
 		  return;
 		}
 	      if(array[index_value_for_kernel]!=invalid)
@@ -599,17 +599,17 @@ void gaussian_kernel_2d(double* kernel,
   /*function to make a 2d gaussian kernel*/
   if (x_size%2==0)
     {
-      printf("in gaussian_kernel_2d, x_size should be an odd number to get a 0 bin\n");
+      Rprintf("in gaussian_kernel_2d, x_size should be an odd number to get a 0 bin\n");
       return;
     }
   if (y_size%2==0)
     {
-      printf("in gaussian_kernel, y_size should be an odd number to get a 0 bin\n");
+      Rprintf("in gaussian_kernel, y_size should be an odd number to get a 0 bin\n");
       return;
     }
   if (standard_deviation<=0)
     {
-      printf("standard deviation for gaussian_kernel is <= 0\n");
+      Rprintf("standard deviation for gaussian_kernel is <= 0\n");
       return;
     }
   int x,y;
@@ -700,8 +700,8 @@ double correlation (double* x, double* y, int size, double invalid)
     r=1.0;
   if (r<-1.0||r>1.0) 
     {
-      printf("problem with correlation function, value of r out of range: %lf\n",r);
-      printf("size: %d n: %d\n",size,n);
+      Rprintf("problem with correlation function, value of r out of range: %lf\n",r);
+      Rprintf("size: %d n: %d\n",size,n);
     }
   return r;
 }
@@ -801,8 +801,8 @@ void circular_stats_rate_histogram(double* histo,
     {
       if (histo[i]<0&&histo[i]!=-1)
 	{
-	  printf("circ_stats_rate_histogram()\n");
-	  printf("a bin of the histo is smaller than 0 but not -1\n");
+	  Rprintf("circ_stats_rate_histogram()\n");
+	  Rprintf("a bin of the histo is smaller than 0 but not -1\n");
 	  return;
 	}
     }

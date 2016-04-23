@@ -1,18 +1,15 @@
 This is a R package to analysis electrophysiological data with R.
 
-If you are starting you might want to look at the vignette or have a look at main.R
+If you are starting you might want to look at the vignette in the vignettes directory.
 
 To build and install the package
 R CMD build relectro
 R CMD INSTALL relectro
-
 
 R object [xdim*y +x]
 C 2d array [ydim*x +y]
 
 
 NEXT STEPS
-
 Add better error message (identify function and session causing the error)
 Add documentation for all classes, methods and functions
-

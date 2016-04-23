@@ -6,7 +6,7 @@
 #' @param cl1 Numeric vector containing a vector of values
 #' @param cl2 Optional argument containing a second vector of values
 #' @return A data.frame containing the pairs
-#' @examples MakePairs(cl1=1:10)
+#' @examples makePairs(cl1=1:10)
 makePairs<-function(cl1="",cl2=NULL){
   if(is.null(cl2)){
     m<-combn(cl1,m=2)
@@ -94,7 +94,7 @@ shift <- function (v, places, dir = "right")
 #' @param timePerSampleRes Time in sample values (from the .dat files) between the position sample
 #' @param minMvMs Minimum shift in ms 
 #' @param samplingRate Sampling rate of the .dat files.
-#' @examples shift.position.vector(x=1:100, timePerSamplesRes=400, minMvMs = 1000, samplingRate=20000)
+#' @examples shiftPositionVector(x=1:100, timePerSampleRes=400, minMvMs = 1000, samplingRate=20000)
 shiftPositionVector<-function(x,
                          timePerSampleRes,
                          minMvMs,
@@ -113,7 +113,7 @@ shiftPositionVector<-function(x,
 #' @param timePerSampleRes Time in sample values (from the .dat files) between the position sample
 #' @param minMvMs Minimum shift in ms 
 #' @param samplingRate Sampling rate of the .dat files.
-#' @examples shift.position.vector(x=1:100,y=201:300, timePerSamplesRes=400, minMvMs = 1000, samplingRate=20000)
+#' @examples shiftPositionVectors(x=1:100,y=201:300, timePerSampleRes=400, minMvMs = 1000, samplingRate=20000)
 shiftPositionVectors<-function(x,y,
                          timePerSampleRes,
                          minMvMs,

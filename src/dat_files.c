@@ -30,7 +30,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   file_lines = LENGTH(file_names_r);
   if(file_lines>MAXNUMBERFILES)
     {
-      printf("Number of files is larger than %d\n",MAXNUMBERFILES);
+      Rprintf("Number of files is larger than %d\n",MAXNUMBERFILES);
       UNPROTECT(1);
       return(R_NilValue);
     }
@@ -39,17 +39,17 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   for (i=0; i<file_lines; i++) {
     if((data_file_names[i]=malloc(strlen( CHAR(STRING_ELT(file_names_r, i))) + 1))==NULL)
       {
-	fprintf(stderr,"group_data_File_si_get_one_channel_cwrap(): problem allocating memory for data_file_names\n");
+	Rprintf("group_data_File_si_get_one_channel_cwrap(): problem allocating memory for data_file_names\n");
 	UNPROTECT(1);
 	return(R_NilValue);
       }
     strcpy(data_file_names[i],CHAR(STRING_ELT(file_names_r, i)));
-    //    printf("%s\n",data_file_names[i]);
+    //    Rprintf("%s\n",data_file_names[i]);
   }
   
   if(init_group_data_file_si(&gdf,data_file_names,file_lines,INTEGER_VALUE(num_channels_r))!=0)
     {
-      printf("problem with init_group_data_file_si\n");
+      Rprintf("problem with init_group_data_file_si\n");
       UNPROTECT(1);
       return (R_NilValue);
     }
@@ -57,7 +57,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   
   if(INTEGER_VALUE(end_index_r) > num_samples)
     {
-      printf("end_index_r > num_samples\n");
+      Rprintf("end_index_r > num_samples\n");
       UNPROTECT(1);
       return (R_NilValue);
     }
@@ -73,7 +73,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   					       INTEGER_VALUE(start_index_r),
   					       INTEGER_VALUE(end_index_r)))!=0)
     {
-      printf("error reading from data file\n");
+      Rprintf("error reading from data file\n");
       UNPROTECT(2);
       return (R_NilValue);
     }
@@ -101,7 +101,7 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,in
   //  allocate memory for data_file_si structures
   if((gdf->file_group=(struct data_file_si*)malloc(sizeof(struct data_file_si)*gdf->num_files))==NULL)
     {
-      fprintf(stderr,"init_group_data_file_si(): problem allocating memory for file_group\n");
+      Rprintf("init_group_data_file_si(): problem allocating memory for file_group\n");
       return 1;
     }
   // initiate all the individual files
@@ -109,14 +109,14 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,in
     {
       if((init_data_file_si(&gdf->file_group[i],file_names[i], gdf->num_channels))!=0)
   	{
-  	  fprintf(stderr,"init_group_data_file_si(): problem init_data_file_si for %s\n",file_names[i]); // is this correct???????
+  	  Rprintf("init_group_data_file_si(): problem init_data_file_si for %s\n",file_names[i]); // is this correct???????
   	  return 1;
   	}
     }
   // allocate memory for the resofs
   if((gdf->resofs=(long*)malloc(sizeof(long)*gdf->num_files))==NULL)
     {
-      fprintf(stderr,"init_group_data_file_si(): problem allocating memory for resofs\n");
+      Rprintf("init_group_data_file_si(): problem allocating memory for resofs\n");
       return 1;
     }
   for (i=0; i < gdf->num_files;i++)
@@ -137,8 +137,8 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,in
       gdf->num_samples_all_files+=gdf->file_group[i].num_samples_in_file;
     }
 
-  //fprintf(stderr,"init_group_data_file_si(): gdf->num_files: %d \n",gdf->num_files);
-  //fprintf(stderr,"init_group_data_file_si(): gdf->num_channels: %d \n",gdf->num_channels);
+  //Rprintf("init_group_data_file_si(): gdf->num_files: %d \n",gdf->num_files);
+  //Rprintf("init_group_data_file_si(): gdf->num_channels: %d \n",gdf->num_channels);
   return 0;
 }
 
@@ -152,17 +152,17 @@ int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int 
   // check that the index given make sense
   if (start_index<0)
     {
-      fprintf(stderr,"group_data_file_si_get_data_one_channel(): start index is smaller than 0: %ld\n",start_index);
+      Rprintf("group_data_file_si_get_data_one_channel(): start index is smaller than 0: %ld\n",start_index);
       return 1;
     }
   if (end_index<start_index)
     {
-      fprintf(stderr,"group_data_file_si_get_data_one_channel(): end index(%ld) is smaller than start index(%ld)\n",end_index,start_index);
+      Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is smaller than start index(%ld)\n",end_index,start_index);
       return 1;
     }
   if(end_index>gdf->num_samples_all_files)
     {
-      fprintf(stderr,"group_data_file_si_get_data_one_channel(): end index(%ld) is larger than the number of samples allfiles(%ld)\n",end_index,gdf->num_samples_all_files);
+      Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is larger than the number of samples allfiles(%ld)\n",end_index,gdf->num_samples_all_files);
       return 1;
     }
   // find the file containing the beginning of data
@@ -196,11 +196,11 @@ int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int 
       
       ptr=one_channel+num_samples_read;
       
-      //  fprintf(stderr,"reading file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
+      //  Rprintf("reading file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
       
       if((data_file_si_get_data_one_channel(&gdf->file_group[file_index], channel_no, ptr, within_file_start_index, within_file_start_index+to_read))!=0)
 	{
-	  fprintf(stderr,"group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
+	  Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
 	}
       num_samples_read+=to_read;
       within_file_start_index=0;
@@ -237,44 +237,44 @@ int init_data_file_si(struct data_file_si *df,const char *file_name, int num_cha
   // allocate memory for df->file_name
   if((df->file_name=(char *)malloc(strlen(file_name)+1))==NULL)
     {
-      fprintf(stderr,"init_data_file_si(): problem allocating memory for file_name\n");
+      Rprintf("init_data_file_si(): problem allocating memory for file_name\n");
       return 1;
     }
   strcpy(df->file_name,file_name);  // copy the file_name
   df->num_channels=num_channels; // get number of channels
   if (df->num_channels<=0)
     {
-      fprintf(stderr,"init_data_file_si(): number of channels is 0 or less\n");
+      Rprintf("init_data_file_si(): number of channels is 0 or less\n");
       return 1;
     }
   
   // give a warning if size of short is not 2 bytes on this system
   if (sizeof(short int)!=2)
     {
-      fprintf(stderr,"init_data_file_si(): sizeof(short int) on this system is not 2\n");
-      fprintf(stderr,"that might cause problem in reading/writing dat files\n");
+      Rprintf("init_data_file_si(): sizeof(short int) on this system is not 2\n");
+      Rprintf("that might cause problem in reading/writing dat files\n");
     }
   
   // try to open the file
   if((df->file_descriptor=open(file_name,O_RDONLY,0))==-1)
     {
-      fprintf(stderr,"init_data_file_si(): problem opening %s\n",file_name);
+      Rprintf("init_data_file_si(): problem opening %s\n",file_name);
       return 1;
     }
   if((df->file_size=lseek(df->file_descriptor,0L,2))==-1)
     {
-      fprintf(stderr,"init_data_file_si(): problem getting file size\n");
+      Rprintf("init_data_file_si(): problem getting file size\n");
       return 1;
     }
   if(lseek(df->file_descriptor,0L,0)==-1)
     {
-      fprintf(stderr,"init_data_file_si(): problem moving in the file\n");
+      Rprintf("init_data_file_si(): problem moving in the file\n");
       return 1;
     }
   if(df->file_size%(df->num_channels*sizeof(short))!=0)
     {
-      fprintf(stderr,"init_data_file_si(): problem with the size of the file\n");
-      fprintf(stderr,"the size should divide by num_channel*sizeof(short):%d, but is %ld\n",df->num_channels*(int)sizeof(short),(long int)df->file_size);
+      Rprintf("init_data_file_si(): problem with the size of the file\n");
+      Rprintf("the size should divide by num_channel*sizeof(short):%d, but is %ld\n",df->num_channels*(int)sizeof(short),(long int)df->file_size);
       return 1;
     }
   df->num_samples_in_file=df->file_size/(df->num_channels*sizeof(short));
@@ -285,7 +285,7 @@ int init_data_file_si(struct data_file_si *df,const char *file_name, int num_cha
   // allocate memory for data_block
   if((df->data_block=(short *)malloc(df->block_size))==NULL)
     {
-      fprintf(stderr,"init_data_file_si(): problem allocating memory for data_block\n");
+      Rprintf("init_data_file_si(): problem allocating memory for data_block\n");
       return 1;
     }
   return 0;
@@ -294,21 +294,19 @@ int clean_data_file_si(struct data_file_si *df)
 {
   /* function to free memory and close a .dat file after reading it.
    */
-  // fprintf(stderr,"clean_data_file_si()\n");
+  // Rprintf("clean_data_file_si()\n");
   // free memory
 
-  // fprintf(stderr,"free file_name\n");
+  
   if (df->file_name!=NULL)
     free(df->file_name);
-  //fprintf(stderr,"free data_block\n");
   if (df->data_block!=NULL)
     free(df->data_block);
   
   // try to close the file
-  //fprintf(stderr,"close file\n");
   if(close(df->file_descriptor)==-1)
     {
-      fprintf(stderr,"clean_data_file_si(): problem closing file descriptor %d\n",df->file_descriptor);
+      Rprintf("clean_data_file_si(): problem closing file descriptor %d\n",df->file_descriptor);
       return 1;
     }
   return 0;
@@ -323,27 +321,27 @@ int data_file_si_load_block(struct data_file_si* df, long int start_index, long 
   */
   if (size>df->block_size)
     {
-      fprintf(stderr,"data_file_si_load_block(): size is larger than block_size, %ld\n",size);
+      Rprintf("data_file_si_load_block(): size is larger than block_size, %ld\n",size);
       return 1;
     }
   if ( start_index < 0)
     {
-      fprintf(stderr,"data_file_si_load_block(): start index < 0, %ld\n",start_index);
+      Rprintf("data_file_si_load_block(): start index < 0, %ld\n",start_index);
       return 1;
     }
   if (start_index + size > df->file_size)
     {
-      fprintf(stderr,"data_file_si_load_block(): start_index+size > file_size\n");
+      Rprintf("data_file_si_load_block(): start_index+size > file_size\n");
       return 1;
     }
   if(lseek(df->file_descriptor,start_index,SEEK_SET)==-1)
     {
-      fprintf(stderr,"data_file_si_load_block(): problem with lseek\n");
+      Rprintf("data_file_si_load_block(): problem with lseek\n");
       return 1;
     }
   if(read(df->file_descriptor,df->data_block,size)==-1)
     {
-      fprintf(stderr,"data_file_si_load_block(): problem reading the file\n");
+      Rprintf("data_file_si_load_block(): problem reading the file\n");
       return 1;
     }
   return 0;
@@ -356,32 +354,32 @@ int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, s
 
   if(channel_no < 0)
     {
-      fprintf(stderr,"data_file_si_get_data_one_channel(): channel_no < 0\n");
+      Rprintf("data_file_si_get_data_one_channel(): channel_no < 0\n");
       return 1;
     }
   if(channel_no >= df->num_channels)
     {
-      fprintf(stderr,"data_file_si_get_data_one_channel(): channel_no >= num_channels\n");
+      Rprintf("data_file_si_get_data_one_channel(): channel_no >= num_channels\n");
       return 1;
     }
   if (start_index<0)
     {
-      fprintf(stderr,"data_file_si_get_data_one_channel(): start_index < 0\n");
+      Rprintf("data_file_si_get_data_one_channel(): start_index < 0\n");
       return 1;
     }
   if (start_index>df->num_samples_in_file)
     {
-      fprintf(stderr,"data_file_si_get_data_one_channel(): start_index > num_samples\n");
+      Rprintf("data_file_si_get_data_one_channel(): start_index > num_samples\n");
       return 1;
     }
   if(end_index<=start_index)
     {
-      fprintf(stderr,"data_file_si_get_data_one_channel(): start_index <= end_index\n");
+      Rprintf("data_file_si_get_data_one_channel(): start_index <= end_index\n");
       return 1;
     }
   if(end_index>df->num_samples_in_file)
     {
-      fprintf(stderr,"data_file_si_get_data_one_channel(): end_index > num_samples\n");
+      Rprintf("data_file_si_get_data_one_channel(): end_index > num_samples\n");
       return 1;
     }
   int num_samples_to_read=end_index-start_index;
@@ -403,8 +401,8 @@ int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, s
 	{
 	  if(data_file_si_load_block(df,start_index_bytes,df->block_size)!=0)
 	    {
-	      fprintf(stderr,"data_file_si_get_data_one_channel(): problem loading block\n");
-	      fprintf(stderr,"data_file_si_load_block(file,%ld,%d)\n",start_index_bytes,df->block_size);
+	      Rprintf("data_file_si_get_data_one_channel(): problem loading block\n");
+	      Rprintf("data_file_si_load_block(file,%ld,%d)\n",start_index_bytes,df->block_size);
 	      return 1;
 	    }
 	  for (j = 0; j <  df->num_samples_in_complete_block; j++)
@@ -417,7 +415,7 @@ int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, s
 	{
 	  if(data_file_si_load_block(df,start_index_bytes,num_samples_incomplete_block*sizeof(short)*df->num_channels))
 	    {
-	      fprintf(stderr,"data_file_si_get_data_one_channel(): problem loading last block\n");
+	      Rprintf("data_file_si_get_data_one_channel(): problem loading last block\n");
 	      return 1;
 	    }
 	  for (j = 0; j < num_samples_incomplete_block; j++)
@@ -436,22 +434,22 @@ int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data,
 */
   if (start_index<0)
     {
-      fprintf(stderr,"data_file_si_get_data_all_channels(): start_index < 0\n");
+      Rprintf("data_file_si_get_data_all_channels(): start_index < 0\n");
       return 1;
     }
   if (start_index>df->num_samples_in_file)
     {
-      fprintf(stderr,"data_file_si_get_data_all_channels(): start_index > num_samples\n");
+      Rprintf("data_file_si_get_data_all_channels(): start_index > num_samples\n");
       return 1;
     }
   if(end_index<=start_index)
     {
-      fprintf(stderr,"data_file_si_get_data_all_channels(): start_index <= end_index\n");
+      Rprintf("data_file_si_get_data_all_channels(): start_index <= end_index\n");
       return 1;
     }
   if(end_index>df->num_samples_in_file)
     {
-      fprintf(stderr,"data_file_si_get_data_all_channels(): end_index > num_samples\n");
+      Rprintf("data_file_si_get_data_all_channels(): end_index > num_samples\n");
       return 1;
     }
   int num_samples_to_read=end_index-start_index;
@@ -473,7 +471,7 @@ int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data,
 	{
 	  if(data_file_si_load_block(df,start_index_bytes,df->block_size)!=0)
 	    {
-	      fprintf(stderr,"data_file_si_get_data_all_channels(): problem loading block\n");
+	      Rprintf("data_file_si_get_data_all_channels(): problem loading block\n");
 	      return 1;
 	    }
 	  for (j = 0; j < df->block_size/(int)sizeof(short); j++)
@@ -486,7 +484,7 @@ int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data,
 	{
 	  if(data_file_si_load_block(df,start_index_bytes,num_samples_incomplete_block*sizeof(short)*df->num_channels))
 	    {
-	      fprintf(stderr,"data_file_si_get_data_all_channels(): problem loading last block\n");
+	      Rprintf("data_file_si_get_data_all_channels(): problem loading last block\n");
 	      return 1;
 	    }
 	  for (j = 0; j < num_samples_incomplete_block*df->num_channels; j++)

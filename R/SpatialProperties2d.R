@@ -1,6 +1,59 @@
-#################################################
-#### definition of SpatialProperties2d Class  ###
-#################################################
+#' A S4 class to analyze spatial properties in 2D environments
+#' 
+#' Use to get firing rate maps of neurons in an open field.
+#' It can get information scores, sparsity, etc.
+#' You can use it to analyze the firing properties of grid cells or border cells.
+#' Can do some shuffling to get the spatial properties that you would get by chance.
+#' 
+#' @slot session Name of the recording session
+#' @slot cmPerBin Number of cm in each bin of a firing rate map, 2 by default
+#' @slot smoothOccupancySd Standard deviation in cm of the gaussian kernel used to smooth the occupancy map, 3 by default
+#' @slot smoothRateMapSd Standard deviation in cm of the gaussian kernel used to smooth the firing rate histograms, 3 by default
+#' @slot nColMap Number of columns in the firing rate maps
+#' @slot nRowMap Number of rows in the firing rate maps
+#' @slot nColAuto Number of columns in the spatial autocorrelation
+#' @slot nRowAuto Number of rows in the spatial autocorrelation
+#' @slot xSpikes x position of the animal for each spike time
+#' @slot ySpikes y position of the animal for each spike time
+#' @slot maps Array containing the firing rate maps of the neurons
+#' @slot occupancy Matrix containing the occupancy map
+#' @slot autos Array containing the spatial autocorrelation of the firing rate maps
+#' @slot autosDetect Array with the spatial autocorrelation once the firing fields have been removed
+#' @slot autosDoughnut Array with the spatial autocorrelation containing only the ring of the 6 closest fields (excluding central field)
+#' @slot autosDoughnutRotate Array with the rotated spatial autocorrelations
+#' @slot cellList List of cells
+#' @slot reduceSize Logical indicating if the size of map should be minimized by setting smallest x and y to 0
+#' @slot minValidBinsAuto Number of valid bins to calculate a r value in the spatial autocorrelation maps
+#' @slot peakRate Peak firing rates in the maps
+#' @slot infoScore Information score of the firing rate maps
+#' @slot sparsity Sparsity of the firing rate maps
+#' @slot borderScore Border score for each firing rate maps
+#' @slot borderCM Value of CM when calculating the border score
+#' @slot borderDM Value of DM when calculating the border score
+#' @slot borderNumFieldsDetected Number of detected fields when calculating the border score
+#' @slot borderPercentageThresholdField Threshold for a bin being part of a field, expressed as percentage of peak
+#' @slot borderMinBinsInField Minimum number of bins to be considered a field
+#' @slot gridScore Grid score calculated form the spatial autocorrelation
+#' @slot gridOrientation Grid orientation
+#' @slot gridSpacing Grid spacing in cm
+#' @slot gridScoreNumberFieldsToDetect Maximal number of fields that will be detected
+#' @slot gridScoreMinNumBinsPerField Minimum number of bins to be considered a field
+#' @slot gridScoreFieldThreshold Minimum value of firing fields in the spatial autocorrelation map
+#' @slot nAutoRotations Number of rotations when rotating the spatial autocorrelation map
+#' @slot AutoRotationDegree Angle of rotation of the spatial autocorrelation map
+#' @slot speedScore Speed score of the neurons
+#' @slot speedRateSlope Slope of the linear regression line between speed and rate
+#' @slot speedRateIntercept Rate intercept of the linear regression line between speed and rate
+#' @slot nShufflings Number of shufflings to get chance levels, by default 100
+#' @slot minShiftMs Minimum time shift of the position data when doing shuffling
+#' @slot peakRateShuffle peak firing rate in the shuffling analysis
+#' @slot infoScoreShuffle Information score from the shuffling analysis
+#' @slot sparsityShuffle Sparsity from the shuffling analysis
+#' @slot borderScoreShuffle Border score form the shuffling analysis
+#' @slot borderCMShuffle Border CM from the shuffling analysis
+#' @slot borderDMShuffle Border DM from the shuffling analysis
+#' @slot gridScoreShuffle Grid score from the shuffling analysis
+#' @slot speedScoreShuffle Speed score from the shuffling analysis
 SpatialProperties2d<- setClass(
   "SpatialProperties2d", ## name of the class
     slots=c(session="character",
@@ -19,7 +72,6 @@ SpatialProperties2d<- setClass(
             autosDetect="array",
             autosDoughnut="array",
             autosDoughnutRotate="array",
-            spatialAutocorrelation="numeric",
             cellList="numeric",
             reduceSize="logical",
             minValidBinsAuto="numeric",
@@ -59,7 +111,6 @@ SpatialProperties2d<- setClass(
             gridScoreShuffle="numeric",
             speedScoreShuffle="numeric"
             ),
-      
   prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateMapSd=3,minValidBinsAuto=20,reduceSize=T,
                    gridScoreNumberFieldsToDetect=40,gridScoreMinNumBinsPerField=50,gridScoreFieldThreshold=0.1,
                    borderPercentageThresholdField=20,borderMinBinsInField=10,nShufflings=100,minShiftMs=20000,
@@ -106,7 +157,7 @@ setMethod("show", "SpatialProperties2d",
               
           })
 
-#### make firing rate maps 
+
 setGeneric(name="firingRateMap2d",
            def=function(sp,st,pt)
            {standardGeneric("firingRateMap2d")}

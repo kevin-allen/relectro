@@ -19,7 +19,7 @@
 #' @slot meanDirection Mean direction in each firing rate histogram
 #' @slot nShufflings Number of shufflings to get a distribution of vector length that would be obtained by chance
 #' @slot minShiftMs Minimum time shift of the head direction data used during the shuffling procedure
-#' @slot peakRateShuffle Numeric to hold the peak firing rates obtained during the shuffling procedure
+#' @slot peakRatesShuffle Numeric to hold the peak firing rates obtained during the shuffling procedure
 #' @slot vectorLengthShuffle Numeric to hold the vector length obtained during the shuffling procedure
 HeadDirection<- setClass(
   "HeadDirection", ## name of the class
@@ -33,11 +33,9 @@ HeadDirection<- setClass(
           occupancy="numeric",
           cellList="numeric",
           histoRepetitions="numeric", # 0 is only once
-          ## stats
           peakRates="numeric",
           vectorLength="numeric",
           meanDirection="numeric",
-          ##
           nShufflings="numeric",
           minShiftMs="numeric",
           peakRatesShuffle="numeric",

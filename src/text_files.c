@@ -8,7 +8,7 @@ int file_lines(const char* file_name)
   int ch=0;
   int lines=0;
   if (fp == NULL){
-    printf("pf ==NULL\n");
+    Rprintf("pf ==NULL\n");
     return 0;
   }
   while(!feof(fp))
@@ -26,14 +26,14 @@ int read_one_column_int_file(const char* file_name,int* data, int lines)
 {
   FILE *fp = fopen(file_name,"r");
   if (!fp) {
-    printf("problem opening the file\n");
+    Rprintf("problem opening the file\n");
     return 1;
   }
   int ret;
   for(int i = 0; i < lines; i++)
   {
     if(fscanf(fp,"%d\n",&data[i])<1){
-      printf("problem reading the file\n");
+      Rprintf("problem reading the file\n");
       return 1;
     }
   }
@@ -48,7 +48,7 @@ SEXP read_one_column_int_file_cwrap(SEXP file_name_r)
   SEXP out = PROTECT(allocVector(INTSXP,lines));
   int* ptr = INTEGER_POINTER(out);
   if(read_one_column_int_file(file_name,ptr,lines)!=0){
-    printf("problem reading %s\n",file_name);
+    Rprintf("problem reading %s\n",file_name);
     UNPROTECT(1);
     return(R_NilValue);
   }

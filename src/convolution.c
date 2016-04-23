@@ -6,14 +6,14 @@ void convolution_fftw3(double* signal, int signal_size, double* response, int re
 {
   int output_size=signal_size; // size of the vector out
   if(output_size<response_size){
-    printf("convolution_fftw3, output_size set to response_size\n");
+    Rprintf("convolution_fftw3, output_size set to response_size\n");
     output_size=response_size;
   }
   
-  //printf("convolution_fftw3\n");
-  //printf("signal_size: %d\n",signal_size);
-  //printf("response_size: %d\n",response_size);
-  //printf("output_size: %d\n",output_size);
+  //Rprintf("convolution_fftw3\n");
+  //Rprintf("signal_size: %d\n",signal_size);
+  //Rprintf("response_size: %d\n",response_size);
+  //Rprintf("output_size: %d\n",output_size);
 
   double* signal_in;
   double* response_in;
@@ -26,8 +26,8 @@ void convolution_fftw3(double* signal, int signal_size, double* response, int re
   while(in_size2 > pow((double)2,(double)k))
     k++;
   in_size2=pow((double)2,(double)k);
- // printf("convolution in_size1: %d\n",in_size1);
-//  printf("convolution in_size2: %d\n",in_size2);
+ // Rprintf("convolution in_size1: %d\n",in_size1);
+//  Rprintf("convolution in_size2: %d\n",in_size2);
   signal_in = (double*) fftw_malloc(sizeof(double) * in_size2);
   response_in= (double*) fftw_malloc(sizeof(double) * in_size2);
   
@@ -98,7 +98,7 @@ SEXP convolution_fftw3_cwrap(SEXP inA_r,SEXP inA_size_r, SEXP inB_r, SEXP inB_si
   if(output_size<INTEGER_VALUE(inB_size_r))
     output_size=INTEGER_VALUE(inB_size_r);
 
-  printf("convolution_fftw3_cwrap\n");  
+  Rprintf("convolution_fftw3_cwrap\n");  
   SEXP out = PROTECT(allocVector(REALSXP, output_size));
   double* oo = REAL(out);
   convolution_fftw3(REAL(inA_r),INTEGER_VALUE(inA_size_r),REAL(inB_r),INTEGER_VALUE(inB_size_r),oo);

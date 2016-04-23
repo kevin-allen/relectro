@@ -1,6 +1,30 @@
-###############################################
-#### definition of SpikeTrain class         ###
-###############################################
+#' A S4 class to represent spike trains of one recording session
+#' 
+#' Set intervals in this object to limit the analysis to some parts of the 
+#' recording session.
+#' 
+#' @slot session Name of the recording session
+#' @slot path Directory where the recording session is located
+#' @slot samplingRate Sampling rate of the electrophysiological data
+#' @slot res Spike time in sample value
+#' @slot time Spike time in seconds
+#' @slot clu Cluster id for each spike
+#' @slot nCells Number of cells in the recording session
+#' @slot nSpikes Number of spikes in the recording session
+#' @slot nSpikesPerCell Number of spikes for each cell
+#' @slot startInterval Sample values of the beginning of intervals. To limit the analysis to some intervals
+#' @slot endInterval Sample values of the end of intervals
+#' @slot startResIndexc Index in the spike arrays for the start of intervals. Index is for a C array with 0 indexing.
+#' @slot endResIndexc Index in the spike arrays for the start of intervals. Index is for a C array with 0 indexing.
+#' @slot events Time in sample number for some events
+#' @slot cellList Cell list
+#' @slot cellPairList Data frame containing pairs of cells
+#' @slot ifrKernelSdMs Standard deviation of a gaussian kernel used to calculate the instantaneous firing rate
+#' @slot ifrWindowSizeMs Window size of the instantaneous firing rate array
+#' @slot ifrSpikeBinMs Size of the bins in which the number of spikes are counted
+#' @slot ifr Matrix containing the instantaneous firing rate of the neurons
+#' @slot ifrTime Time associated with each window of the instantaneous firing rate
+#' @slot meanFiringRate Mean firing rate of the neurons
 SpikeTrain <- setClass(
   "SpikeTrain", ## name of the class
   slots=c(session="character",
@@ -28,11 +52,21 @@ SpikeTrain <- setClass(
   prototype = list(session="",ifrKernelSdMs=50,ifrWindowSizeMs=50,ifrSpikeBinMs=1))
 
 
-### ifr ###
+
+#' Calculate the instantaneous firing rate from the spike trains
+#'
+#'
+#' @param st SpikeTrain object
+#' @return SpikeTrain object with the instantaneous firing rate
+#' 
+#' @docType methods
+#' @rdname ifr-methods
 setGeneric(name="ifr",
            def=function(st)
            {standardGeneric("ifr")})
 
+#' @rdname ifr-methods
+#' @aliases ifr,ANY,ANY-method
 setMethod(f="ifr",
           signature = "SpikeTrain",
           definition=function(st)
@@ -55,12 +89,20 @@ setMethod(f="ifr",
 )
 
 
-
-### loadSpikeTrain ###
+#' Load the spike train from the .clu and .res files
+#'
+#'
+#' @param st SpikeTrain object
+#' @return SpikeTrain object with the instantaneous firing rate
+#' 
+#' @docType methods
+#' @rdname loadSpikeTrain-methods
 setGeneric(name="loadSpikeTrain",
            def=function(st)
            {standardGeneric("loadSpikeTrain")}
 )
+#' @rdname loadSpikeTrain-methods
+#' @aliases loadSpikeTrain,ANY,ANY-method
 setMethod(f="loadSpikeTrain",
           signature="SpikeTrain",
           definition=function(st)
@@ -71,7 +113,6 @@ setMethod(f="loadSpikeTrain",
             if(st@path=="") ## path is given or is getwd()
               st@path=getwd()
             pathSession=paste(st@path,st@session,sep="/")
-            
             
             if(!file.exists(paste(pathSession,"res",sep=".")))
               stop("need ",paste(pathSession,"res",sep="."))
@@ -114,18 +155,30 @@ setMethod(f="loadSpikeTrain",
           }
 )
 
-### setSpikeTrain ###
+#' Set new spike trains
+#' 
+#' This function is used to set spike trains 
+#'
+#'
+#' @param st SpikeTrain object
+#' @param res Spike times in sample number
+#' @param clu Cluster id for each spike
+#' @param samplingRate The number of spamples per second (Hz)
+#' @return SpikeTrain object with the instantaneous firing rate
+#' 
+#' @docType methods
+#' @rdname setSpikeTrain-methods
 setGeneric(name="setSpikeTrain",
-           def=function(st,...)
+           def=function(st,res,clu,samplingRate)
            {standardGeneric("setSpikeTrain")}
 )
 
-
+#' @rdname setSpikeTrain-methods
+#' @aliases setSpikeTrain,ANY,ANY-method
 setMethod(f="setSpikeTrain",
           signature="SpikeTrain",
           definition=function(st,res,clu,samplingRate)
           {
-            
             st@res<-res
             st@clu<-clu
             st@samplingRate<-samplingRate
@@ -156,17 +209,29 @@ setMethod(f="setSpikeTrain",
 
 
 
-
-
-### spikeTimeAutocorrelation ###
-# function using .Call() to call c wrapper
-# It calls the the c function with the cwrap suffix
+#' Calculate the spike-time autocorrelation
+#' 
+#' Each spike is treated in turn as a reference spike.
+#' The number of spikes or probability to observe a spike around the reference spike is calculated.
+#' You can set the bins size in ms and and the time window for which you want to do the analysis on.
+#'
+#'
+#' @param st SpikeTrain object
+#' @param binSizeMs Default is 1
+#' @param windowSizeMs Default is 200
+#' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
+#' @return a data.frame with the spike-time autocorrelation
+#' 
+#' @docType methods
+#' @rdname spikeTimeAutocorrelation-methods
 setGeneric(name="spikeTimeAutocorrelation",
-           def=function(st,...)
+           def=function(st,binSizeMs,windowSizeMs,probability)
              {standardGeneric("spikeTimeAutocorrelation")})
+#' @rdname spikeTimeAutocorrelation-methods
+#' @aliases spikeTimeAutocorrelation,ANY,ANY-method
 setMethod(f="spikeTimeAutocorrelation",
           signature = "SpikeTrain",
-          definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE,...)
+          definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
             {
             nBins=(windowSizeMs*2)/binSizeMs
             windowSize=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
@@ -196,18 +261,28 @@ setMethod(f="spikeTimeAutocorrelation",
                          prob=results)
             }
           }
-          )
+        )
 
-
-
-
-### spikeTimeCrosscorrelationEvents ###
-# function using .Call() to call c wrapper
-# It calls the the c function with the cwrap suffix
+#' Calculate the spike-time crosscorrelation between the spike trains and a list of events
+#' 
+#' Each event is treated in turn as a reference event.
+#' The number of spikes or probability to observe a spike around the reference event is calculated.
+#' You can set the bins size in ms and and the time window for which you want to do the analysis on.
+#'
+#'
+#' @param st SpikeTrain object
+#' @param binSizeMs Default is 1
+#' @param windowSizeMs Default is 200
+#' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
+#' @return a data.frame with the spike-time crosscorrelation
+#' 
+#' @docType methods
+#' @rdname spikeTimeCrosscorrelationEvents-methods
 setGeneric(name="spikeTimeCrosscorrelationEvents",
            def=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
            {standardGeneric("spikeTimeCrosscorrelationEvents")})
-
+#' @rdname spikeTimeCrosscorrelationEvents-methods
+#' @aliases spikeTimeCrosscorrelationEvents,ANY,ANY-method
 setMethod(f="spikeTimeCrosscorrelationEvents",
           signature = "SpikeTrain",
           definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
@@ -235,7 +310,6 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
                             st@events,
                             length(st@events))
             
-            
             # return a data fram with clu time count
             if(probability==F){
               data.frame(clu=rep(st@cellList,each=nBins),
@@ -249,13 +323,27 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
             }
         })
 
-### spikeTimeCrosscorrelation ###
-# function using .Call() to call c wrapper
-# It calls the the c function with the cwrap suffix
+
+#' Calculate the spike-time crosscorrelation between the spike trains of cell pairs
+#' 
+#' Each spike of cell 1 are used in turn as a reference spike.
+#' The number of spikes or probability to observe a spike of cell 2 around the reference spikes is calculated.
+#' You can set the bins size in ms and and the time window for which you want to do the analysis on.
+#'
+#'
+#' @param st SpikeTrain object
+#' @param binSizeMs Default is 1
+#' @param windowSizeMs Default is 200
+#' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
+#' @return a data.frame with the spike-time crosscorrelation of cell pairs
+#' 
+#' @docType methods
+#' @rdname spikeTimeCrosscorrelation-methods
 setGeneric(name="spikeTimeCrosscorrelation",
            def=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
            {standardGeneric("spikeTimeCrosscorrelation")})
-
+#' @rdname spikeTimeCrosscorrelation-methods
+#' @aliases spikeTimeCrosscorrelation,ANY,ANY-method
 setMethod(f="spikeTimeCrosscorrelation",
           signature = "SpikeTrain",
           definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
@@ -299,11 +387,23 @@ setMethod(f="spikeTimeCrosscorrelation",
           )
 
 
-### meanFiringRate ###
+#' Calculate the mean firing rate (Hz) of each neuron in a SpikeTrain object
+#' 
+#' This is simply the number of spikes divided by the time within the intervals
+#' set in the SpikeTrain object.
+#'
+#'
+#' @param st SpikeTrain object
+#' @return a SpikeTrain object with the mean firing rate set
+#' 
+#' @docType methods
+#' @rdname meanFiringRate-methods
 setGeneric(name="meanFiringRate",
            def=function(st)
            {standardGeneric("meanFiringRate")})
 
+#' @rdname meanFiringRate-methods
+#' @aliases meanFiringRate,ANY,ANY-method
 setMethod(f="meanFiringRate",
           signature = "SpikeTrain",
           definition=function(st)

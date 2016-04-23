@@ -1,6 +1,29 @@
-############################################
-#### definition of RecSession Class      ###
-############################################
+#' A S4 class to represent a recording session.
+#' 
+#' A RecSession object contains a description of the recording session.
+#' 
+#' Sessions are usually divided in several trials with one .dat file for each trial.
+#' 
+#' 
+#' @slot session Name of the recording session
+#' @slot path Directory where the recording session data are located
+#' @slot fileBase Filebase of the session
+#' @slot animalName Name of the animal
+#' @slot samplingRate Sampling rate of the electrophysiological data
+#' @slot resofs Number of samples in each trial
+#' @slot env List of environment for each trial
+#' @slot electrodeLocation List of electrode location, one per electrode
+#' @slot trialStartRes Sample at which a trial starts.
+#' @slot trialEndRes Sample at which a trial ends.
+#' @slot trialNames Filebase of the individual trials
+#' @slot trialDurationSec Length of the trials in sec
+#' @slot sessionDurationSec Total length of the session in sec
+#' @slot nElectrodes Number of electrodes
+#' @slot nChannels Number of channels in the electrophysiological recordings
+#' @slot nTrials Number of trials in the session
+#' @slot channelsTetrode Matrix containing the channel numbers associated with each tetrode
+#' @slot clustered Logical indicating if the spikes are clustered
+#' @slot earlyProcessed Logical indicating if spike extraction has been done
 RecSession <- setClass(
   "RecSession", ## name of the class
   slots=c(session="character",
@@ -25,11 +48,23 @@ RecSession <- setClass(
   prototype = list(session="",path=""))
 
 
-### loadRecSession ###
+#' Load the data regarding a recording session
+#'
+#' You need to set the session and  path slots of your object before calling this function
+#' This will read the .par, .desen, .desel, .sampling_rate_dat, .resofs files
+#' to fill up the RecSession object
+#'
+#' @param rs A RecSession object
+#' @return RecSession
+#' 
+#' @docType methods
+#' @rdname loadRecSession-methods
 setGeneric(name="loadRecSession",
            def=function(rs)
            {standardGeneric("loadRecSession")}
 )
+#' @rdname loadRecSession-methods
+#' @aliases loadRecSession,ANY,ANY-method
 setMethod(f="loadRecSession",
           signature="RecSession",
           definition=function(rs)
@@ -109,12 +144,19 @@ setMethod(f="loadRecSession",
           }
 )
 
-
-### getIsClustered ###
+#' Is the recording session clustered?
+#'
+#' @param rs A RecSession object
+#' @return TRUE or FALSE
+#' 
+#' @docType methods
+#' @rdname getIsClustered-methods
 setGeneric(name="getIsClustered",
            def=function(rs)
            {standardGeneric("getIsClustered")}
 )
+#' @rdname getIsClustered-methods
+#' @aliases getIsClustered,ANY,ANY-method
 setMethod(f="getIsClustered",
           signature="RecSession",
           definition=function(rs)
@@ -123,11 +165,19 @@ setMethod(f="getIsClustered",
           })
 
 
-### getIsEarlyProcessed ###
+#' Has the spike extraction been run on the recording session?
+#'
+#' @param rs A RecSession object
+#' @return TRUE or FALSE
+#' 
+#' @docType methods
+#' @rdname getIsEarlyProcessed-methods
 setGeneric(name="getIsEarlyProcessed",
            def=function(rs)
            {standardGeneric("getIsEarlyProcessed")}
 )
+#' @rdname getIsEarlyProcessed-methods
+#' @aliases getIsEarlyProcessed,ANY,ANY-method
 setMethod(f="getIsEarlyProcessed",
           signature="RecSession",
           definition=function(rs)
@@ -136,11 +186,22 @@ setMethod(f="getIsEarlyProcessed",
           })
 
 
-### containsElectrodeLocation ###
+#' Check if the session had an electrode in a particular brain area
+#'
+#' This will check whether the value of location is in the electrodeLocation vector.
+#' 
+#' @param rs A RecSession object
+#' @param location A brain area of interest
+#' @return TRUE or FALSE
+#' 
+#' @docType methods
+#' @rdname containsElectrodeLocation-methods
 setGeneric(name="containsElectrodeLocation",
            def=function(rs,location="")
            {standardGeneric("containsElectrodeLocation")}
 )
+#' @rdname containsElectrodeLocation-methods
+#' @aliases containsElectrodeLocation,ANY,ANY-method
 setMethod(f="containsElectrodeLocation",
           signature="RecSession",
           definition=function(rs,location="")
@@ -148,11 +209,22 @@ setMethod(f="containsElectrodeLocation",
             return(any(rs@electrodeLocation==location))
           })
 
-### containsEnvironment ###
+#' Check if the session had a trial in a given environment
+#'
+#' This will check whether the value of environment is in the env vector.
+#' 
+#' @param rs A RecSession object
+#' @param environment The name of an environment
+#' @return TRUE or FALSE
+#' 
+#' @docType methods
+#' @rdname containsEnvironment-methods
 setGeneric(name="containsEnvironment",
            def=function(rs,environment="")
            {standardGeneric("containsEnvironment")}
 )
+#' @rdname containsEnvironment-methods
+#' @aliases containsEnvironment,ANY,ANY-method
 setMethod(f="containsEnvironment",
           signature="RecSession",
           definition=function(rs,environment="")
@@ -161,36 +233,56 @@ setMethod(f="containsEnvironment",
           })
 
 
-
-
-### getTrialIntervalsWithEnv ###
+#' Get the time intervals in sample values for trials in a given environment
+#'
+#' @param rs A RecSession object
+#' @param environment The name of an environment
+#' @return matrix with 2 columns containing the start and end of each trial in the environment
+#' 
+#' @docType methods
+#' @rdname getIntervalsEnvironment-methods
 setGeneric(name="getIntervalsEnvironment",
-           def=function(rs,env="lt")
+           def=function(rs,environment="lt")
            {standardGeneric("getIntervalsEnvironment")}
 )
+#' @rdname getIntervalsEnvironment-methods
+#' @aliases getIntervalsEnvironment,ANY,ANY-method
 setMethod(f="getIntervalsEnvironment",
           signature="RecSession",
-          definition=function(rs,env="lt")
+          definition=function(rs,environment="lt")
           {
-            
-            
             if(length(rs@trialStartRes)==0){
               print("trialStartRes is not set")
               return()
             }
-            if(!env%in%rs@env){
+            if(!environment%in%rs@env){
               print("environment not used in the session")
               return()
             }
-          return(matrix(data=c(rs@trialStartRes[which(rs@env==env)],rs@trialEndRes[which(rs@env==env)]),ncol=2,
-                 dimnames=list(rep(env,length(which(rs@env==env))),c("start","end"))))
+          return(matrix(data=c(rs@trialStartRes[which(rs@env==environment)],rs@trialEndRes[which(rs@env==environment)]),ncol=2,
+                 dimnames=list(rep(environment,length(which(rs@env==environment))),c("start","end"))))
           })
 
-### getRecSessionObjects ###
+#' Load a set of objects that are session specific
+#'
+#' This is used to get the objects that are most commonly needed when doing analysis. 
+#' Instead of creating the object each at a time and having to set some values manually,
+#' just call this function and a list of objects are returned.
+#' 
+#' If you just want to use one or two objects, the code might run faster if you load what you need manually.
+#'
+#' @param rs A RecSession object
+#' @return a list of objects containing spike trains, position data, data files, cell groups, 
+#' spatial properties, 1D spatial properties, head direction data.
+#' 
+#' @docType methods
+#' @rdname getRecSessionObjects-methods
 setGeneric(name="getRecSessionObjects",
            def=function(rs)
            {standardGeneric("getRecSessionObjects")}
 )
+#' @rdname getRecSessionObjects-methods
+#' @aliases getRecSessionObjects,ANY,ANY-method
 setMethod(f="getRecSessionObjects",
           signature="RecSession",
           definition=function(rs)

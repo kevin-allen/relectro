@@ -36,8 +36,8 @@ SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r,
 
  number_windows=(find_max(res_lines,res)/window_size_res)+1;
 
- //printf("number_windows: %d\n",number_windows);
- //printf("cell_lines: %d\n",cell_lines);
+ //Rprintf("number_windows: %d\n",number_windows);
+ //Rprintf("cell_lines: %d\n",cell_lines);
  
  double* instantaneous_fr= (double*) malloc(number_windows*cell_lines*sizeof(double)); // cells x windows
  double* time_of_bin= (double*) malloc(number_windows*sizeof(double)); // windows
@@ -154,7 +154,7 @@ void  firing_rate_per_cells_time_windows(int target_cell,
   
   if(kernel_size>size_for_fft)
   {
-    printf("firing_rate_per_cells_time_windows: kernel_size>size_for_fft\n");
+    Rprintf("firing_rate_per_cells_time_windows: kernel_size>size_for_fft\n");
     return;
   }
     
@@ -172,11 +172,11 @@ void  firing_rate_per_cells_time_windows(int target_cell,
 	}
   
   /*
-  printf("target_cell:%d\n",target_cell);
-  printf("res_per_data_point_to_fft:%d\n",res_per_data_point_to_fft);
-  printf("firing_rate_in_bins_lines:%d\n",firing_rate_in_bins_lines);
-  printf("kernel_size:%d\n",kernel_size);
-  printf("size_for_fft:%d\n",size_for_fft);
+  Rprintf("target_cell:%d\n",target_cell);
+  Rprintf("res_per_data_point_to_fft:%d\n",res_per_data_point_to_fft);
+  Rprintf("firing_rate_in_bins_lines:%d\n",firing_rate_in_bins_lines);
+  Rprintf("kernel_size:%d\n",kernel_size);
+  Rprintf("size_for_fft:%d\n",size_for_fft);
   */
   
   
@@ -213,10 +213,10 @@ void  firing_rate_per_cells_time_windows(int target_cell,
 	      end_bin=start_bin+window_size_res;
 	    }
 	}
- // printf("target_cell: %d\n",target_cell);
-//  printf("win: %d\n",win);
-//  printf("firing_rate_in_bins_lines: %d\n",firing_rate_in_bins_lines);
-//  printf("max fr: %lf\n",find_max_double(win,firing_rate_in_bins));
+ // Rprintf("target_cell: %d\n",target_cell);
+//  Rprintf("win: %d\n",win);
+//  Rprintf("firing_rate_in_bins_lines: %d\n",firing_rate_in_bins_lines);
+//  Rprintf("max fr: %lf\n",find_max_double(win,firing_rate_in_bins));
   
   *num_valid_bins=win;
   free(local_spike_density);

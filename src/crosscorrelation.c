@@ -295,7 +295,7 @@ SEXP crosscorrelation_cwrap(SEXP clu1_r,
   // might want to check the arguments here
   if(probability!=0&probability!=1)
     {
-      printf("probability needs to be 0 or 1 but was %d\n",probability);
+      Rprintf("probability needs to be 0 or 1 but was %d\n",probability);
       UNPROTECT(6);
       return(R_NilValue);
     }
@@ -419,14 +419,14 @@ SEXP crosscorrelationEvents_cwrap(SEXP cell_list_r,
   // might want to check the arguments here
   if(probability!=0&probability!=1)
     {
-      printf("probability needs to be 0 or 1 but was %d\n",probability);
+      Rprintf("probability needs to be 0 or 1 but was %d\n",probability);
       UNPROTECT(7);
       return(R_NilValue);
     }
 
   if(events_lines<1)
     {
-      printf("events_lines:%d\n",events_lines);
+      Rprintf("events_lines:%d\n",events_lines);
       UNPROTECT(7);
       return(R_NilValue);
     }
@@ -547,13 +547,13 @@ void cross_correlation_events(int* cells,
 	}
     }
 
-  // printf("Number of events: %d\n",events_lines);
-  //printf("Number of cells: %d\n",cell_lines);
+  // Rprintf("Number of events: %d\n",events_lines);
+  //Rprintf("Number of cells: %d\n",cell_lines);
 
   /// for every events
   for(int inter = 0; inter < events_lines; inter++) 
     {
-      //  printf("Events[inter]:%d, Inter: %d\n",events[inter],inter);
+      //  Rprintf("Events[inter]:%d, Inter: %d\n",events[inter],inter);
       
       for (int i = 0; i < cell_lines; i++)
 	{
@@ -566,7 +566,7 @@ void cross_correlation_events(int* cells,
 		{
 		  time_diff = res[j] - events[inter];
 		  index = (int)(time_diff/interval+histo_size/2);
-		  //	  printf("res:%d, events:%d, time_diff:%d, index:%d\n",res[j],events[inter],time_diff,index);
+		  //	  Rprintf("res:%d, events:%d, time_diff:%d, index:%d\n",res[j],events[inter],time_diff,index);
 		  one_histo[index]++;
 		}
 	    }

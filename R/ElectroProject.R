@@ -1,6 +1,3 @@
-############################################
-### definition of ElectroProject Class   ###
-############################################
 #' A S4 class to represent an electrophysiological project containing several recording sessions.
 #' 
 #' An ElectroProject object contains a group of RecSession objects. It can be used to run functions on several recording sessions.
@@ -16,8 +13,10 @@
 #' Two useful methods are getSessionList and runOnSessionList
 #' 
 #' @slot directory Top directory of the project
+#' @slot resultsDirectory Directory where results will be saved by default
 #' @slot nSessions Number of recording sessions in the project
 #' @slot sessionNameList Name of the recording sessions
+#' @slot sessionPathList Path to all the recording sessions
 #' @slot sessionList List of RecSession objects.
 ElectroProject <- setClass(
   "ElectroProject", ## name of the class
@@ -74,10 +73,9 @@ setMethod(f="setSessionList",
             
             dirDepth<-as.numeric(x[1])
             ep@sessionNameList<-unlist(strsplit(dirs,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
-            if(loadSessions){
-              loadSessionsInList(ep)
-            }
-            return(ep)
+          
+            if(loadSessions==TRUE){ep<-loadSessionsInList(ep)}
+          return(ep)
           })
 
 
@@ -89,7 +87,7 @@ setMethod(f="setSessionList",
 #' @return ElectroProject object with RecSession loaded
 #' 
 #' @docType methods
-#' @rdname setSessionList-methods
+#' @rdname loadSessionsInList-methods
 setGeneric(name="loadSessionsInList",
            def=function(ep)
            {standardGeneric("loadSessionsInList")}
@@ -107,6 +105,7 @@ setMethod(f="loadSessionsInList",
               stop("ep@sessionNameList has length of 0")
             if(length(ep@sessionPathList)==0)
               stop("ep@sessionPathList has length of 0")
+          
             
             for (i in 1:length(ep@sessionNameList))
             {
@@ -192,8 +191,8 @@ setMethod(f="getSessionList",
 #' The results are saved in the resultsDirectory of the ElectroProject object.
 #' The names of the files saved will be the name of the elements in the list returned by the function
 #' The data from each recording session will be concatenated.
-#' You can use parLapply instead of lapply by setting parallel to TRUE and passing a valid cluster to the function
-#' If save is set to FALSE, the data returned by the function will not be saved.
+#' You can use snow::parLapply instead of lapply by setting parallel to TRUE and passing a valid cluster to the function
+#' If save is set to FALSE, the data returned by the lapply function will not be saved but retured.
 #'
 #' @param ep ElectroProject object
 #' @param sessionList List of RecSession objects on which the function will be applied
@@ -202,7 +201,7 @@ setMethod(f="getSessionList",
 #' @param overwrite Whether you want to overwrite the previous data when saving the results
 #' @param parallel Whether you want to run the function in parallel
 #' @param cluster A cluster generated from the makeCluster function of the snow package
-#'
+#' @return list of list returned by the lapply function 
 #' 
 #' @docType methods
 #' @rdname runOnSessionList-methods
@@ -231,11 +230,10 @@ setMethod(f="runOnSessionList",
              if(class(cluster)[2]!="cluster")
                stop("runOnSessionList, give a valid snow cluster if you want to run the function on several threads")
            if(parallel==T){
-             list.res<-parLapply(cluster,sessionList,fnct)   
+             list.res<-snow::parLapply(cluster,sessionList,fnct)   
            } else {
              list.res<-lapply(sessionList,fnct)
            }
-           
            if(save==T){
              ## check that list.res is a list of list
              if(!is.list(list.res))
@@ -256,6 +254,9 @@ setMethod(f="runOnSessionList",
                print(paste("saving",paste(ep@resultsDirectory,n,sep="/")))
                save(list=n,file=paste(ep@resultsDirectory,n,sep="/"))
              }
+           }else{
+             if(!is.null(list.res[[1]]))
+              return(list.res)
            }
          })
 

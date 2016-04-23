@@ -35,12 +35,12 @@ firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
     firingRateMapPlot(maps[,,i],name=names[i])
     if(index==plot.per.page)
     {
-      close.screen( all = TRUE )
+      close.screen( all.screens = TRUE )
       index=0
     }
     index=index+1
   }
-  close.screen(all = TRUE)
+  close.screen(all.screens = TRUE)
 #  dev.off()
 }
 firingRateMapAutoPlot <- function(m,name="",
@@ -80,12 +80,12 @@ firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
     firingRateMapAutoPlot(maps[,,i],name=names[i])
     if(index==plot.per.page)
     {
-      close.screen( all = TRUE )
+      close.screen( all.screens = TRUE )
       index=0
     }
     index=index+1
   }
-  close.screen(all = TRUE)
+  close.screen(all.screens = TRUE)
   #  dev.off()
 }
 
@@ -97,7 +97,7 @@ linearRatePlot<-function(sp1,n=1,axis.y.pos=0,axis.x.pos=0,axis.y.las=2,
 {
   rate=sp1@rateHisto[,n]
   rate[which(rate==-1.0)]<-NA
-  position = seq(sp@cmPerBin,sp1@cmPerBin*sp1@nBinRateHisto,sp1@cmPerBin)
+  position = seq(sp1@cmPerBin,sp1@cmPerBin*sp1@nBinRateHisto,sp1@cmPerBin)
   plotxlim=c(0,max(position))
   plotylim=c(0,max(rate,na.rm=T))
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
@@ -131,12 +131,12 @@ linearRatePlots<-function(sp1,fn="page.full.plot.pdf"){
     linearRatePlot(sp1,i)
     if(index==plot.per.page)
     {
-      close.screen( all = TRUE )
+      close.screen( all.screens = TRUE )
       index=0
     }
     index=index+1
   }
-  close.screen(all = TRUE)
+  close.screen(all.screens = TRUE)
   #  dev.off()
 }
 
