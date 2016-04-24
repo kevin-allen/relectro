@@ -45,11 +45,25 @@ Positrack <- setClass(
           ),  # cell list to limit the analysis to these cells
   prototype = list(session="",path="",defaultXYSmoothing=2,minShiftMs=20000))
 
-### loadPositrack ###
+
+#' Load position data from the .whl and .whd files
+#'
+#' This function also use the .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm files
+#' Some smoothing is done on the x and y data.
+#' Slots x and y are in cm.
+#' 
+#' @param pt Positrack object
+#' @return Positrack object
+#' 
+#' @docType methods
+#' @rdname loadPositrack-methods
 setGeneric(name="loadPositrack",
            def=function(pt)
            {standardGeneric("loadPositrack")}
 )
+
+#' @rdname loadPositrack-methods
+#' @aliases loadPositrack,ANY,ANY-method
 setMethod(f="loadPositrack",
           signature="Positrack",
           definition=function(pt)
@@ -147,11 +161,24 @@ setMethod(f="loadPositrack",
 )
 
 
-### smoothxy ###
+
+#' Apply some smoothing to the x and y position data
+#'
+#' A Gaussian kernel is used for smoothing
+#' 
+#' @param pt Positrack object
+#' @param sd Standard deviation of the smoothing kernel. The unit is position samples.
+#' @return Positrack object with slots x and y smoothed.
+#' 
+#' @docType methods
+#' @rdname smoothxy-methods
 setGeneric(name="smoothxy",
            def=function(pt,sd)
            {standardGeneric("smoothxy")}
 )
+
+#' @rdname smoothxy-methods
+#' @aliases smoothxy,ANY,ANY-method
 setMethod(f="smoothxy",
           signature="Positrack",
           definition=function(pt,sd=2)
@@ -171,34 +198,62 @@ setMethod(f="smoothxy",
           }
 )
 
-### smoothhd ###
+#' Apply some smoothing to the hd array
+#'
+#' A Gaussian kernel is used for smoothing
+#' This function is not working at the moment. A warning message will appear
+#' The c function needs to be written
+#' 
+#' @param pt Positrack object
+#' @param sd Standard deviation of the smoothing kernel. The unit is position samples.
+#' @return Positrack object with slot hd smoothed.
+#' 
+#' @docType methods
+#' @rdname smoothhd-methods
 setGeneric(name="smoothhd",
            def=function(pt,sd)
            {standardGeneric("smoothhd")}
 )
+#' @rdname smoothhd-methods
+#' @aliases smoothhd,ANY,ANY-method
 setMethod(f="smoothhd",
           signature="Positrack",
           definition=function(pt,sd=2)
           {
             if(pt@session=="")
               stop("pt@session is empty")
-            if(length(pt@x)==0)
-              stop("pt@x has length of 0")
-            ## smooth x and y
+            if(length(pt@hd)==0)
+              stop("pt@hd has length of 0")
+            ## smooth hd
             pt@hd[which(is.na(pt@hd))]<- -1.0
             
-            print("Smoothing of hd data with an function that does not take into account that data are circular")
+            stop("Smoothing of hd data with an function that does not take into account that data are circular")
             pt@hd<-smoothGaussian(pt@hd,sd=sd,invalid=-1.0)
             pt@hd[which(pt@hd==-1.0)]<- NA
             return(pt)
           }
 )
 
-### filter for speed ###
+
+#' Set position data for which the animal speed was not between a given range to NA
+#'
+#' The slots x, y, hd, speed are affected.
+#' Please note that the speed array is affected. 
+#' 
+#' @param pt Positrack object
+#' @param minSpeed Minimal running speed
+#' @param maxSpeed Maximal running speed
+#' @return Positrack object with invalid values outside the speed range.
+#' 
+#' @docType methods
+#' @rdname speedFilter-methods
 setGeneric(name="speedFilter",
            def=function(pt,minSpeed,maxSpeed)
            {standardGeneric("speedFilter")}
 )
+
+#' @rdname speedFilter-methods
+#' @aliases speedFilter,ANY,ANY-method
 setMethod(f="speedFilter",
           signature="Positrack",
           definition=function(pt,minSpeed=3,maxSpeed=100)

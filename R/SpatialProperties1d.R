@@ -72,11 +72,21 @@ setMethod("show", "SpatialProperties1d",
           })
 
 
-### make firing rate histo
+#' Calculate the firing rate histograms of neurons using a SpikeTrain and Positrack objects
+#'
+#' @param sp1 SpatialProperties1d object
+#' @param st SpikeTrain object
+#' @param pt Positrack object with valid linearized position data
+#' @return SpatialProperties1d object with the firing rate histograms
+#' 
+#' @docType methods
+#' @rdname firingRateHisto-methods
 setGeneric(name="firingRateHisto",
            def=function(sp1,st,pt)
            {standardGeneric("firingRateHisto")}
 )
+#' @rdname firingRateHisto-methods
+#' @aliases firingRateHisto,ANY,ANY-method
 setMethod(f="firingRateHisto",
           signature="SpatialProperties1d",
           definition=function(sp1,st,pt)
@@ -143,18 +153,28 @@ setMethod(f="firingRateHisto",
                             sp1@smoothRateHistoSd/sp1@cmPerBin,
                             1,
                             0)
-            
             sp1@rateHisto<-array(data=results,dim=(c(sp1@nBinRateHisto,length(sp1@cellList))))
             return(sp1)
           }
 )
 
 
-#### getHistoStats
+
+#' Calculate spatial statistics of the firing rate histograms of neurons
+#'
+#' @param sp1 SpatialProperties1d object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @return SpatialProperties1d object with the stats in the following slots: peakRate, infoScore, sparsity
+#' 
+#' @docType methods
+#' @rdname getHistoStats-methods
 setGeneric(name="getHistoStats",
            def=function(sp1,st,pt)
            {standardGeneric("getHistoStats")}
 )
+#' @rdname getHistoStats-methods
+#' @aliases getHistoStats,ANY,ANY-method
 setMethod(f="getHistoStats",
           signature="SpatialProperties1d",
           definition=function(sp1,st,pt)
@@ -182,11 +202,25 @@ setMethod(f="getHistoStats",
 )
 
 
-#### getHistoStatsShuffle 
+#' Get random values for statistics of the firing rate histograms of neurons.
+#' 
+#' The random values are obtained by shifting the position data. See shiftLinRandom.
+#' The number of shufflings is nShufflings of the SpatialProperties1d object.
+#'
+#' @param sp1 SpatialProperties1d object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @return SpatialProperties1d object with the stats in the following slots: peakRateShuffle, infoScoreShuffle, sparsityShuffle
+#' 
+#' @docType methods
+#' @rdname getHistoStatsShuffle-methods
 setGeneric(name="getHistoStatsShuffle",
            def=function(sp1,st,pt)
            {standardGeneric("getHistoStatsShuffle")}
 )
+
+#' @rdname getHistoStatsShuffle-methods
+#' @aliases getHistoStatsShuffle,ANY,ANY-method
 setMethod(f="getHistoStatsShuffle",
           signature="SpatialProperties1d",
           definition=function(sp1,st,pt){
@@ -231,11 +265,21 @@ setMethod(f="getHistoStatsShuffle",
             return(sp1)
           })
 
-
+#' Return the firing rate histograms as a data.frame.
+#' 
+#' The column names in the data.frame are clu.id, x, rate.
+#'
+#' @param sp1 SpatialProperties1d object
+#' @return data.frame with the firing rate histograms
+#' 
+#' @docType methods
+#' @rdname rateHistoAsDataFrame-methods
 setGeneric(name="rateHistoAsDataFrame",
            def=function(sp1)
            {standardGeneric("rateHistoAsDataFrame")}
 )
+#' @rdname rateHistoAsDataFrame-methods
+#' @aliases rateHistoAsDataFrame,ANY,ANY-method
 setMethod(f="rateHistoAsDataFrame",
           signature="SpatialProperties1d",
           definition=function(sp1)
@@ -248,10 +292,22 @@ setMethod(f="rateHistoAsDataFrame",
           }
 )
 
+#' Return the histo stats as data.frame.
+#' 
+#' The column names in the data.frame are clu.id, x, rate.
+#'
+#' @param sp1 SpatialProperties1d object
+#' @param shuffle Logical, if TRUE will return the statistics from the shuffle.
+#' @return data.frame with the statistics of the firing rate histograms
+#' 
+#' @docType methods
+#' @rdname histoStatsAsDataFrame-methods
 setGeneric(name="histoStatsAsDataFrame",
            def=function(sp1,shuffle)
            {standardGeneric("histoStatsAsDataFrame")}
 )
+#' @rdname histoStatsAsDataFrame-methods
+#' @aliases histoStatsAsDataFrame,ANY,ANY-method
 setMethod(f="histoStatsAsDataFrame",
           signature="SpatialProperties1d",
           definition=function(sp1,shuffle=FALSE)
@@ -279,5 +335,3 @@ setMethod(f="histoStatsAsDataFrame",
             return(df)
           }
 )
-
-

@@ -426,11 +426,27 @@ setMethod(f="meanFiringRate",
 )
 
 
-### setIntervals ###
+#' Set time intervals to limit the period used in the analysis
+#' 
+#' Only the data within the intervals are used for analysis. 
+#' These intervals are used in SpikeTrain methods and also in 
+#' methods of other classes (SaptialProperties2d, SpatialProperties1d, HeadDirection, etc.).
+#' By default, the intervals are set from 0 to time point of the last recorded spike.
+#'
+#' @param st SpikeTrain object
+#' @param s Vector or matrix. If a matrix, should have 2 columns (beginning and end of intervals).
+#' If a vector, beginning of intervals.
+#' @param e Vector, end of the intervals. If s is a matrix, e is not used.
+#' @return a SpikeTrain object with the intervals set.
+#' 
+#' @docType methods
+#' @rdname setIntervals-methods
 setGeneric(name="setIntervals",
            def=function(st,s,e)
            {standardGeneric("setIntervals")})
 
+#' @rdname setIntervals-methods
+#' @aliases setIntervals,ANY,ANY-method
 setMethod(f="setIntervals",
           signature = "SpikeTrain",
           definition=function(st,s,e)
@@ -480,13 +496,21 @@ setMethod(f="setIntervals",
 )
 
 
-
-
-### setEvents ###
+#' Set some events for spike-time crosscorrelation to the events. 
+#' 
+#' These events could be laser stimulation or some behavioural events
+#'
+#' @param st SpikeTrain object
+#' @param events Time in sample number of the events
+#' @return a SpikeTrain object with the events set
+#' 
+#' @docType methods
+#' @rdname setEvents-methods
 setGeneric(name="setEvents",
            def=function(st,events)
            {standardGeneric("setEvents")})
-
+#' @rdname setEvents-methods
+#' @aliases setEvents,ANY,ANY-method
 setMethod(f="setEvents",
           signature = "SpikeTrain",
           definition=function(st,events=NULL)
@@ -502,10 +526,6 @@ setMethod(f="setEvents",
             return(st)
           }
 )
-
-
-
-
 
 
 ### show ###
