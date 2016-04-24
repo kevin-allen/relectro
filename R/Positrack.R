@@ -274,11 +274,24 @@ setMethod(f="speedFilter",
 )
 
 
-### filter for direction ###
+
+#' Set position data for which the animal speed was not between a given range to NA
+#'
+#' The slots x, y, hd, speed and lin are affected.
+#' Please note that this is not head direction but rather the direction of movement in 1D environment 
+#' 
+#' @param pt Positrack object
+#' @param direction Value of 1 or 0 refereing to direction
+#' @return Positrack object with only valid value in the specific direction.
+#' 
+#' @docType methods
+#' @rdname directionFilter-methods
 setGeneric(name="directionFilter",
            def=function(pt,direction)
            {standardGeneric("directionFilter")}
 )
+#' @rdname directionFilter-methods
+#' @aliases directionFilter,ANY,ANY-method
 setMethod(f="directionFilter",
           signature="Positrack",
           definition=function(pt,direction=0)
@@ -304,12 +317,25 @@ setMethod(f="directionFilter",
 )
 
 
-
-#### setInvalidOutsideInterval
+#' Set position data outside time intervals to NA
+#'
+#' The slots x, y, hd, speed, lin and dir are affected.
+#' The intervals are in sample values of the electrophysiological data 
+#' 
+#' @param pt Positrack object
+#' @param s Vector or matrix, If matrix, then should have 2 columns, for beginning and end of intervals. 
+#' If vector, then it is the beginning of intervals.
+#' @param e Vector, end of the intervals. Not used if s is a matrix
+#' @return Positrack object with only valid value within the intervals.
+#' 
+#' @docType methods
+#' @rdname setInvalidOutsideInterval-methods
 setGeneric(name="setInvalidOutsideInterval",
            def=function(pt,s,e)
            {standardGeneric("setInvalidOutsideInterval")}
 )
+#' @rdname setInvalidOutsideInterval-methods
+#' @aliases setInvalidOutsideInterval,ANY,ANY-method
 setMethod(f="setInvalidOutsideInterval",
           signature="Positrack",
           definition=function(pt,s,e="")
@@ -647,6 +673,7 @@ setMethod(f="linearzeLinearTrack",
             pt@dir[which(pt@lin==-1.0)]<-NA
             #plot(pt@lin,xlim=c(240000,245000),type='l')
             #lines(ifelse(pt@dir>0,50,0),xlim=c(240000,245000),col="red")
+            
             
             return(pt)
           }
