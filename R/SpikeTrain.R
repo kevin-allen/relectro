@@ -18,6 +18,9 @@
 #' @slot endResIndexc Index in the spike arrays for the start of intervals. Index is for a C array with 0 indexing.
 #' @slot events Time in sample number for some events
 #' @slot cellList Cell list
+#' @slot auto Matrix holding spike-time autocorrelation
+#' @slot autoMsPerBin Ms per bin in spike-time autocorrelation
+#' @slot autoProbability Logical, whether the spike-time autocorrelation contains probability values or spike count
 #' @slot cellPairList Data frame containing pairs of cells
 #' @slot ifrKernelSdMs Standard deviation of a gaussian kernel used to calculate the instantaneous firing rate
 #' @slot ifrWindowSizeMs Window size of the instantaneous firing rate array
@@ -40,6 +43,9 @@ SpikeTrain <- setClass(
           startResIndexc="numeric",endResIndexc="numeric",
           events="numeric",
           cellList="numeric",cellPairList="data.frame", # cell list to limit the analysis to these cells
+          auto="matrix",
+          autoMsPerBin="numeric",
+          autoProbability="logical",
           # ifr
           ifrKernelSdMs="numeric",
           ifrWindowSizeMs="numeric",
@@ -215,12 +221,11 @@ setMethod(f="setSpikeTrain",
 #' The number of spikes or probability to observe a spike around the reference spike is calculated.
 #' You can set the bins size in ms and and the time window for which you want to do the analysis on.
 #'
-#'
 #' @param st SpikeTrain object
 #' @param binSizeMs Default is 1
-#' @param windowSizeMs Default is 200
+#' @param windowSizeMs Default is 200. This means that autocorrelation ranges from -windowSizeMs to windowSizeMs
 #' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
-#' @return a data.frame with the spike-time autocorrelation
+#' @return SpikeTrain object with autocorrelation in slot auto
 #' 
 #' @docType methods
 #' @rdname spikeTimeAutocorrelation-methods
@@ -231,7 +236,7 @@ setGeneric(name="spikeTimeAutocorrelation",
 #' @aliases spikeTimeAutocorrelation,ANY,ANY-method
 setMethod(f="spikeTimeAutocorrelation",
           signature = "SpikeTrain",
-          definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
+          definition=function(st, binSizeMs=1,windowSizeMs=200,probability=FALSE)
             {
             nBins=(windowSizeMs*2)/binSizeMs
             windowSize=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
@@ -250,18 +255,71 @@ setMethod(f="spikeTimeAutocorrelation",
                         length(st@startResIndexc),
                         probability)
             
+            st@auto<-matrix(results,nrow=nBins,ncol=length(st@cellList))
+            st@autoMsPerBin=binSizeMs
+            st@autoProbability=probability
+            return(st)
+            }
+)
+
+
+
+#' Get spike-time autocorrelation as data.frame
+#' 
+#'
+#' @param st SpikeTrain object
+#' @return data.frame with spike-time autocorrelation
+#' 
+#' @docType methods
+#' @rdname spikeTimeAutocorrelationAsDataFrame-methods
+setGeneric(name="spikeTimeAutocorrelationAsDataFrame",
+           def=function(st)
+           {standardGeneric("spikeTimeAutocorrelationAsDataFrame")})
+#' @rdname spikeTimeAutocorrelationAsDataFrame-methods
+#' @aliases spikeTimeAutocorrelationAsDataFrame,ANY,ANY-method
+setMethod(f="spikeTimeAutocorrelationAsDataFrame",
+          signature = "SpikeTrain",
+          definition=function(st)
+          {
+            nBins=dim(st@auto)[1]
             # return a data fram with clu time count
-            if(probability==F)
+            if(st@autoProbability==F)
               data.frame(clu=rep(st@cellList,each=nBins),
-                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
-                         count=results)
+                         time=seq(-st@autoMsPerBin*nBins/2+st@autoMsPerBin/2,
+                              st@autoMsPerBin*nBins/2,
+                              st@autoMsPerBin),
+                         count=st@auto)
             else{
               data.frame(clu=rep(st@cellList,each=nBins),
-                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
-                         prob=results)
+                         time=seq(-st@autoMsPerBin*nBins/2+st@autoMsPerBin/2,
+                                  st@autoMsPerBin*nBins/2,
+                                  st@autoMsPerBin),
+                         prob=st@auto)
             }
           }
-        )
+)
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #' Calculate the spike-time crosscorrelation between the spike trains and a list of events
 #' 
@@ -539,7 +597,7 @@ setMethod("show", "SpikeTrain",
             print(object@nSpikesPerCell)
             print(paste("cellList:"))
             print(object@cellList)
-            if(length(object@cellList)!=0){
+            if(length(object@cellList)>1){
               print(paste("n cellPairList:",length(object@cellPairList[,1])))
             }
             if(length(object@meanFiringRate)!=0){

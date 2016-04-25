@@ -27,8 +27,8 @@ void autocorrelation_one_cell(int clu_no, // cell of interest
    /// for every interval
   for(int inter = 0; inter < interval_lines; inter++) 
     {
-      for (int j = start_interval_index[inter]; j < end_interval_index[inter]; j++) // for every spikes within interval
-	{
+      for (int j = start_interval_index[inter]; j <= end_interval_index[inter]; j++){ // for every spikes within interval
+	
 	  // if cell of interest fires
 	  if (clu[j] == clu_no)
 	    {
@@ -44,7 +44,7 @@ void autocorrelation_one_cell(int clu_no, // cell of interest
 		    }
 		}
 	      // check forward
-	      for (k = j+1; k < end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
+	      for (k = j+1; k <= end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
 		{
 		  if (clu[k] == clu_no)
 		    {
@@ -84,7 +84,7 @@ void autocorrelation_one_cell_probability(int clu_no, // cell of interest
    /// for every interval
   for(int inter = 0; inter < interval_lines; inter++) 
     {
-      for (int j = start_interval_index[inter]; j < end_interval_index[inter]; j++) // for every spikes within interval
+      for (int j = start_interval_index[inter]; j <= end_interval_index[inter]; j++) // for every spikes within interval
 	{
 	  // if cell of interest fires
 	  if (clu[j] == clu_no)
@@ -102,7 +102,7 @@ void autocorrelation_one_cell_probability(int clu_no, // cell of interest
 		    }
 		}
 	      // check forward
-	      for (k = j+1; k < end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
+	      for (k = j+1; k <= end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
 		{
 		  if (clu[k] == clu_no)
 		    {
