@@ -57,7 +57,8 @@ st<-new("SpikeTrain")
 ## set the spike trains in the object
 st<-setSpikeTrain(st=st,res=df$res,clu=df$clu,samplingRate=20000)
 ## get the spike-time autocorrelation
-auto<-spikeTimeAutocorrelation(st,binSizeMs=1,windowSizeMs=200,probability = F)
+st<-spikeTimeAutocorrelation(st,binSizeMs=12,windowSizeMs=200,probability = F)
+auto<-spikeTimeAutocorrelationAsDataFrame(st)
 ## plot the autocorrelation
 plot(auto$count,type='l',ylab="Spike count", xlab="time (ms)")
 ## get the mean firing rate

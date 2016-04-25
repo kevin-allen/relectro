@@ -285,40 +285,19 @@ setMethod(f="spikeTimeAutocorrelationAsDataFrame",
             # return a data fram with clu time count
             if(st@autoProbability==F)
               data.frame(clu=rep(st@cellList,each=nBins),
-                         time=seq(-st@autoMsPerBin*nBins/2+st@autoMsPerBin/2,
+                         time=rep(seq(-st@autoMsPerBin*nBins/2+st@autoMsPerBin/2,
                               st@autoMsPerBin*nBins/2,
-                              st@autoMsPerBin),
-                         count=st@auto)
+                              st@autoMsPerBin),length(st@cellList)),
+                         count=as.numeric(st@auto))
             else{
               data.frame(clu=rep(st@cellList,each=nBins),
-                         time=seq(-st@autoMsPerBin*nBins/2+st@autoMsPerBin/2,
+                         time=rep(seq(-st@autoMsPerBin*nBins/2+st@autoMsPerBin/2,
                                   st@autoMsPerBin*nBins/2,
-                                  st@autoMsPerBin),
-                         prob=st@auto)
+                                  st@autoMsPerBin),length(st@cellList)),
+                         prob=as.numeric(st@auto))
             }
           }
 )
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #' Calculate the spike-time crosscorrelation between the spike trains and a list of events
@@ -452,7 +431,7 @@ setMethod(f="spikeTimeCrosscorrelation",
 #'
 #'
 #' @param st SpikeTrain object
-#' @return a SpikeTrain object with the mean firing rate set
+#' @return a SpikeTrain object with the mean firing rate in slot meanFiringRate
 #' 
 #' @docType methods
 #' @rdname meanFiringRate-methods
@@ -487,6 +466,8 @@ setMethod(f="meanFiringRate",
 #' Set time intervals to limit the period used in the analysis
 #' 
 #' Only the data within the intervals are used for analysis. 
+#' For example with interval 0-20000, a spike at time 0 or 20000 is not included.
+#' Spikes between time 0 and 20000 are used.
 #' These intervals are used in SpikeTrain methods and also in 
 #' methods of other classes (SaptialProperties2d, SpatialProperties1d, HeadDirection, etc.).
 #' By default, the intervals are set from 0 to time point of the last recorded spike.

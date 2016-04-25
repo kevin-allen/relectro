@@ -6,10 +6,16 @@ To build and install the package
 R CMD build relectro
 R CMD INSTALL relectro
 
-R object [xdim*y +x]
-C 2d array [ydim*x +y]
-
 
 NEXT STEPS
-Add better error message (identify function and session causing the error)
-Add documentation for all classes, methods and functions
+Add tests for the different functions
+Add some examples in the documentation
+Add tests to remove as many bugs as possible
+
+
+Make sure that the spikes at startResIndexc and endResIndexc are considered valid because they are within the intervals
+
+
+2D indexing in R and C
+R object [xdim*y +x]
+C 2d array [ydim*x +y]
