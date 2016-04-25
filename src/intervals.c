@@ -43,7 +43,8 @@ void res_index_for_intervals(int* interval_lines,
     {
       if ((start[i]< max_res)&&(end[i]>max_res))
       {
-        end[i]=max_res+1; // will include the last spike in interval
+        // this was recently comment out to have end interval later than last spike when needed.
+        //end[i]=max_res+1; // will include the last spike in interval
       }
       if (start[i]> max_res) // whole interval after last spike, remove as the indices would not make sense
       {

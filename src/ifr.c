@@ -16,8 +16,22 @@ SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r,
   int* cell_list = INTEGER_POINTER(cell_list_r);
   int number_windows=0;
   int num_valid_bins=0;
-  number_windows=(find_max(res_lines,res)/window_size_res);
-  if(find_max(res_lines,res)%window_size_res!=0)
+  
+  // set maximum to 
+  int max_tp, max_res, max_int;
+  max_res=find_max(res_lines,res);
+  max_int=find_max(interval_lines,INTEGER_POINTER(end_interval_r));
+  if(max_res>max_int)
+    {
+     max_tp=max_res;
+   }
+  else{
+    max_tp=max_int;
+  }
+  
+  
+  number_windows=(max_tp/window_size_res);
+  if(max_tp%window_size_res!=0)
     {number_windows++;}
   if (number_windows <1)
     {
@@ -34,10 +48,10 @@ SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r,
 			       start_interval_index,
 			       end_interval_index);
 
- number_windows=(find_max(res_lines,res)/window_size_res)+1;
+ number_windows=(max_tp/window_size_res)+1;
 
  //Rprintf("number_windows: %d\n",number_windows);
- //Rprintf("cell_lines: %d\n",cell_lines);
+ //Rprintf("max_tp: %d\n",max_tp);
  
  double* instantaneous_fr= (double*) malloc(number_windows*cell_lines*sizeof(double)); // cells x windows
  double* time_of_bin= (double*) malloc(number_windows*sizeof(double)); // windows
@@ -94,7 +108,7 @@ SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r,
 
 void  firing_rate_per_cells_time_windows(int target_cell,
                                          int* res, 
-					      int* clu, 
+					 int* clu, 
 					 int res_lines, 
 					 int window_size_res, 
 					 double kernel_sd_res, 
@@ -135,8 +149,20 @@ void  firing_rate_per_cells_time_windows(int target_cell,
   int num_standard_deviations_in_kernel=5;
   set_array_to_value_double (firing_rate_in_bins,firing_rate_in_bins_lines,0);
   set_array_to_value_double (time_of_bin,firing_rate_in_bins_lines,-1);
-  int max_res=find_max(res_lines,res);
-  
+ 
+ 
+ 
+ int max_tp, max_res, max_int;
+ max_res=find_max(res_lines,res);
+ max_int=find_max(interval_lines,end_interval);
+ if(max_res>max_int)
+ {
+   max_tp=max_res;
+ }
+ else{
+   max_tp=max_int;
+ }
+ 
   // create a gaussian kernel for convolution
   int kernel_size=((int)((kernel_sd_res/res_per_data_point_to_fft)*num_standard_deviations_in_kernel*2))+1;
   if (kernel_size%2!=1) // should be an odd number
@@ -150,7 +176,7 @@ void  firing_rate_per_cells_time_windows(int target_cell,
   
   
   // power of 2 are done in convolution function
-  int size_for_fft=max_res/res_per_data_point_to_fft+1;
+  int size_for_fft=max_tp/res_per_data_point_to_fft+1;
   
   if(kernel_size>size_for_fft)
   {
@@ -158,7 +184,6 @@ void  firing_rate_per_cells_time_windows(int target_cell,
     return;
   }
     
-  
   local_spike_density = (double*) malloc(size_for_fft*sizeof(double)); // array for all samples
   spike_array =  (double*) malloc(size_for_fft*sizeof(double));
   

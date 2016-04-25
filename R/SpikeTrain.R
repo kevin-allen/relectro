@@ -80,6 +80,10 @@ setMethod(f="ifr",
             if(st@nSpikes==0)
               stop(paste("ifr(): there are no spike in the SpikeTrain object",st@session))
 
+            if(st@ifrWindowSizeMs<st@ifrSpikeBinMs)
+              stop(paste("ifr(): ifrWindowSizeMs should not be smaller than ifrSpikeBinMs",
+                         st@ifrWindowSizeMs,st@ifrSpikeBinMs))
+            
             results<-.Call("ifr_from_spike_density",
                   as.integer(st@res),as.integer(st@clu), as.integer(st@nSpikes), 
                   st@ifrWindowSizeMs, st@ifrKernelSdMs, st@ifrSpikeBinMs,
