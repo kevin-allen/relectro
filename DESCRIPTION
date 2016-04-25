@@ -12,6 +12,7 @@ Depends:
     methods
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: rmarkdown
 RoxygenNote: 5.0.1
