@@ -69,11 +69,22 @@ setMethod("show", "HeadDirection",
             }
           })
 
-### make firing rate histo
+
+#' Calculate the head direction rate histograms of neurons using a HeadDirection, SpikeTrain and Positrack objects
+#'
+#' @param hd HeadDirection object
+#' @param st SpikeTrain object
+#' @param pt Positrack
+#' @return HeadDirection object with the firing rate histograms in the slot histo
+#' 
+#' @docType methods
+#' @rdname headDirectionHisto-methods
 setGeneric(name="headDirectionHisto",
            def=function(hd,st,pt)
            {standardGeneric("headDirectionHisto")}
 )
+#' @rdname headDirectionHisto-methods
+#' @aliases headDirectionHisto,ANY,ANY-method
 setMethod(f="headDirectionHisto",
           signature="HeadDirection",
           definition=function(hd,st,pt)
@@ -88,7 +99,6 @@ setMethod(f="headDirectionHisto",
               stop("st@nSpikes==0")
             
             hd@cellList<-st@cellList
-            
             
             ## use -1 as invalid values in c functions
             hdir<-pt@hd
@@ -144,12 +154,21 @@ setMethod(f="headDirectionHisto",
           }
 )
 
-
-#### headDirectionStats
+#' Calculate the head direction statistics for the head direction rate histograms with a HeadDirection, SpikeTrain and Positrack objects
+#'
+#' @param hd HeadDirection object
+#' @param st SpikeTrain object
+#' @param pt Positrack
+#' @return HeadDirection object with the statistics in the slots peakRates, vectorLength and meanDirection
+#' 
+#' @docType methods
+#' @rdname headDirectionStats-methods
 setGeneric(name="headDirectionStats",
            def=function(hd,st,pt)
            {standardGeneric("headDirectionStats")}
 )
+#' @rdname headDirectionStats-methods
+#' @aliases headDirectionStats,ANY,ANY-method
 setMethod(f="headDirectionStats",
           signature="HeadDirection",
           definition=function(hd,st,pt)
@@ -170,12 +189,23 @@ setMethod(f="headDirectionStats",
           }
 )
 
-
-#### headDirectionStatsShuffle 
+#' Calculate the random head direction statistics for the head direction rate histograms with 
+#' a HeadDirection, SpikeTrain and Positrack objects
+#'
+#' @param hd HeadDirection object
+#' @param st SpikeTrain object
+#' @param pt Positrack
+#' @return HeadDirection object with the random statistics in the slots 
+#' peakRatesShuffle, vectorLengthShuffle and meanDirectionShuffle
+#' 
+#' @docType methods
+#' @rdname headDirectionStatsShuffle-methods
 setGeneric(name="headDirectionStatsShuffle",
            def=function(hd,st,pt)
            {standardGeneric("headDirectionStatsShuffle")}
 )
+#' @rdname headDirectionStatsShuffle-methods
+#' @aliases headDirectionStatsShuffle,ANY,ANY-method
 setMethod(f="headDirectionStatsShuffle",
           signature="HeadDirection",
           definition=function(hd,st,pt){
@@ -214,6 +244,3 @@ setMethod(f="headDirectionStatsShuffle",
             }       
             return(hd)
           })
-
-
-

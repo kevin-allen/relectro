@@ -382,11 +382,24 @@ setMethod(f="setInvalidOutsideInterval",
           }
 )
 
-#### getIntervalsAtSpeed
+
+#' Get time intervals at which the speed of the animal was withing a specified ranged
+#'
+#' The intervals are in sample values of the electrophysiological data 
+#' 
+#' @param pt Positrack object
+#' @param minSpeed Minimal speed of the animal. 
+#' @param maxSpeed Maximal speed of the animal.
+#' @return matrix with the time intervals
+#' 
+#' @docType methods
+#' @rdname getIntervalsAtSpeed-methods
 setGeneric(name="getIntervalsAtSpeed",
            def=function(pt,minSpeed,maxSpeed)
            {standardGeneric("getIntervalsAtSpeed")}
 )
+#' @rdname getIntervalsAtSpeed-methods
+#' @aliases getIntervalsAtSpeed,ANY,ANY-method
 setMethod(f="getIntervalsAtSpeed",
           signature="Positrack",
           definition=function(pt,minSpeed,maxSpeed)
@@ -407,11 +420,25 @@ setMethod(f="getIntervalsAtSpeed",
             return(results)
           }
 )
-#### getIntervalsAtDirection
+
+
+#' Get time intervals at which the animal ran in a given direction (0 or 1)
+#'
+#' The intervals are in sample values of the electrophysiological data.
+#' The direction is based on the direction of movement in 1D environment.
+#' 
+#' @param pt Positrack object
+#' @param direction 0 or 1 indicating the direction of movment
+#' @return matrix with the time intervals
+#' 
+#' @docType methods
+#' @rdname getIntervalsAtDirection-methods
 setGeneric(name="getIntervalsAtDirection",
            def=function(pt,direction)
            {standardGeneric("getIntervalsAtDirection")}
 )
+#' @rdname getIntervalsAtDirection-methods
+#' @aliases getIntervalsAtDirection,ANY,ANY-method
 setMethod(f="getIntervalsAtDirection",
           signature="Positrack",
           definition=function(pt,direction=0)
@@ -436,36 +463,22 @@ setMethod(f="getIntervalsAtDirection",
           }
 )
 
-
-
-
-### show ###
-setMethod("show", "Positrack",
-          function(object){
-            print(paste("session:",object@session))
-            print(paste("path:",object@path))
-            if(length(object@samplingRateDat)==0){
-              print(paste("Oject not yet loaded"))
-              print("call loadPositrack")
-              return()
-            }
-            print(paste("samplingRate:",object@samplingRateDat,"Hz"))
-            print(paste("resSamplesPerWhlSample:",object@resSamplesPerWhlSample))
-            print(paste("pxPerCm:",object@pxPerCm))
-            print(paste("number data points:", length(object@xWhl)))
-            print(paste("time in data:", (length(object@xWhl)*object@resSamplesPerWhlSample)/object@samplingRateDat,"sec"))
-            print(paste("min max x:",min(object@x,na.rm=T),"cm,", max(object@x,na.rm=T),"cm"))
-            print(paste("min max y:",min(object@y,na.rm=T),"cm,", max(object@y,na.rm=T),"cm"))
-            print(paste("total valid time:", 
-                        sum(!is.na(object@x))*object@resSamplesPerWhlSample/object@samplingRateDat,
-                        "sec"))
-          })
-
-#### getSpeedAtResValues
+#' Get the speed of the animal at given time points
+#' 
+#' The time points are in sample values of the electrophysiological data
+#' 
+#' @param pt Positrack object
+#' @param res Time values in electrophysiological samples.
+#' @return Vector with the speed at the different time points
+#' 
+#' @docType methods
+#' @rdname getSpeedAtResValues-methods
 setGeneric(name="getSpeedAtResValues",
            def=function(pt,res)
            {standardGeneric("getSpeedAtResValues")}
 )
+#' @rdname getSpeedAtResValues-methods
+#' @aliases getSpeedAtResValues,ANY,ANY-method
 setMethod(f="getSpeedAtResValues",
           signature="Positrack",
           definition=function(pt,res)
@@ -491,11 +504,22 @@ setMethod(f="getSpeedAtResValues",
 
 
 
-#### shiftPositionRandom
+#' Shift the position of the animal of a random amount larger than the value of minShiftMs
+#' 
+#' This is used to do shuffling. The position values (x and y) are shifted in time. 
+#' Only valid values are shifted.
+#' 
+#' @param pt Positrack object
+#' @return Positrack object with shifted x and y values
+#' 
+#' @docType methods
+#' @rdname shiftPositionRandom-methods
 setGeneric(name="shiftPositionRandom",
            def=function(pt)
            {standardGeneric("shiftPositionRandom")}
 )
+#' @rdname shiftPositionRandom-methods
+#' @aliases shiftPositionRandom,ANY,ANY-method
 setMethod(f="shiftPositionRandom",
           signature="Positrack",
           definition=function(pt)
@@ -504,7 +528,6 @@ setMethod(f="shiftPositionRandom",
               stop("pt@session is empty")
             if(length(pt@x)==0)
               stop("pt@x has length of 0")
-            
             ## only consider valid data points
             xx<-pt@x[!is.na(pt@x)]
             yy<-pt@y[!is.na(pt@x)]
@@ -519,11 +542,23 @@ setMethod(f="shiftPositionRandom",
 )
 
 
-#### shiftSpeedRandom
+
+#' Shift the speed of the animal of a random amount larger than the value of minShiftMs
+#' 
+#' This is used to do shuffling. The speed values are shifted in time. 
+#' Only valid values are shifted.
+#' 
+#' @param pt Positrack object
+#' @return Positrack object with shifted speed values
+#' 
+#' @docType methods
+#' @rdname shiftSpeedRandom-methods
 setGeneric(name="shiftSpeedRandom",
            def=function(pt)
            {standardGeneric("shiftSpeedRandom")}
 )
+#' @rdname shiftSpeedRandom-methods
+#' @aliases shiftSpeedRandom,ANY,ANY-method
 setMethod(f="shiftSpeedRandom",
           signature="Positrack",
           definition=function(pt)
@@ -543,11 +578,22 @@ setMethod(f="shiftSpeedRandom",
 )
 
 
-#### shiftHdRandom
+#' Shift the head direction data of the animal of a random amount larger than the value of minShiftMs
+#' 
+#' This is used to do shuffling. The hd values are shifted in time. 
+#' Only valid values are shifted.
+#' 
+#' @param pt Positrack object
+#' @return Positrack object with shifted head direction (hd) values
+#' 
+#' @docType methods
+#' @rdname shiftHdRandom-methods
 setGeneric(name="shiftHdRandom",
            def=function(pt)
            {standardGeneric("shiftHdRandom")}
 )
+#' @rdname shiftHdRandom-methods
+#' @aliases shiftHdRandom,ANY,ANY-method
 setMethod(f="shiftHdRandom",
           signature="Positrack",
           definition=function(pt)
@@ -567,11 +613,23 @@ setMethod(f="shiftHdRandom",
 )
 
 
-#### shiftLinRandom
+
+#' Shift the linear position data of the animal of a random amount larger than the value of minShiftMs
+#' 
+#' This is used to do shuffling. The lin values are shifted in time. 
+#' Only valid values are shifted.
+#' 
+#' @param pt Positrack object
+#' @return Positrack object with shifted linear position (lin) values
+#' 
+#' @docType methods
+#' @rdname shiftLinRandom-methods
 setGeneric(name="shiftLinRandom",
            def=function(pt)
            {standardGeneric("shiftLinRandom")}
 )
+#' @rdname shiftLinRandom-methods
+#' @aliases shiftLinRandom,ANY,ANY-method
 setMethod(f="shiftLinRandom",
           signature="Positrack",
           definition=function(pt)
@@ -591,11 +649,24 @@ setMethod(f="shiftLinRandom",
 )
 
 
-#### linearzeLinearTrack
+
+#' Linearize the position data
+#' 
+#' This is usually done if the animal ran on a linear track. 
+#' The regression line of the position data is calculated and the 
+#' closest point on the line is found for each 2D coordinate.
+#' 
+#' @param pt Positrack object
+#' @return Positrack object with linear position (lin)
+#' 
+#' @docType methods
+#' @rdname linearizeLinearTrack-methods
 setGeneric(name="linearzeLinearTrack",
            def=function(pt)
            {standardGeneric("linearzeLinearTrack")}
 )
+#' @rdname linearizeLinearTrack-methods
+#' @aliases linearizeLinearTrack,ANY,ANY-method
 setMethod(f="linearzeLinearTrack",
           signature="Positrack",
           definition=function(pt)
@@ -674,9 +745,29 @@ setMethod(f="linearzeLinearTrack",
             #plot(pt@lin,xlim=c(240000,245000),type='l')
             #lines(ifelse(pt@dir>0,50,0),xlim=c(240000,245000),col="red")
             
-            
             return(pt)
           }
 )
 
 
+### show ###
+setMethod("show", "Positrack",
+          function(object){
+            print(paste("session:",object@session))
+            print(paste("path:",object@path))
+            if(length(object@samplingRateDat)==0){
+              print(paste("Oject not yet loaded"))
+              print("call loadPositrack")
+              return()
+            }
+            print(paste("samplingRate:",object@samplingRateDat,"Hz"))
+            print(paste("resSamplesPerWhlSample:",object@resSamplesPerWhlSample))
+            print(paste("pxPerCm:",object@pxPerCm))
+            print(paste("number data points:", length(object@xWhl)))
+            print(paste("time in data:", (length(object@xWhl)*object@resSamplesPerWhlSample)/object@samplingRateDat,"sec"))
+            print(paste("min max x:",min(object@x,na.rm=T),"cm,", max(object@x,na.rm=T),"cm"))
+            print(paste("min max y:",min(object@y,na.rm=T),"cm,", max(object@y,na.rm=T),"cm"))
+            print(paste("total valid time:", 
+                        sum(!is.na(object@x))*object@resSamplesPerWhlSample/object@samplingRateDat,
+                        "sec"))
+          })

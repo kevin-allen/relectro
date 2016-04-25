@@ -157,11 +157,25 @@ setMethod("show", "SpatialProperties2d",
               
           })
 
-
+#' Calculate the firing rate maps of neurons using a SpikeTrain and Positrack objects
+#'
+#' The occupancy map and the firing rate maps are smoothed with a Gaussian kernel
+#' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp
+#' 
+#' 
+#' @param sp SpatialProperties1d object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @return SpatialProperties2d object with the firing rate maps
+#' 
+#' @docType methods
+#' @rdname firingRateMap2d-methods
 setGeneric(name="firingRateMap2d",
            def=function(sp,st,pt)
            {standardGeneric("firingRateMap2d")}
 )
+#' @rdname firingRateMap2d-methods
+#' @aliases firingRateMap2d,ANY,ANY-method
 setMethod(f="firingRateMap2d",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt)
@@ -255,13 +269,21 @@ setMethod(f="firingRateMap2d",
           }
 )
 
-
-
-#### getMapStats
+#' Calculate spatial statistics of the firing rate maps of neurons
+#'
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @return SpatialProperties2d object with the stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
+#' 
+#' @docType methods
+#' @rdname getMapStats-methods
 setGeneric(name="getMapStats",
            def=function(sp,st,pt)
            {standardGeneric("getMapStats")}
 )
+#' @rdname getMapStats-methods
+#' @aliases getMapStats,ANY,ANY-method
 setMethod(f="getMapStats",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt)
@@ -322,11 +344,25 @@ setMethod(f="getMapStats",
 )
 
 
-#### getMapStatsShuffle 
+
+#' Calculate random spatial statistics of the firing rate maps of neurons
+#'
+#' The random values are obtained by shifting the position data.
+#' The number of shufflings is nShufflings of the SpatialProperties2d object.
+#'
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @return SpatialProperties2d object with the random stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
+#' 
+#' @docType methods
+#' @rdname getMapStatsShuffle-methods
 setGeneric(name="getMapStatsShuffle",
            def=function(sp,st,pt)
            {standardGeneric("getMapStatsShuffle")}
 )
+#' @rdname getMapStatsShuffle-methods
+#' @aliases getMapStatsShuffle,ANY,ANY-method
 setMethod(f="getMapStatsShuffle",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt){
@@ -394,15 +430,21 @@ setMethod(f="getMapStatsShuffle",
 })
 
 
-
-
-
-
-
+#' Calculate the spatial autocorrelation of the firing rate maps of neurons
+#'
+#' The autocorrelation is performed on the firing rate maps of the SpatialProperties2d object
+#' 
+#' @param sp SpatialProperties2d object
+#' @return SpatialProperties2d object with the spatial autocorrelation in slot auto
+#' 
+#' @docType methods
+#' @rdname mapSpatialAutocorrelation-methods
 setGeneric(name="mapSpatialAutocorrelation",
            def=function(sp)
            {standardGeneric("mapSpatialAutocorrelation")}
 )
+#' @rdname mapSpatialAutocorrelation-methods
+#' @aliases mapSpatialAutocorrelation,ANY,ANY-method
 setMethod(f="mapSpatialAutocorrelation",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -427,10 +469,23 @@ setMethod(f="mapSpatialAutocorrelation",
           }
 )
 
+#' Calculate the spatial autocorrelation of the firing rate maps of neurons and removed the detected fields
+#'
+#' The autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
+#' Fields are detected as when one wants to calculate grid scores
+#' Usefull to test the different steps of the calculation of the grid score.
+#' 
+#' @param sp SpatialProperties2d object
+#' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDetect
+#' 
+#' @docType methods
+#' @rdname autocorrelationNoFields-methods
 setGeneric(name="autocorrelationNoFields",
            def=function(sp)
            {standardGeneric("autocorrelationNoFields")}
 )
+#' @rdname autocorrelationNoFields-methods
+#' @aliases autocorrelationNoFields,ANY,ANY-method
 setMethod(f="autocorrelationNoFields",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -451,10 +506,25 @@ setMethod(f="autocorrelationNoFields",
             return(sp)
           }
 )
+
+
+#' Calculate the spatial autocorrelation of the firing rate maps of neurons and get the region use for grid score calculation
+#' Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
+#' Fields are detected as when one wants to calculate grid scores. 
+#' Then the region with the 6 fields surrounding the center is kept
+#' Usefull to test the different steps of the calculation of the grid score.
+#' 
+#' @param sp SpatialProperties2d object
+#' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDoughnut
+#' 
+#' @docType methods
+#' @rdname autocorrelationDoughnut-methods
 setGeneric(name="autocorrelationDoughnut",
            def=function(sp)
            {standardGeneric("autocorrelationDoughnut")}
 )
+#' @rdname autocorrelationDoughnut-methods
+#' @aliases autocorrelationDoughnut,ANY,ANY-method
 setMethod(f="autocorrelationDoughnut",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -477,10 +547,25 @@ setMethod(f="autocorrelationDoughnut",
           }
 )
 
+
+#' Get the rotated region of the spatial autocorrelation of the firing rate maps when calculating grid scores
+#' Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
+#' Fields are detected as when one wants to calculate grid scores. 
+#' Then the region with the 6 fields surrounding the center is kept
+#' The rotated copy of the region are stored in slot autosDoughnutRotate
+#' Usefull to test the different steps of the calculation of the grid score.
+#' 
+#' @param sp SpatialProperties2d object
+#' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDoughnutRotate
+#' 
+#' @docType methods
+#' @rdname autocorrelationDoughnutRotate-methods
 setGeneric(name="autocorrelationDoughnutRotate",
            def=function(sp)
            {standardGeneric("autocorrelationDoughnutRotate")}
 )
+#' @rdname autocorrelationDoughnutRotate-methods
+#' @aliases autocorrelationDoughnutRotate,ANY,ANY-method
 setMethod(f="autocorrelationDoughnutRotate",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -500,18 +585,25 @@ setMethod(f="autocorrelationDoughnutRotate",
                            sp@nAutoRotations,
                            sp@AutoRotationDegree,
                            -2.0) #invalid
-            
-            
             sp@autosDoughnutRotate<-array(data=results,dim=(c(sp@nRowAuto,sp@nColAuto,length(sp@cellList)*sp@nAutoRotations)))
             return(sp)
           }
 )
 
-
+#' Calculate the grid scores from the spatial autocorrelations
+#' 
+#' 
+#' @param sp SpatialProperties2d object
+#' @return SpatialProperties2d object with the grid scores in the slot gridScore
+#' 
+#' @docType methods
+#' @rdname gridScore-methods
 setGeneric(name="gridScore",
            def=function(sp)
            {standardGeneric("gridScore")}
 )
+#' @rdname gridScore-methods
+#' @aliases gridScore,ANY,ANY-method
 setMethod(f="gridScore",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -532,63 +624,73 @@ setMethod(f="gridScore",
             return(sp)
           }
 )
-setGeneric(name="gridOrientation",
-           def=function(sp)
-           {standardGeneric("gridOrientation")}
-)
-setMethod(f="gridOrientation",
-          signature="SpatialProperties2d",
-          definition=function(sp)
-          {
-            if(length(sp@autos)==0)
-              stop("Need to call mapSpatialAutocorrelation first to run gridOrientation()")
-            
-# 
-#             sp@gridOrientation<- .Call("grid_orientation_cwrap",
-#                                  as.integer(sp@cellList),
-#                                  length(sp@cellList),
-#                                  sp@autos,
-#                                  sp@nColAuto,
-#                                  sp@nRowAuto,
-#                                  sp@cmPerBin,
-#                                  as.integer(sp@gridScoreNumberFieldsToDetect),
-#                                  as.integer(sp@gridScoreMinNumBinsPerField),
-#                                  sp@gridScoreFieldThreshold,
-#                                  -2.0)
-            return(sp)
-          }
-)
-setGeneric(name="gridSpacing",
-           def=function(sp)
-           {standardGeneric("gridSpacing")}
-)
-setMethod(f="gridSpacing",
-          signature="SpatialProperties2d",
-          definition=function(sp)
-          {
-            if(length(sp@autos)==0)
-              stop("Need to call mapSpatialAutocorrelation first to run gridSpacing()")
-            
-#             sp@gridSpacing<- .Call("grid_spacing_cwrap",
-#                                         as.integer(sp@cellList),
-#                                         length(sp@cellList),
-#                                         sp@autos,
-#                                         sp@nColAuto,
-#                                         sp@nRowAuto,
-#                                         sp@cmPerBin,
-#                                         as.integer(sp@gridScoreNumberFieldsToDetect),
-#                                         as.integer(sp@gridScoreMinNumBinsPerField),
-#                                         sp@gridScoreFieldThreshold,
-#                                         -1.0)
-            return(sp)
-          }
-)
 
+# setGeneric(name="gridOrientation",
+#            def=function(sp)
+#            {standardGeneric("gridOrientation")}
+# )
+# setMethod(f="gridOrientation",
+#           signature="SpatialProperties2d",
+#           definition=function(sp)
+#           {
+#             if(length(sp@autos)==0)
+#               stop("Need to call mapSpatialAutocorrelation first to run gridOrientation()")
+#             
+# # 
+# #             sp@gridOrientation<- .Call("grid_orientation_cwrap",
+# #                                  as.integer(sp@cellList),
+# #                                  length(sp@cellList),
+# #                                  sp@autos,
+# #                                  sp@nColAuto,
+# #                                  sp@nRowAuto,
+# #                                  sp@cmPerBin,
+# #                                  as.integer(sp@gridScoreNumberFieldsToDetect),
+# #                                  as.integer(sp@gridScoreMinNumBinsPerField),
+# #                                  sp@gridScoreFieldThreshold,
+# #                                  -2.0)
+#             return(sp)
+#           }
+# )
+# setGeneric(name="gridSpacing",
+#            def=function(sp)
+#            {standardGeneric("gridSpacing")}
+# )
+# setMethod(f="gridSpacing",
+#           signature="SpatialProperties2d",
+#           definition=function(sp)
+#           {
+#             if(length(sp@autos)==0)
+#               stop("Need to call mapSpatialAutocorrelation first to run gridSpacing()")
+#             
+# #             sp@gridSpacing<- .Call("grid_spacing_cwrap",
+# #                                         as.integer(sp@cellList),
+# #                                         length(sp@cellList),
+# #                                         sp@autos,
+# #                                         sp@nColAuto,
+# #                                         sp@nRowAuto,
+# #                                         sp@cmPerBin,
+# #                                         as.integer(sp@gridScoreNumberFieldsToDetect),
+# #                                         as.integer(sp@gridScoreMinNumBinsPerField),
+# #                                         sp@gridScoreFieldThreshold,
+# #                                         -1.0)
+#             return(sp)
+#           }
+# )
 
+#' Calculate border scores from the firing maps 
+#' 
+#' 
+#' @param sp SpatialProperties2d object
+#' @return SpatialProperties2d object with the border scores in the slot borderScore
+#' 
+#' @docType methods
+#' @rdname borderScore-methods
 setGeneric(name="borderScore",
            def=function(sp)
            {standardGeneric("borderScore")}
 )
+#' @rdname borderScore-methods
+#' @aliases borderScore,ANY,ANY-method
 setMethod(f="borderScore",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -614,11 +716,25 @@ setMethod(f="borderScore",
           }
 )
 
-
+#' Speed scores from spike train and positrack
+#' 
+#' 
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object with ifr
+#' @param pt Positrack object
+#' @param minSpeed Minimal speed to be considered
+#' @param maxSpeed Maximal speed to be considered
+#' @param runLm Logical, if TRUE a linear model will be build and slope and intercept calculated
+#' @return SpatialProperties2d object with the speed scores in the slots SpeedScore
+#' 
+#' @docType methods
+#' @rdname speedScore-methods
 setGeneric(name="speedScore",
            def=function(sp,st,pt,minSpeed,maxSpeed,runLm)
            {standardGeneric("speedScore")}
 )
+#' @rdname speedScore-methods
+#' @aliases speedScore,ANY,ANY-method
 setMethod(f="speedScore",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt,minSpeed=3,maxSpeed=100,runLm=F)
@@ -640,7 +756,6 @@ setMethod(f="speedScore",
             ifrSel<-matrix(st@ifr[,index],nrow=length(st@cellList))
             resTime<-resTime[index]
             
-            
             ## get the speed for the res values
             speed<-getSpeedAtResValues(pt,resTime)
             
@@ -661,11 +776,24 @@ setMethod(f="speedScore",
 )
 
 
-
+#' Random speed scores from spike train and positrack
+#' 
+#' 
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object with ifr
+#' @param pt Positrack object
+#' @param minSpeed Minimal speed to be considered
+#' @param maxSpeed Maximal speed to be considered
+#' @return SpatialProperties2d object with the random speed scores in the slots SpeedScoreShuffle
+#' 
+#' @docType methods
+#' @rdname speedScoreShuffle-methods
 setGeneric(name="speedScoreShuffle",
            def=function(sp,st,pt,minSpeed,maxSpeed)
            {standardGeneric("speedScoreShuffle")}
 )
+#' @rdname speedScoreShuffle-methods
+#' @aliases speedScoreShuffle,ANY,ANY-method
 setMethod(f="speedScoreShuffle",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt,minSpeed=3,maxSpeed=100)
@@ -712,10 +840,20 @@ setMethod(f="speedScoreShuffle",
 
 
 
+#' Return the firing rate maps in a data.frame
+#' 
+#' 
+#' @param sp SpatialProperties2d object
+#' @return data.frame with the firing rate maps. Column names are clu.id, x, y, rate
+#' 
+#' @docType methods
+#' @rdname mapsAsDataFrame-methods
 setGeneric(name="mapsAsDataFrame",
            def=function(sp)
            {standardGeneric("mapsAsDataFrame")}
 )
+#' @rdname mapsAsDataFrame-methods
+#' @aliases mapsAsDataFrame,ANY,ANY-method
 setMethod(f="mapsAsDataFrame",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -730,11 +868,21 @@ setMethod(f="mapsAsDataFrame",
           }
 )
 
-
+#' Return firing rate map statisitc as a data.frame
+#' 
+#' 
+#' @param sp SpatialProperties2d object
+#' @param shuffle Logical, if TRUE returns the stats of the shuffling analysis
+#' @return data.frame with the firing rate map stats.
+#' 
+#' @docType methods
+#' @rdname statsAsDataFrame-methods
 setGeneric(name="statsAsDataFrame",
            def=function(sp,shuffle)
            {standardGeneric("statsAsDataFrame")}
 )
+#' @rdname statsAsDataFrame-methods
+#' @aliases statsAsDataFrame,ANY,ANY-method
 setMethod(f="statsAsDataFrame",
           signature="SpatialProperties2d",
           definition=function(sp,shuffle=FALSE)
@@ -771,7 +919,3 @@ setMethod(f="statsAsDataFrame",
             return(df)
           }
 )
-
-
-
-
