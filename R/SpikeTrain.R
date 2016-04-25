@@ -445,6 +445,7 @@ setMethod(f="meanFiringRate",
           signature = "SpikeTrain",
           definition=function(st)
           {
+            
             # call cwrapper function
             st@meanFiringRate<- .Call("meanFiringRate_cwrap",
                                       as.integer(st@cellList),
@@ -516,8 +517,6 @@ setMethod(f="setIntervals",
             st@startInterval<-startIntervals
             st@endInterval<-endIntervals
             
-            st@startInterval
-            st@endInterval
             # call cwrapper function
             results<- .Call("resIndexForIntervals_cwrap",
                             length(st@startInterval),
@@ -582,6 +581,7 @@ setMethod("show", "SpikeTrain",
               print(paste("n cellPairList:",length(object@cellPairList[,1])))
             }
             if(length(object@meanFiringRate)!=0){
+              print(paste("firing rate (Hz):"))
               print(paste(object@meanFiringRate))
             }
             

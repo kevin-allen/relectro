@@ -27,7 +27,7 @@ void res_index_for_intervals(int* interval_lines,
 {
   /* gives the res index for the beginning and end of each intervals*/
   // the values at start_interval_index and end_interval_index are within the intervals
-  // if not chronologically sorted, that takes more time
+  // intervals need to be chronologically organized
   int max_res=res[res_lines-1];
   int max_start=find_max(*interval_lines, start);
   int max_end=find_max(*interval_lines, end);
@@ -43,9 +43,9 @@ void res_index_for_intervals(int* interval_lines,
     {
       if ((start[i]< max_res)&&(end[i]>max_res))
       {
-        end[i]=max_res;
+        end[i]=max_res+1; // will include the last spike in interval
       }
-      if (start[i]> max_res)
+      if (start[i]> max_res) // whole interval after last spike, remove as the indices would not make sense
       {
         invalid_int++;
       }
