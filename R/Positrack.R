@@ -162,6 +162,112 @@ setMethod(f="loadPositrack",
 
 
 
+
+
+#' set position values from arguments
+#'
+#' This function also use the .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm files
+#' 
+#' @param pt Positrack object
+#' @param x Numeric with the x position of animal. x is in pixels
+#' @param y Numeric with the y position of animal. y is in pixels
+#' @param hd Numeric with the head direction of animal in degrees
+#' @param resSamplesPerWhlSample Number of electrophysiological samples per position sample
+#' @param samplingRateDat Sampling rate of electrophysiological data
+#' @param pxPerCm Number of pixels per cm
+#' @return Positrack object
+#' 
+#' @docType methods
+#' @rdname setPositrack-methods
+setGeneric(name="setPositrack",
+           def=function(pt,x,y,hd,resSamplesPerWhlSample,samplingRateDat,pxPerCm)
+           {standardGeneric("setPositrack")}
+)
+#' @rdname setPositrack-methods
+#' @aliases setPositrack,ANY,ANY-method
+setMethod(f="setPositrack",
+          signature="Positrack",
+          definition=function(pt,x,y,hd,resSamplesPerWhlSample,samplingRateDat,pxPerCm)
+          {
+          
+            ## get sampling rate
+            pt@xWhl<-x
+            pt@yWhl<-y
+            pt@hdWhd<-hd
+            pt@resSamplesPerWhlSample<-resSamplesPerWhlSample
+            pt@samplingRateDat<-samplingRateDat
+            pt@pxPerCm<-pxPerCm
+            
+            ## check that things add up
+            if(length(pt@xWhl)!=length(pt@hdWhd))
+              stop("Problem with length of whl and whd files")
+            if(pt@samplingRateDat<1|pt@samplingRateDat>100000)
+              stop(paste("pt@sampingRateDat is out of bound:",pt@samplingRateDat))
+            if(pt@pxPerCm<1|pt@pxPerCm>10000)
+              stop(paste("pt@pxPerCm is out of bound:", pt@pxPerCm))
+            if(max(pt@xWhl)>2000|min(pt@xWhl)< -1.0){
+              print(paste("min x:",min(pt@xWhl),"max x:",max(pt@xWhl)))
+              stop(paste("values of pt@xWhl are out of bound"))
+            }
+            if(max(pt@yWhl)>2000|min(pt@yWhl)< -1.0){
+              print(paste("min y:",min(pt@yWhl),"max y:",max(pt@yWhl)))
+              stop(paste("values of pt@xWhl are out of bound"))
+            }
+            if(max(pt@hdWhd>360))
+              stop(paste("max value of pt@hdWhd > 360:",max(pt@hdWhd)))
+            if(min(pt@hdWhd< -1.0))
+              stop(paste("min value of pt@hdWhd < -1.0:",min(pt@hdWhd)))
+            ## pt@xWhl will never be changed, 
+            pt@x<-pt@xWhl
+            pt@y<-pt@yWhl
+            pt@hd<-pt@hdWhd
+            
+            ## set the res value associated with eack whl sample
+            pt@res<-seq(from=pt@resSamplesPerWhlSample,by=pt@resSamplesPerWhlSample,length.out=length(pt@x))
+            
+            ## apply a bit a smoothing to the x and y
+            pt@x<-smoothGaussian(x=pt@x,sd=pt@defaultXYSmoothing,invalid=-1.0)
+            pt@y<-smoothGaussian(x=pt@y,sd=pt@defaultXYSmoothing,invalid=-1.0)
+            plot(x,y)
+            plot(pt@x,pt@y)
+            
+            ## apply no smoothing to head direction
+            
+            ## get the speed from position
+            pt@speed<- .Call("speed_from_whl_cwrap",
+                             pt@x,
+                             pt@y,
+                             length(pt@x),
+                             4, # look ahead
+                             4, # look back
+                             as.numeric(pt@pxPerCm),
+                             pt@samplingRateDat, 
+                             pt@resSamplesPerWhlSample)
+            
+            ## get the angular speed from position
+            pt@angularSpeed<- .Call("angular_speed_from_hd_cwrap",
+                                    pt@hd,
+                                    length(pt@hd),
+                                    4,
+                                    4,
+                                    pt@samplingRateDat,
+                                    pt@resSamplesPerWhlSample)
+            
+            # set -1.0 to NA for calculation in R       
+            pt@x[which(pt@x==-1.0)]<-NA
+            pt@y[which(pt@y==-1.0)]<-NA
+            pt@hd[which(pt@hd==-1.0)]<-NA
+            
+            # get cm
+            pt@x<-pt@x/pt@pxPerCm
+            pt@y<-pt@y/pt@pxPerCm
+            
+            return(pt)
+          }
+)
+
+
+
 #' Apply some smoothing to the x and y position data
 #'
 #' A Gaussian kernel is used for smoothing
