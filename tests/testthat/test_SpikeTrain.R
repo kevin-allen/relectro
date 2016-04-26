@@ -108,7 +108,7 @@ test_that("Sum of ifr when know spikes",{
   rm(st)
 })
 
-context("Crosscorrelation to  events")
+context("Spike-time crosscorrelation to  events")
 test_that("Crosscorrelation to events",{
   st<-new("SpikeTrain")
   st<-setSpikeTrain(st,res=c(10000,20000),clu=c(1,1),samplingRate=20000)
@@ -126,3 +126,32 @@ test_that("Crosscorrelation to events",{
   expect_equal(sum(st@crossEvents),0)
   rm(st,df)
 })
+
+context("Spike-time crosscorrelation between neurons")
+test_that("Crosscorrelation between neurons",{
+  st<-new("SpikeTrain")
+  st<-setSpikeTrain(st,res=c(20000,20100),clu=c(1,2),samplingRate=20000)
+  st<-spikeTimeCrosscorrelation(st,binSizeMs=1,windowSizeMs=50,probability=F)
+  expect_equal(length(as.numeric(st@cross)),1*50*2)
+  expect_equal(sum(st@cross),1)
+  df<-spikeTimeCrosscorrelationAsDataFrame(st)
+  expect_equal(df[which(df$time==5.5),"count"],1)
+
+  st<-setSpikeTrain(st,res=c(20000,20100),clu=c(1,2),samplingRate=20000)
+  st<-setIntervals(st,s=c(30000),e=c(40000)) # interval after spikes
+  st<-spikeTimeCrosscorrelation(st,binSizeMs=1,windowSizeMs=50,probability=F)
+  expect_equal(sum(st@cross),0)
+  
+
+  st<-setSpikeTrain(st,res=c(20000,20100),clu=c(1,2),samplingRate=20000)
+  st<-setIntervals(st,s=c(20000),e=c(40000)) # interval after spikes
+  st<-spikeTimeCrosscorrelation(st,binSizeMs=1,windowSizeMs=50,probability=F)
+  expect_equal(sum(st@cross),0)
+
+  st<-setSpikeTrain(st,res=c(20000,20100),clu=c(1,2),samplingRate=20000)
+  st<-setIntervals(st,s=c(19999),e=c(20101)) # interval after spikes
+  st<-spikeTimeCrosscorrelation(st,binSizeMs=1,windowSizeMs=50,probability=F)
+  expect_equal(sum(st@cross),1)
+  
+})
+

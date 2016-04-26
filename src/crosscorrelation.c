@@ -58,41 +58,43 @@ void crosscorrelation_one_cell(int clu_no1, // cell of interest1
   int max = 0 + window_size/2;
   double interval = (double)(max - min)/histo_size; // bin_size
   for (int i = 0; i < histo_size; i++)
-    {
-      histo[i] = 0;
-    }
+  {
+    histo[i] = 0;
+  }
+  
   for(int inter = 0; inter < interval_lines; inter++)  // for every interval
-    { 
-      for (int j = start_interval_index[inter]; j < end_interval_index[inter]; j++) // for every spikes
-	{
-	  // if cell 1 fires
-	  if (clu[j] == clu_no1)
-	    {
-	      // check if there is a spike from cell2 in the window
-	      // check backwark, within the interval and within the time window
-	      for (k = j-1; (k >= start_interval_index[inter]) && (res[k] > res[j] - window_size/2); k--)
-		{
-		  if (clu[k] == clu_no2)
-		    {
-		      time_diff = res[k] - res[j];
-		      index = (int)(time_diff/interval + histo_size/2);
-		      histo[index]++;
-		    }
-		}
-	      // check forward within the interval and within the time window
-	      for (k = j+1; k < end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
-		{
-		  if (clu[k] == clu_no2)
-		    {
-		      time_diff = res[k] - res[j];
-		      index = (int)(time_diff/interval + histo_size/2);
-		      histo[index]++;
-		    }
-		  
-		}
-	    }
-	}
+  { 
+   // Rprintf("clu: %d %d  interval: %d %d\n",clu_no1,clu_no2,start_interval_index[inter],end_interval_index[inter]);
+    for (int j = start_interval_index[inter]; j <= end_interval_index[inter]&&inter<res_lines; j++) // for every spikes
+    {
+      // if cell 1 fires
+      if (clu[j] == clu_no1)
+      {
+        // check if there is a spike from cell2 in the window
+        // check backwark, within the interval and within the time window
+        for (k = j-1; (k >= start_interval_index[inter]) && (res[k] > res[j] - window_size/2); k--)
+        {
+          if (clu[k] == clu_no2)
+          {
+            time_diff = res[k] - res[j];
+            index = (int)(time_diff/interval + histo_size/2);
+            histo[index]++;
+          }
+        }
+        // check forward within the interval and within the time window
+        for (k = j+1; k <= end_interval_index[inter] && k < res_lines &&(res[k] < res[j] + window_size/2); k++)
+        {
+          if (clu[k] == clu_no2)
+          {
+            time_diff = res[k] - res[j];
+            index = (int)(time_diff/interval + histo_size/2);
+            histo[index]++;
+          }
+          
+        }
+      }
     }
+  }
   
 }
 
@@ -119,9 +121,10 @@ void crosscorrelation_one_cell_probability(int clu_no1, // cell of interest1
     {
       histo[i] = 0;
     }
+  
   for(int inter = 0; inter < interval_lines; inter++)  // for every interval
     { 
-      for (int j = start_interval_index[inter]; j < end_interval_index[inter]; j++) // for every spikes
+    for (int j = start_interval_index[inter]; j <= end_interval_index[inter]&&inter<res_lines; j++) // for every spikes
 	{
 	  // if cell 1 fires
 	  if (clu[j] == clu_no1)
@@ -140,7 +143,7 @@ void crosscorrelation_one_cell_probability(int clu_no1, // cell of interest1
 		}
 	      
 	      // check forward within the interval and within the time window
-	      for (k = j+1; k < end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
+	      for (k = j+1; k <= end_interval_index[inter] && k < res_lines && (res[k] < res[j] + window_size/2); k++)
 		{
 		  if (clu[k] == clu_no2)
 		    {
@@ -270,13 +273,7 @@ SEXP crosscorrelation_cwrap(SEXP clu1_r,
   int probability;
   
   // protect R object created in c code so that R does not delete them
-  PROTECT(clu1_r=AS_INTEGER(clu1_r));
-  PROTECT(clu2_r=AS_INTEGER(clu2_r));
-  PROTECT(clu_r=AS_INTEGER(clu_r));
-  PROTECT(res_r=AS_INTEGER(res_r));
-  PROTECT(start_interval_index_r=AS_INTEGER(start_interval_index_r));
-  PROTECT(end_interval_index_r=AS_INTEGER(end_interval_index_r));
- 
+  
   /* // coersion */
   clu1=INTEGER_POINTER(clu1_r);
   clu2=INTEGER_POINTER(clu2_r);
@@ -296,7 +293,6 @@ SEXP crosscorrelation_cwrap(SEXP clu1_r,
   if(probability!=0&probability!=1)
     {
       Rprintf("probability needs to be 0 or 1 but was %d\n",probability);
-      UNPROTECT(6);
       return(R_NilValue);
     }
   if(probability==0)
@@ -324,7 +320,7 @@ SEXP crosscorrelation_cwrap(SEXP clu1_r,
   	INTEGER(out)[i]=histo[i]; 
       //free memory for histo
       free(histo);
-      UNPROTECT(7);
+      UNPROTECT(1);
       // return the histogram
       return(out);
     }
@@ -350,11 +346,9 @@ SEXP crosscorrelation_cwrap(SEXP clu1_r,
       for(int i = 0; i < all_histo_length;i++)
   	REAL(out)[i]=histo[i];
       free(histo);
-      UNPROTECT(7);
+      UNPROTECT(1);
       return(out);
     }
-  // unprotect memory
-  UNPROTECT(6);
   //
   return(R_NilValue);
 }

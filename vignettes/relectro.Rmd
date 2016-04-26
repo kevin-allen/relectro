@@ -46,10 +46,10 @@ Here is an example with simulated spike trains.
 
 ```{r simulate_spike_train}
 ## generate spikes for 3 neurons  
-res1<-cumsum(rpois(n=100,lambda=10))
-res2<-cumsum(rpois(n=200,lambda=15))
-res3<-cumsum(rpois(n=300,lambda=10))
-clu<-c(rep(1,100),rep(2,200),rep(3,300))
+res1<-cumsum(rpois(n=1000,lambda=10))
+res2<-cumsum(rpois(n=1000,lambda=15))
+res3<-cumsum(rpois(n=1000,lambda=20))
+clu<-c(rep(1,1000),rep(2,1000),rep(3,1000))
 df<-data.frame(res=c(res1,res2,res3),clu=clu)
 df<-df[order(df$res),] # sort according to res values
 ## create a SpikeTrain object from random spikes ###
@@ -57,10 +57,13 @@ st<-new("SpikeTrain")
 ## set the spike trains in the object
 st<-setSpikeTrain(st=st,res=df$res,clu=df$clu,samplingRate=20000)
 ## get the spike-time autocorrelation
-st<-spikeTimeAutocorrelation(st,binSizeMs=12,windowSizeMs=200,probability = F)
+st<-spikeTimeAutocorrelation(st,binSizeMs=10,windowSizeMs=500,probability = F)
 auto<-spikeTimeAutocorrelationAsDataFrame(st)
 ## plot the autocorrelation
-plot(auto$count,type='l',ylab="Spike count", xlab="time (ms)")
+plot(auto$time[which(auto$clu==1)],auto$count[which(auto$clu==1)],
+     ylim=c(0,max(auto$count[which(auto$clu==1)])),type='l',ylab="Spike count", xlab="time (ms)")
+lines(auto$time[which(auto$clu==2)],auto$count[which(auto$clu==2)],col="red")
+lines(auto$time[which(auto$clu==3)],auto$count[which(auto$clu==3)],col="blue")
 ## get the mean firing rate
 st<-meanFiringRate(st)
 st@meanFiringRate
@@ -85,17 +88,19 @@ session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
 st<-new("SpikeTrain",session=session,path=datadir)
 st<-loadSpikeTrain(st) # load res clu and sampling rate
 ## calculate spike-time crosscorrelation
-cross<-spikeTimeCrosscorrelation(st,
-                                 binSizeMs=1,
-                                 windowSizeMs = 200,
-                                 probability = T)
+st<-spikeTimeCrosscorrelation(st,
+                              binSizeMs=1,
+                              windowSizeMs = 200,
+                              probability = T)
+cross<- spikeTimeCrosscorrelationAsDataFrame(st)
 plot(cross$time[which(cross$clu1==2&cross$clu2==5)],
      cross$prob[which(cross$clu1==2&cross$clu2==5)],
      ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),
      type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5")
 ## set some events, in this case the spikes of clu 2
 st<-setEvents(st,events=st@res[which(st@clu==2)])
-cc<-spikeTimeCrosscorrelationEvents(st)
+st<-spikeTimeCrosscorrelationEvents(st)
+cc<-spikeTimeCrosscorrelationEventsAsDataFrame(st)
 plot(cc$time[which(cc$clu==6)],
      cc$count[which(cc$clu==6)],
      ylim=c(0,max(cc$count[which(cc$clu==6)])),

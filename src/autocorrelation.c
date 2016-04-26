@@ -21,41 +21,41 @@ void autocorrelation_one_cell(int clu_no, // cell of interest
   
   // set to 0
   for (int i = 0 ; i < histo_size; i++)
-    {
-      histo[i]=0;
-    }
-   /// for every interval
+  {
+    histo[i]=0;
+  }
+  /// for every interval
   for(int inter = 0; inter < interval_lines; inter++) 
-    {
-      for (int j = start_interval_index[inter]; j <= end_interval_index[inter]&&j<res_lines; j++){ // for every spikes within interval
-	
-	  // if cell of interest fires
-	  if (clu[j] == clu_no)
-	    {
-	      // check if there is a spike from the same cell in the window_size
-	      // check backwark
-	      for (k = j-1; (k >= start_interval_index[inter]&&k<res_lines) && (res[k] > res[j] - window_size/2); k--)
-		{
-		  if (clu[k] == clu_no)
-		    {
-		      time_diff = res[k] - res[j];
-		      index = (int)(time_diff/interval + histo_size/2);
-		      histo[index]++;
-		    }
-		}
-	      // check forward
-	      for (k = j+1; k <= end_interval_index[inter] && k < res_lines  && (res[k] < res[j] + window_size/2); k++)
-		{
-		  if (clu[k] == clu_no)
-		    {
-		      time_diff = res[k] - res[j];
-		      index =(int)( time_diff/interval + histo_size/2);
-		      histo[index]++;
-		    }
-		}
-	    }
-	}
+  {
+    for (int j = start_interval_index[inter]; j <= end_interval_index[inter]&&j<res_lines; j++){ // for every spikes within interval
+      
+      // if cell of interest fires
+      if (clu[j] == clu_no)
+      {
+        // check if there is a spike from the same cell in the window_size
+        // check backwark
+        for (k = j-1; (k >= start_interval_index[inter]) && (res[k] > res[j] - window_size/2); k--)
+        {
+          if (clu[k] == clu_no)
+          {
+            time_diff = res[k] - res[j];
+            index = (int)(time_diff/interval + histo_size/2);
+            histo[index]++;
+          }
+        }
+        // check forward
+        for (k = j+1; k <= end_interval_index[inter] && k < res_lines  && (res[k] < res[j] + window_size/2); k++)
+        {
+          if (clu[k] == clu_no)
+          {
+            time_diff = res[k] - res[j];
+            index =(int)( time_diff/interval + histo_size/2);
+            histo[index]++;
+          }
+        }
+      }
     }
+  }
   return;
  }
 

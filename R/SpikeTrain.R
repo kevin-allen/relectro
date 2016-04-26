@@ -24,6 +24,9 @@
 #' @slot auto Matrix holding spike-time autocorrelation
 #' @slot autoMsPerBin Ms per bin in spike-time autocorrelation
 #' @slot autoProbability Logical, whether the spike-time autocorrelation contains probability values or spike count
+#' @slot cross Matrix holding spike-time crosscorrelation between spikes and events
+#' @slot crossMsPerBin Ms per bin in spike-time crosscorrelation with events
+#' @slot crossProbability Logical, whether the spike-time crosscorrelation to events contains probability values or spike count
 #' @slot crossEvents Matrix holding spike-time crosscorrelation between spikes and events
 #' @slot crossEventsMsPerBin Ms per bin in spike-time crosscorrelation with events
 #' @slot crossEventsProbability Logical, whether the spike-time crosscorrelation to events contains probability values or spike count
@@ -52,6 +55,9 @@ SpikeTrain <- setClass(
           auto="matrix",
           autoMsPerBin="numeric",
           autoProbability="logical",
+          cross="matrix",
+          crossMsPerBin="numeric",
+          crossProbability="logical",
           crossEvents="matrix",
           crossEventsMsPerBin="numeric",
           crossEventsProbability="logical",
@@ -417,7 +423,7 @@ setMethod(f="spikeTimeCrosscorrelationEventsAsDataFrame",
 #' @param binSizeMs Default is 1
 #' @param windowSizeMs Default is 200
 #' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
-#' @return a data.frame with the spike-time crosscorrelation of cell pairs
+#' @return SpikeTrain object with spike-time crosscorrelation of cell pairs in slot cross
 #' 
 #' @docType methods
 #' @rdname spikeTimeCrosscorrelation-methods
@@ -433,40 +439,74 @@ setMethod(f="spikeTimeCrosscorrelation",
             
             if(length(st@cellPairList[,1])==0)
               stop("cellPairList is empty")
-          
             nBins=(windowSizeMs*2)/binSizeMs
             window.size=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
-            window.size
             
             results<- .Call("crosscorrelation_cwrap",
-                            st@cellPairList[,1],
-                            st@cellPairList[,2],
+                            as.integer(st@cellPairList[,1]),
+                            as.integer(st@cellPairList[,2]),
                             length(st@cellPairList[,1]),
-                            st@clu,
-                            st@res,
+                            as.integer(st@clu),
+                            as.integer(st@res),
                             st@nSpikes,
-                            nBins,
-                            window.size,
-                            st@startResIndexc,
-                            st@endResIndexc,
+                            as.integer(nBins),
+                            as.integer(window.size),
+                            as.integer(st@startResIndexc),
+                            as.integer(st@endResIndexc),
                             length(st@startResIndexc),
                             probability)
+            st@res
+            st@clu
+            length(st@startResIndexc)
+            results
             
             
+            st@cross=matrix(results,nrow=nBins,ncol=length(st@cellPairList[,1]))
+            st@crossMsPerBin=binSizeMs
+            st@crossProbability=probability
+            return(st)
+          })
+
+
+
+
+#' Get spike-time crosscorelation between cells as data.frame
+#' 
+#'
+#' @param st SpikeTrain object
+#' @return data.frame with spike-time crosscorrelation between neurons
+#' 
+#' @docType methods
+#' @rdname spikeTimeCrosscorrelationAsDataFrame-methods
+setGeneric(name="spikeTimeCrosscorrelationAsDataFrame",
+           def=function(st)
+           {standardGeneric("spikeTimeCrosscorrelationAsDataFrame")})
+#' @rdname spikeTimeCrosscorrelationAsDataFrame-methods
+#' @aliases spikeTimeCrosscorrelationAsDataFrame,ANY,ANY-method
+setMethod(f="spikeTimeCrosscorrelationAsDataFrame",
+          signature = "SpikeTrain",
+          definition=function(st)
+          {
+            nBins=dim(st@cross)[1]
             # return a data fram with clu time count
-            if(probability==F)
+            if(st@crossProbability==F)
               data.frame(clu1=rep(st@cellPairList[,1],each=nBins),
                          clu2=rep(st@cellPairList[,2],each=nBins),
-                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
-                         count=results)
-            else
+                         time=rep(seq(-st@crossMsPerBin*nBins/2+st@crossMsPerBin/2,
+                                      st@crossMsPerBin*nBins/2,
+                                      st@crossMsPerBin),length(st@cellPairList[,1])),
+                         count=as.numeric(st@cross))
+            else{
               data.frame(clu1=rep(st@cellPairList[,1],each=nBins),
                          clu2=rep(st@cellPairList[,2],each=nBins),
-                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
-                         prob=results)
+                         time=rep(seq(-st@crossMsPerBin*nBins/2+st@crossMsPerBin/2,
+                                      st@crossMsPerBin*nBins/2,
+                                      st@crossMsPerBin),length(st@cellPairList[1])),
+                         prob=as.numeric(st@cross))
+            }
           }
-          )
+)
 
 
 #' Calculate the mean firing rate (Hz) of each neuron in a SpikeTrain object
