@@ -20,7 +20,7 @@ void meanFiringRate(int* cells, // cells of interest
   for (int j = 0; j < interval_lines ; j++)
     for (int i = 0; i < cell_lines; i++)
     {
-      for (int x = start_interval_index[j]; x <= end_interval_index[j]; x++)
+      for (int x = start_interval_index[j]; x <= end_interval_index[j]&& x < res_lines ; x++)
         if (clu[x] == cells[i])
           rate[i]++;
     }

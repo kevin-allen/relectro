@@ -27,14 +27,14 @@ void autocorrelation_one_cell(int clu_no, // cell of interest
    /// for every interval
   for(int inter = 0; inter < interval_lines; inter++) 
     {
-      for (int j = start_interval_index[inter]; j <= end_interval_index[inter]; j++){ // for every spikes within interval
+      for (int j = start_interval_index[inter]; j <= end_interval_index[inter]&&j<res_lines; j++){ // for every spikes within interval
 	
 	  // if cell of interest fires
 	  if (clu[j] == clu_no)
 	    {
 	      // check if there is a spike from the same cell in the window_size
 	      // check backwark
-	      for (k = j-1; (k >= start_interval_index[inter]) && (res[k] > res[j] - window_size/2); k--)
+	      for (k = j-1; (k >= start_interval_index[inter]&&k<res_lines) && (res[k] > res[j] - window_size/2); k--)
 		{
 		  if (clu[k] == clu_no)
 		    {
@@ -44,7 +44,7 @@ void autocorrelation_one_cell(int clu_no, // cell of interest
 		    }
 		}
 	      // check forward
-	      for (k = j+1; k <= end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
+	      for (k = j+1; k <= end_interval_index[inter] && k < res_lines  && (res[k] < res[j] + window_size/2); k++)
 		{
 		  if (clu[k] == clu_no)
 		    {
@@ -84,7 +84,7 @@ void autocorrelation_one_cell_probability(int clu_no, // cell of interest
    /// for every interval
   for(int inter = 0; inter < interval_lines; inter++) 
     {
-      for (int j = start_interval_index[inter]; j <= end_interval_index[inter]; j++) // for every spikes within interval
+      for (int j = start_interval_index[inter]; j <= end_interval_index[inter]&& j< res_lines; j++) // for every spikes within interval
 	{
 	  // if cell of interest fires
 	  if (clu[j] == clu_no)
@@ -92,7 +92,7 @@ void autocorrelation_one_cell_probability(int clu_no, // cell of interest
 	      count++;
 	      // check if there is a spike from the same cell in the window_size
 	      // check backwark
-	      for (k = j-1; (k >= start_interval_index[inter]) && (res[k] > res[j] - window_size/2); k--)
+	      for (k = j-1; (k >= start_interval_index[inter] && k < res_lines) && (res[k] > res[j] - window_size/2); k--)
 		{
 		  if (clu[k] == clu_no)
 		    {
@@ -102,7 +102,7 @@ void autocorrelation_one_cell_probability(int clu_no, // cell of interest
 		    }
 		}
 	      // check forward
-	      for (k = j+1; k <= end_interval_index[inter] && (res[k] < res[j] + window_size/2); k++)
+	      for (k = j+1; k <= end_interval_index[inter] && k < res_lines && (res[k] < res[j] + window_size/2); k++)
 		{
 		  if (clu[k] == clu_no)
 		    {
@@ -114,9 +114,10 @@ void autocorrelation_one_cell_probability(int clu_no, // cell of interest
 	    }
 	}
     }
-
+  if(count!=0){
   for(int i = 0; i < histo_size;i++)
     histo[i]=histo[i]/count;
+  }
   return;
  }
 

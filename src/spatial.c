@@ -706,7 +706,7 @@ void spike_position(double *x_whl,
 			  res_lines, 
 			  res,
 			  start_interval_index,
-			  end_interval_index);
+			  end_interval_index,1);
   // set all the spike position to -1
   set_array_to_value_double(x_spike,res_lines,-1.0);
   set_array_to_value_double(y_spike,res_lines,-1.0);
@@ -3334,7 +3334,7 @@ void spike_head_direction(double *hd_whl,
 			  res_lines, 
 			  res,
 			  start_interval_index,
-			  end_interval_index);
+			  end_interval_index,1);
   // set all the spike position to -1
   set_array_to_value_double(hd_spike,res_lines,-1.0);
 
@@ -4207,7 +4207,7 @@ void spike_position_1d(double *x_whl,
                           res_lines, 
                           res,
                           start_interval_index,
-                          end_interval_index);
+                          end_interval_index,1);
   // set all the spike position to -1
   set_array_to_value_double(x_spike,res_lines,-1.0);
   

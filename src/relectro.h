@@ -325,9 +325,11 @@ SEXP autocorrelation_cwrap(SEXP cell_list_r,
 
 // intervals.c
 void res_index_for_intervals(int* interval_lines, // value passed by reference in c
-			     int* start, int* end, int res_lines,  int* res, int* start_interval_index, int* end_interval_index);
+			     int* start, int* end, int res_lines,  int* res, int* start_interval_index, int* end_interval_index, 
+			     int remove_interval_after_last_res);
 SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
-				SEXP start_r, SEXP end_r, SEXP res_lines_r, SEXP res_r);
+				SEXP start_r, SEXP end_r, SEXP res_lines_r, SEXP res_r,
+				SEXP remove_interval_after_last_res);
 SEXP resWithinIntervals(SEXP interval_lines_r, SEXP start_r, SEXP end_r, SEXP res_lines_r, SEXP res_r);
 int num_intervals_after_joining_AND(int* start_1, int* end_1, int num_1, int* start_2, int* end_2, int num_2);
 void join_two_lists_of_intervals_AND(int* start_1, int* end_1, int num_1, int* start_2, int* end_2, int num_2,

@@ -46,7 +46,7 @@ SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r,
 			       res_lines, 
 			       res,
 			       start_interval_index,
-			       end_interval_index);
+			       end_interval_index,0);
 
  number_windows=(max_tp/window_size_res)+1;
 

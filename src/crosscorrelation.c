@@ -535,7 +535,7 @@ void cross_correlation_events(int* cells,
     }
 
   // get the index for the event windows
-  res_index_for_intervals(&events_lines,start_events,end_events,res_lines,res,start_events_index,end_events_index);
+  res_index_for_intervals(&events_lines,start_events,end_events,res_lines,res,start_events_index,end_events_index,0);
   
   // set histo to 0
   for (int i = 0; i < cell_lines; i++)

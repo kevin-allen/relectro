@@ -12,15 +12,21 @@
 #' @slot nCells Number of cells in the recording session
 #' @slot nSpikes Number of spikes in the recording session
 #' @slot nSpikesPerCell Number of spikes for each cell
-#' @slot startInterval Sample values of the beginning of intervals. To limit the analysis to some intervals
-#' @slot endInterval Sample values of the end of intervals
+#' @slot startInterval Sample values of the beginning of intervals. To limit the analysis to some intervals.
+#' Only data within the intervals are considered
+#' @slot endInterval Sample values of the end of intervals. Only data within the intervals are considered.
 #' @slot startResIndexc Index in the spike arrays for the start of intervals. Index is for a C array with 0 indexing.
+#' The spike at the index is to be considered for analysis
 #' @slot endResIndexc Index in the spike arrays for the start of intervals. Index is for a C array with 0 indexing.
+#' The spike at the intdex is to be considered for analysis
 #' @slot events Time in sample number for some events
 #' @slot cellList Cell list
 #' @slot auto Matrix holding spike-time autocorrelation
 #' @slot autoMsPerBin Ms per bin in spike-time autocorrelation
 #' @slot autoProbability Logical, whether the spike-time autocorrelation contains probability values or spike count
+#' @slot crossEvents Matrix holding spike-time crosscorrelation between spikes and events
+#' @slot crossEventsMsPerBin Ms per bin in spike-time crosscorrelation with events
+#' @slot crossEventsProbability Logical, whether the spike-time crosscorrelation to events contains probability values or spike count
 #' @slot cellPairList Data frame containing pairs of cells
 #' @slot ifrKernelSdMs Standard deviation of a gaussian kernel used to calculate the instantaneous firing rate
 #' @slot ifrWindowSizeMs Window size of the instantaneous firing rate array
@@ -46,6 +52,9 @@ SpikeTrain <- setClass(
           auto="matrix",
           autoMsPerBin="numeric",
           autoProbability="logical",
+          crossEvents="matrix",
+          crossEventsMsPerBin="numeric",
+          crossEventsProbability="logical",
           # ifr
           ifrKernelSdMs="numeric",
           ifrWindowSizeMs="numeric",
@@ -313,9 +322,9 @@ setMethod(f="spikeTimeAutocorrelationAsDataFrame",
 #'
 #' @param st SpikeTrain object
 #' @param binSizeMs Default is 1
-#' @param windowSizeMs Default is 200
+#' @param windowSizeMs Default is 200, meaning that it ranges from + and - 200
 #' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
-#' @return a data.frame with the spike-time crosscorrelation
+#' @return st SpikeTrain object with the slot crossEvents filled
 #' 
 #' @docType methods
 #' @rdname spikeTimeCrosscorrelationEvents-methods
@@ -331,8 +340,7 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
             
             if(length(st@events)==0)
               stop("events is empty")
-            
-            
+
             nBins=(windowSizeMs*2)/binSizeMs
             windowSize=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
@@ -351,19 +359,52 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
                             st@events,
                             length(st@events))
             
+            st@crossEvents=matrix(results,nrow=nBins,ncol=length(st@cellList))
+            st@crossEventsMsPerBin=binSizeMs
+            st@crossEventsProbability=probability
+            return(st) 
+          }
+          )
+            
+            
+          
+
+
+#' Get spike-time crosscorelation to events as data.frame
+#' 
+#'
+#' @param st SpikeTrain object
+#' @return data.frame with spike-time crosscorrelation to events
+#' 
+#' @docType methods
+#' @rdname spikeTimeCrosscorrelationEventsAsDataFrame-methods
+setGeneric(name="spikeTimeCrosscorrelationEventsAsDataFrame",
+           def=function(st)
+           {standardGeneric("spikeTimeCrosscorrelationEventsAsDataFrame")})
+#' @rdname spikeTimeCrosscorrelationEventsAsDataFrame-methods
+#' @aliases spikeTimeCrosscorrelationEventsAsDataFrame,ANY,ANY-method
+setMethod(f="spikeTimeCrosscorrelationEventsAsDataFrame",
+          signature = "SpikeTrain",
+          definition=function(st)
+          {
+            nBins=dim(st@crossEvents)[1]
             # return a data fram with clu time count
-            if(probability==F){
+            if(st@crossEventsProbability==F)
               data.frame(clu=rep(st@cellList,each=nBins),
-                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
-                         count=results)
-            }
+                         time=rep(seq(-st@crossEventsMsPerBin*nBins/2+st@crossEventsMsPerBin/2,
+                                      st@crossEventsMsPerBin*nBins/2,
+                                      st@crossEventsMsPerBin),length(st@cellList)),
+                         count=as.numeric(st@crossEvents))
             else{
               data.frame(clu=rep(st@cellList,each=nBins),
-                         time=seq(-windowSizeMs+binSizeMs,windowSizeMs,binSizeMs)-(binSizeMs/2),
-                         prob=results)
+                         time=rep(seq(-st@crossEventsMsPerBin*nBins/2+st@crossEventsMsPerBin/2,
+                                      st@crossEventsMsPerBin*nBins/2,
+                                      st@crossEventsMsPerBin),length(st@cellList)),
+                         prob=as.numeric(st@crossEvents))
             }
-        })
-
+          }
+)
+ 
 
 #' Calculate the spike-time crosscorrelation between the spike trains of cell pairs
 #' 
@@ -524,10 +565,11 @@ setMethod(f="setIntervals",
             # call cwrapper function
             results<- .Call("resIndexForIntervals_cwrap",
                             length(st@startInterval),
-                            st@startInterval,
-                            st@endInterval,
-                            st@nSpikes,
-                            st@res)
+                            as.integer(st@startInterval),
+                            as.integer(st@endInterval),
+                            as.integer(st@nSpikes),
+                            as.integer(st@res),
+                            as.integer(0))# will keep the intervals after the last spikes
             
             st@startResIndexc<-results[1,]
             st@endResIndexc<-results[2,]

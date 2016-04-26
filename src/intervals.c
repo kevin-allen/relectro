@@ -7,12 +7,17 @@ int check_interval_chronology_between(int num_lines,
   /* returns 1 if the intervals are in chronological order
      only between is checked
   */
+  
+  if(num_lines==1)
+    return 1;
+  if(num_lines==0)
+    return 0;
   for(int i = 1; i < num_lines; i++)
     {
       if(start[i] < end[i-1])
-	{      
-	  return 0;
-	}
+	    {      
+	      return 0;
+	    }
     }
   return 1;
 }
@@ -23,10 +28,12 @@ void res_index_for_intervals(int* interval_lines,
 			     int res_lines, 
 			     int* res, 
 			     int* start_interval_index,
-			     int* end_interval_index)
+			     int* end_interval_index,
+			     int remove_interval_after_last_res)
 {
-  /* gives the res index for the beginning and end of each intervals*/
+  /* gives the res index of the first and last spikes within the intervals*/
   // the values at start_interval_index and end_interval_index are within the intervals
+  // If no spike are withing the intervals, the indices are set to out of bound values
   // intervals need to be chronologically organized
   int max_res=res[res_lines-1];
   int max_start=find_max(*interval_lines, start);
@@ -34,7 +41,12 @@ void res_index_for_intervals(int* interval_lines,
   int invalid_int;
   int pre_end_index;
   int start_looping_index;
+  int valid_found;
   
+  
+  
+  
+  if(remove_interval_after_last_res==1){
   // check that the intervals are in the recorded time
   if ((max_start > max_res + 1)||(max_end>max_res+1))
   {
@@ -59,19 +71,19 @@ void res_index_for_intervals(int* interval_lines,
       Rprintf("%d intervals have been eliminated\n",invalid_int);
     }
   }
-  
-  
+  }
   /// depending on whether the intervals are chronologically organized /// 
   if(check_interval_chronology_between(*interval_lines, 
                                        start, 
                                        end)==0)
   {
+    //Rprintf("no chrono\n");
     // chronology between interval not assumed, slows things down a bit
     for(int i = 0; i < *interval_lines; i++)
     { 
       start_interval_index[i]=0;
-      end_interval_index[i]=res_lines-1; // should this be res_lines-1, was res_lines, which is out of bound of the res array?
-      
+      end_interval_index[i]=res_lines-1; // by default, the last spike is valid
+      valid_found=0;
       // find at which approximate res index you should start to loop
       if (start[i]<res[res_lines/2])
       {
@@ -98,28 +110,36 @@ void res_index_for_intervals(int* interval_lines,
       
       for(int j=start_looping_index; j < res_lines; j++)
       {
-        if(res[j] >= start[i])
+        if(res[j] > start[i]) // needs to be within, not on interval limit
         {
           start_interval_index[i] = j;
           j = res_lines;
+          valid_found++;
         }
       }
       for(int j=start_interval_index[i]; j < res_lines; j++)
       {
-        if(res[j]>= end[i])
+        if(res[j]>= end[i]) // needs to be within, not on interval limit
         {
           end_interval_index[i] = j-1;
           j = res_lines;
         }
       }
+      if(valid_found==0){ // set to invalid values
+        start_interval_index[i]=res_lines;
+        end_interval_index[i]=res_lines;
+      }
+      
     }
   }
   else // that is chronology between and within interval is assumed, speed up the loop
   {
+  //  Rprintf("chrono\n");
     for(int i = 0; i < *interval_lines; i++)
     { 
       start_interval_index[i]=0;
-      end_interval_index[i]=res_lines;
+      end_interval_index[i]=res_lines-1;
+      valid_found=0;
       if (i==0)
       {	 
         pre_end_index=0;
@@ -131,20 +151,26 @@ void res_index_for_intervals(int* interval_lines,
       // find the start index
       for(int j= pre_end_index; j < res_lines; j++)
       {
-        if(res[j] > start[i])
+        if(res[j] > start[i]) // needs to be within, not on interval limit
         {
           start_interval_index[i] = j;
           j = res_lines;
+          valid_found++;
         }
       }
       // find the end index
       for(int j= pre_end_index; j < res_lines; j++)
       {
-        if(res[j]>=end[i])
+        if(res[j]>=end[i]) // needs to be within, not on interval limit
         {
           end_interval_index[i] = j-1;
           j = res_lines;
         }
+      }
+      
+      if(valid_found==0){ // set to invalid values
+        start_interval_index[i]=res_lines;
+        end_interval_index[i]=res_lines;
       }
     }
   }
@@ -156,7 +182,8 @@ SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
 				SEXP start_r, 
 				SEXP end_r, 
 				SEXP res_lines_r, 
-				SEXP res_r)
+				SEXP res_r,
+				SEXP remove_intervals_after_last_res_r)
 
 { 
   // transform the SEXP object in their correct c types
@@ -168,12 +195,7 @@ SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
   int* end; 
   int res_lines; 
   int* res; 
-
-  
-  // protect R object created in c code so that R does not delete them
-  PROTECT(start_r=AS_INTEGER(start_r));
-  PROTECT(end_r=AS_INTEGER(end_r));
-  PROTECT(res_r=AS_INTEGER(res_r));
+  int remove_intervals_after_last_res;
   
   /* // coersion */
   interval_lines=INTEGER_VALUE(interval_lines_r);
@@ -181,6 +203,13 @@ SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
   end=INTEGER_POINTER(end_r);
   res=INTEGER_POINTER(res_r);
   res_lines=INTEGER_VALUE(res_lines_r);
+  remove_intervals_after_last_res=INTEGER_VALUE(remove_intervals_after_last_res_r);
+  
+  if(remove_intervals_after_last_res!=0&&remove_intervals_after_last_res!=1){
+    Rprintf("remove_intervals_after_last_res is not 0 or 1, set to 0\n");
+    remove_intervals_after_last_res=0;
+  }
+  
   
   
   int* start_index = (int*)malloc(interval_lines*sizeof(int));
@@ -193,7 +222,8 @@ SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
 			  res_lines, 
 			  res, 
 			  start_index,
-			  end_index);
+			  end_index,
+			  remove_intervals_after_last_res);
 
   // prepare a SEXP matrix to store the results
   SEXP ans;  //                       /nx /ny
@@ -210,7 +240,7 @@ SEXP resIndexForIntervals_cwrap(SEXP interval_lines_r,
   //free memory for rate
   free(start_index);
   free(end_index);
-  UNPROTECT(4);
+  UNPROTECT(1);
   return(ans);
 }
 
