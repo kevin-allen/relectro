@@ -130,6 +130,12 @@ setMethod(f="datFilesGetOneChannel",
             if(any(nchar(df@fileNames)>255))
               stop(paste("max file name size is 255",df@fileNames[1]))
             
+            df<-datFilesSamples(df)
+            if(firstSample>sum(df@samples))
+              stop(paste("firstSample is larger than total number of samples:",sum(df@samples),df@fileNames[1]))
+            if(lastSample>sum(df@samples))
+              stop(paste("lastSample is larger than total number of samples",sum(df@samples),df@fileNames[1]))
+            
            
             results<-.Call("group_data_file_si_get_one_channel_cwrap",
                 paste(df@path,df@fileNames,sep="/"),
