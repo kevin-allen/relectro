@@ -5,13 +5,15 @@
 #' If several dat files are set in an object, they are treated as though they are a single file.
 #' @slot fileNames A character vector containing the names of the files
 #' @slot path The directory in which the files are located
-#' @slot resofs The number of samples in each file.
+#' @slot samples Numeric vector with the number of samples in each file.
+#' @slot size Numeric vector with the size of the file in bytes
 #' @slot nChannels Number of recorded channels in the dat files
 DatFiles <- setClass(
   "DatFiles", ## name of the class
   slots=c(fileNames="character",
           path="character",
-          resofs="numeric",
+          samples="numeric",
+          size="numeric",
           nChannels="numeric"
           ),
   prototype = list(fileNames="",path="",nChannels=0))
@@ -43,12 +45,51 @@ setMethod(f="datFilesSet",
               stop("nChannels should be larger than 0")
             if(path==""&&df@path==""){
               df@path=getwd()
-            } 
+            } else {
+              df@path<-path
+            }
             
             df@fileNames=fileNames
             df@nChannels=nChannels
+            df<-datFilesSamples(df)
+            
             return(df)                        
           })
+
+
+
+#' Get the number of samples per file and file size
+#' 
+#' @param df A DatFiles object
+#' @return A DatFiles object with the samples and size set.
+#' @docType methods
+#' @rdname datFilesSamples-methods
+setGeneric(name="datFilesSamples",
+           def=function(df)
+           {standardGeneric("datFilesSamples")}
+)
+
+#' @rdname datFilesSamples-methods
+#' @aliases datFilesSamples,ANY,ANY-method
+#' 
+setMethod(f="datFilesSamples",
+          signature="DatFiles",
+          definition=function(df)
+          {
+            if(length(df@fileNames)==0)
+              stop("df@fileNames length = 0")
+            if(df@nChannels<=0)
+              stop("df@nChannels should be larger than 0")
+            ## get the number of channels in each file
+            df@size<-(file.info(paste(df@path,df@fileNames,sep="/"))$size)
+            ## check that the file size can be divided by nChannels
+            if(any(df@size%%(df@nChannels*2)!=0)){
+              stop(paste("size of a .dat file can't be divided by",df@nChannels*2))
+            }
+            df@samples<-df@size/(df@nChannels*2)
+            return(df)                        
+          })
+
 #' Function to read the data from a group of dat files
 #' 
 #' 
@@ -107,4 +148,8 @@ setMethod("show", "DatFiles",
             print(paste("fileNames:"))
             print(paste(object@fileNames))
             print(paste("nChannels:",object@nChannels))
+            print(paste("size in bytes:"))
+            print(paste(object@size))
+            print(paste("samples per file:"))
+            print(paste(object@samples))
           })
