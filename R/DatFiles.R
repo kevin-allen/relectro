@@ -48,11 +48,9 @@ setMethod(f="datFilesSet",
             } else {
               df@path<-path
             }
-            
             df@fileNames=fileNames
             df@nChannels=nChannels
             df<-datFilesSamples(df)
-            
             return(df)                        
           })
 
@@ -136,7 +134,6 @@ setMethod(f="datFilesGetOneChannel",
             if(lastSample>sum(df@samples))
               stop(paste("lastSample is larger than total number of samples",sum(df@samples),df@fileNames[1]))
             
-           
             results<-.Call("group_data_file_si_get_one_channel_cwrap",
                 paste(df@path,df@fileNames,sep="/"),
                 df@nChannels,
