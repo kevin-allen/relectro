@@ -62,7 +62,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
       return (R_NilValue);
     }
 
-  needed_samples=INTEGER_VALUE(end_index_r)-INTEGER_VALUE(start_index_r);
+  needed_samples=INTEGER_VALUE(end_index_r)-INTEGER_VALUE(start_index_r)+1;
   SEXP out = PROTECT(allocVector(INTSXP,needed_samples));
   int* ptr = INTEGER_POINTER(out);
   data = (short*) malloc(needed_samples*sizeof(short));
@@ -151,63 +151,64 @@ int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int 
   long int num_samples_read, to_read, within_file_start_index,total_needed;
   // check that the index given make sense
   if (start_index<0)
-    {
-      Rprintf("group_data_file_si_get_data_one_channel(): start index is smaller than 0: %ld\n",start_index);
-      return 1;
-    }
+  {
+    Rprintf("group_data_file_si_get_data_one_channel(): start index is smaller than 0: %ld\n",start_index);
+    return 1;
+  }
   if (end_index<start_index)
-    {
-      Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is smaller than start index(%ld)\n",end_index,start_index);
-      return 1;
-    }
+  {
+    Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is smaller than start index(%ld)\n",end_index,start_index);
+    return 1;
+  }
   if(end_index>gdf->num_samples_all_files)
-    {
-      Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is larger than the number of samples allfiles(%ld)\n",end_index,gdf->num_samples_all_files);
-      return 1;
-    }
+  {
+    Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is larger than the number of samples allfiles(%ld)\n",end_index,gdf->num_samples_all_files);
+    return 1;
+  }
   // find the file containing the beginning of data
   file_index=0;
   while(file_index+1<gdf->num_files && start_index>gdf->resofs[file_index])
-    {file_index++;}
-
-
+  {file_index++;}
+  
+  
   // get the index at which to start reading operation within the selected file
   if(file_index==0)
-    {
-      within_file_start_index=start_index;
-    }
+  {
+    within_file_start_index=start_index;
+  }
   else
-    {
-      within_file_start_index=start_index-gdf->resofs[file_index-1];
-    }
+  {
+    within_file_start_index=start_index-gdf->resofs[file_index-1];
+  }
   
   // set variables to know when we have enough data
   num_samples_read=0;
-  total_needed=end_index-start_index;
+  total_needed=end_index-start_index+1;
   while(num_samples_read<total_needed&&file_index<gdf->num_files)
+  {
+    to_read=total_needed-num_samples_read;
+    
+    // if we need more data that what is available in this file, read until the end of this file
+    if(to_read > gdf->file_group[file_index].num_samples_in_file-within_file_start_index)
     {
-      to_read=total_needed-num_samples_read;
-      
-      // if we need more data that what is available in this file, read until the end of this file
-      if(to_read > gdf->file_group[file_index].num_samples_in_file-within_file_start_index)
-	{
-	  to_read=gdf->file_group[file_index].num_samples_in_file-within_file_start_index;
-	}
-      
-      ptr=one_channel+num_samples_read;
-      
-      //  Rprintf("reading file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
-      
-      if((data_file_si_get_data_one_channel(&gdf->file_group[file_index], channel_no, ptr, within_file_start_index, within_file_start_index+to_read))!=0)
-	{
-	  Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
-	}
-      num_samples_read+=to_read;
-      within_file_start_index=0;
-      file_index++;
+      to_read=gdf->file_group[file_index].num_samples_in_file-within_file_start_index;
     }
+    
+    ptr=one_channel+num_samples_read;
+    
+    //  Rprintf("reading file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
+    
+    if((data_file_si_get_data_one_channel(&gdf->file_group[file_index], channel_no, ptr, within_file_start_index, within_file_start_index+to_read))!=0)
+    {
+      Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
+    }
+    num_samples_read+=to_read;
+    within_file_start_index=0;
+    file_index++;
+  }
   return 0;
 }
+
 int clean_group_data_file_si(struct group_data_file_si * gdf)
 {
   // function to free allocated memory
@@ -223,7 +224,6 @@ int clean_group_data_file_si(struct group_data_file_si * gdf)
     free(gdf->resofs);
   return 0;
 }
-
 
 int init_data_file_si(struct data_file_si *df,const char *file_name, int num_channels)
 {

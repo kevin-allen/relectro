@@ -88,13 +88,16 @@ setMethod(f="datFilesSamples",
             return(df)                        
           })
 
-#' Function to read the data from a group of dat files
+#' Function to read one channel from a group of dat files
 #' 
+#' This function returns the data from firstSample to lastSample. 
+#' If firstSample and lastSample have a length greater than 1, 
+#' the data chunks will be pasted one after the other in the data returned by the function.
 #' 
 #' @param df A DatFiles object
-#' @param channelNo The channel of interest
-#' @param firstSample First sample to retrieve
-#' @param lastSample Last sample to retrieve
+#' @param channelNo The channel to retrieve the data from. The first channelNo in the file is 0.  
+#' @param firstSample Numeric vector containing the first sample to retrieve. You can give several if you want to get a series of data chunks.
+#' @param lastSample Numeric vector containing the last sample to retrieve. You can give several if you want to get a series of data chunks.
 #' @return A integer vector containing the data read from the dat files.
 #' @docType methods
 #' @rdname datFilesGetOneChannel-methods
@@ -117,29 +120,35 @@ setMethod(f="datFilesGetOneChannel",
               stop(paste("channelNo < 0",df@fileNames[1]))
             if(channelNo>=df@nChannels)
               stop(paste("channelNo >= df@nChannels",df@fileNames[1]))
-            if(firstSample<0)
-              stop(paste("firstSample<0",df@fileNames[1]))
-            if(lastSample<0)
-              stop(paste("lastSample<0",df@fileNames[1]))
-            if(firstSample>lastSample)
-              stop(paste("firstSample > lastSample",df@fileNames[1]))
-            if(length(df@fileNames)>100)
+            if(length(df@fileNames)>100) # from c code
               stop(paste("can only works with a maximum of 100 files",df@fileNames[1]))
-            if(any(nchar(df@fileNames)>255))
+            if(any(nchar(df@fileNames)>255)) # from c code
               stop(paste("max file name size is 255",df@fileNames[1]))
             
             df<-datFilesSamples(df)
-            if(firstSample>sum(df@samples))
+            
+            if(any(firstSample<0))
+              stop(paste("firstSample<0",df@fileNames[1]))
+            if(any(lastSample<0))
+              stop(paste("lastSample<0",df@fileNames[1]))
+            if(any(firstSample>lastSample))
+              stop(paste("firstSample > lastSample",df@fileNames[1]))
+            if(any(firstSample>sum(df@samples)))
               stop(paste("firstSample is larger than total number of samples:",sum(df@samples),df@fileNames[1]))
-            if(lastSample>sum(df@samples))
+            if(any(lastSample>sum(df@samples)))
               stop(paste("lastSample is larger than total number of samples",sum(df@samples),df@fileNames[1]))
             
-            results<-.Call("group_data_file_si_get_one_channel_cwrap",
-                paste(df@path,df@fileNames,sep="/"),
-                df@nChannels,
-                channelNo,
-                firstSample,
-                lastSample)
+            if(length(firstSample)!=length(lastSample))
+              stop(paste("length(firstSample)!=length(lastSample",df@fileNames[1]))
+            
+            number.samples=sum(lastSample-firstSample+1)
+            results<-numeric(length=number.samples)
+            startIndex<-1
+            for(i in 1:length(firstSample)){
+              s<-lastSample[i]-firstSample[i]+1
+              results[startIndex:(startIndex+s-1)]<-.Call("group_data_file_si_get_one_channel_cwrap", paste(df@path,df@fileNames,sep="/"),df@nChannels, channelNo,firstSample[i], lastSample[i])
+              startIndex<-startIndex+s
+            }
           return(results)
           })
 
