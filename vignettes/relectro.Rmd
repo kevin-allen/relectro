@@ -2,8 +2,8 @@
 title: "relectro"
 author: "Kevin Allen"
 date: "`r Sys.Date()`"
-#output: rmarkdown::html_vignette
-output: pdf_document
+output: rmarkdown::html_vignette
+#output: pdf_document
 vignette: >
   %\VignetteIndexEntry{relectro}
   %\VignetteEngine{knitr::rmarkdown}
@@ -150,11 +150,16 @@ Now the spike train intervals are set to the trial with the sqr70 environment.
 
 There is a DatFiles class to read the data from one or several .dat files. In this example, we will work with the first .dat file of our recording session. Use a RecSession object to get the information needed to open the file. The .dat file is very short to be able to package it as an example. There is also a function to detect the positive deflection in the voltage (TTL pulses).
 ```{r DatFiles}
-df<-new("DatFiles",fileNames=paste(rs@trialNames[1],"dat",sep="."),
-        path=rs@path,nChannels=rs@nChannels)
+df<-new("DatFiles")
+df<-datFilesSet(df,
+                fileNames=paste(rs@trialNames[1],"dat",sep="."),
+                path=rs@path,
+                nChannels=rs@nChannels)
+df
 data<-datFilesGetOneChannel(df,channelNo=rs@nChannels-1,
                             firstSample=rs@trialStartRes[1],
                             lastSample=rs@samplingRate*10)
+length(data)
 plot(data[0:100000],type='l',xlab="sampling",ylab="unscalled values",
      xlim=c(86000,89000))
 ups<-detectUps(as.numeric(data[0:100000]))
