@@ -43,7 +43,7 @@ setMethod(f="datFilesSet",
               stop("fileNames length = 0")
             if(nChannels<=0)
               stop("nChannels should be larger than 0")
-            if(path==""&&df@path==""){
+            if(path==""){
               df@path=getwd()
             } else {
               df@path<-path
