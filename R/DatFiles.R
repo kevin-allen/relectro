@@ -112,6 +112,12 @@ setMethod(f="datFilesGetOneChannel",
           signature="DatFiles",
           definition=function(df,channelNo,firstSample,lastSample)
           {
+            
+            
+            if(any(file.exists(df@fileNames)==FALSE)){
+              stop(paste("This file is missing:",df@fileNames[! file.exists(df@fileNames)]," "))
+            }
+            
             if(length(df@fileNames)==0)
               stop(paste("df@fileNames length = 0"))
             if(df@nChannels<=0)
@@ -140,7 +146,12 @@ setMethod(f="datFilesGetOneChannel",
             
             if(length(firstSample)!=length(lastSample))
               stop(paste("length(firstSample)!=length(lastSample",df@fileNames[1]))
+           
             
+              
+            
+            
+             
             number.samples=sum(lastSample-firstSample+1)
             results<-numeric(length=number.samples)
             startIndex<-1
