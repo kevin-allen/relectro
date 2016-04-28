@@ -179,7 +179,6 @@ setMethod(f="headDirectionStats",
             hd@peakRates<-apply(hd@histo,2,max)
             ### get vector length and mean direction
             results<- .Call("circular_stats_rate_histogram_cwrap",
-                                 as.integer(hd@cellList),
                                  length(hd@cellList),
                                  as.numeric(hd@histo),
                                  as.integer(hd@nBinHisto))
@@ -236,7 +235,6 @@ setMethod(f="headDirectionStatsShuffle",
               
               ### get vector length and mean direction
               results<- .Call("circular_stats_rate_histogram_cwrap",
-                              as.integer(hd@cellList),
                               length(hd@cellList),
                               as.numeric(hd@histo),
                               as.integer(hd@nBinHisto))

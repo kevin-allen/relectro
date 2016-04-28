@@ -185,14 +185,12 @@ setMethod(f="getHistoStats",
             sp1@peakRate<-apply(sp1@rateHisto,2,max)
             ### get info scores
             sp1@infoScore<-.Call("information_score_cwrap",
-                                 as.integer(sp1@cellList),
                                  length(sp1@cellList),
                                  as.numeric(sp1@rateHisto),
                                  sp1@occupancy,
                                  sp1@nBinRateHisto)
             ### get sparsity scores
             sp1@sparsity<- .Call("sparsity_score_cwrap",
-                                as.integer(sp1@cellList),
                                 length(sp1@cellList),
                                 as.numeric(sp1@rateHisto),
                                 sp1@occupancy,
@@ -248,7 +246,6 @@ setMethod(f="getHistoStatsShuffle",
               ### get info scores
               sp1@infoScoreShuffle<-c(sp1@infoScoreShuffle,
                                       .Call("information_score_cwrap",
-                                      as.integer(sp1@cellList),
                                       length(sp1@cellList),
                                       as.numeric(sp1@rateHisto),
                                       sp1@occupancy,
@@ -256,7 +253,6 @@ setMethod(f="getHistoStatsShuffle",
               ### get sparsity scores
               sp1@sparsityShuffle<-c(sp1@sparsityShuffle,
                                      .Call("sparsity_score_cwrap",
-                                    as.integer(sp1@cellList),
                                    length(sp1@cellList),
                                    as.numeric(sp1@rateHisto),
                                    sp1@occupancy,

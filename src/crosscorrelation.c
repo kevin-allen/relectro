@@ -1,5 +1,4 @@
 #include "relectro.h"
-
 void set_res_outside_interval_to_minus_one(int interval_lines,
 					   int* start_interval_index,
 					   int* end_interval_index,
@@ -290,7 +289,7 @@ SEXP crosscorrelation_cwrap(SEXP clu1_r,
 
 
   // might want to check the arguments here
-  if(probability!=0&probability!=1)
+  if(probability!=0&&probability!=1)
     {
       Rprintf("probability needs to be 0 or 1 but was %d\n",probability);
       return(R_NilValue);
@@ -411,7 +410,7 @@ SEXP crosscorrelationEvents_cwrap(SEXP cell_list_r,
   events_lines=INTEGER_VALUE(events_lines_r);
 
   // might want to check the arguments here
-  if(probability!=0&probability!=1)
+  if(probability!=0&&probability!=1)
     {
       Rprintf("probability needs to be 0 or 1 but was %d\n",probability);
       UNPROTECT(7);
@@ -450,7 +449,7 @@ SEXP crosscorrelationEvents_cwrap(SEXP cell_list_r,
 
   if(probability==1)
     for(int i = 0; i < all_histo_length;i++)
-      histo[i]/events_lines;
+      histo[i]=histo[i]/events_lines;
 
 
   // copy the results in a SEXP

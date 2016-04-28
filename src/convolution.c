@@ -1,7 +1,6 @@
 #include <fftw3.h>
 #include <math.h>
 #include "relectro.h"
-
 void convolution_fftw3(double* signal, int signal_size, double* response, int response_size, double* out)
 {
   int output_size=signal_size; // size of the vector out
@@ -76,7 +75,6 @@ void convolution_fftw3(double* signal, int signal_size, double* response, int re
   fftw_execute(plan_convolution);
 
   // remove the padding to get to the next pow2
-  int power_pad=in_size2-in_size1;
   for(int i = 0; i < output_size ;i++)
   {
     out[i]=signal_in[i+response_size/2]; // Not sure if response_size/2 is ok for offset

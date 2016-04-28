@@ -1097,15 +1097,13 @@ void create_place_field( int x_bins,
 	}
     }
 }
-SEXP information_score_cwrap(SEXP cells_r,
-			     SEXP cell_lines_r,
+SEXP information_score_cwrap(SEXP cell_lines_r,
 			     SEXP all_rate_maps_r,
 			     SEXP occupancy_map_r,
 			     SEXP map_size_r)
 {
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   int map_size = INTEGER_VALUE(map_size_r);
-  int* cells = INTEGER_POINTER(cells_r);
   double* maps = REAL(all_rate_maps_r);
   double* occ_map = REAL(occupancy_map_r);
   double* one_map;
@@ -1183,15 +1181,13 @@ double information_score(double* fr_map,
   return information_score;
 }
 
-SEXP sparsity_score_cwrap(SEXP cells_r,
-			  SEXP cell_lines_r,
+SEXP sparsity_score_cwrap(SEXP cell_lines_r,
 			  SEXP all_rate_maps_r,
 			  SEXP occupancy_map_r,
 			  SEXP map_size_r)
 {
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   int map_size = INTEGER_VALUE(map_size_r);
-  int* cells = INTEGER_POINTER(cells_r);
   double* maps = REAL(all_rate_maps_r);
   double* occ_map = REAL(occupancy_map_r);
   double* one_map;
@@ -1270,9 +1266,7 @@ double sparsity_score(double* fr_map,
   return 1.0-sparsity_score;
 }
 
-
-SEXP map_autocorrelation_cwrap(SEXP cells_r,
-			       SEXP cell_lines_r,
+SEXP map_autocorrelation_cwrap(SEXP cell_lines_r,
 			       SEXP maps_r, 
 			       SEXP num_bins_x_r,
 			       SEXP num_bins_y_r,
@@ -1280,7 +1274,6 @@ SEXP map_autocorrelation_cwrap(SEXP cells_r,
 			       SEXP auto_num_bins_y_r,
 			       SEXP min_bins_for_autocorrelation_r)
 {
-  int* cells = INTEGER_POINTER(cells_r);
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   double* maps = REAL(maps_r);
   double* one_map;
@@ -2303,8 +2296,8 @@ void map_rotate(double* map,
   return;
 }
 
-SEXP grid_score_cwrap(SEXP cells_r,
-			  SEXP cell_lines_r,
+
+SEXP grid_score_cwrap(SEXP cell_lines_r,
 			  SEXP auto_maps_r,
 			  SEXP auto_num_bins_x_r,
 			  SEXP auto_num_bins_y_r,
@@ -2314,7 +2307,6 @@ SEXP grid_score_cwrap(SEXP cells_r,
 			  SEXP field_threshold_r, 
 			  SEXP invalid_r)
 {
-  int* cells = INTEGER_POINTER(cells_r);
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   double* all_autos = REAL(auto_maps_r);
   double* one_auto;
@@ -2534,8 +2526,7 @@ double gridness_score(double* one_auto_map,
   return ((corr_60+corr_120)/2) - ((corr_30+corr_90+corr_150)/3);
 }
 
-SEXP grid_orientation_cwrap(SEXP cells_r,
-			    SEXP cell_lines_r,
+SEXP grid_orientation_cwrap(SEXP cell_lines_r,
 			    SEXP auto_maps_r,
 			    SEXP auto_num_bins_x_r,
 			    SEXP auto_num_bins_y_r,
@@ -2545,7 +2536,6 @@ SEXP grid_orientation_cwrap(SEXP cells_r,
 			    SEXP field_threshold_r,
 			    SEXP invalid_r)
 {
- int* cells = INTEGER_POINTER(cells_r);
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   double* all_autos = REAL(auto_maps_r);
   double* one_auto;
@@ -2647,8 +2637,7 @@ double grid_orientation(double *one_auto,
 }
 
 
-SEXP grid_spacing_cwrap(SEXP cells_r,
-			    SEXP cell_lines_r,
+SEXP grid_spacing_cwrap(SEXP cell_lines_r,
 			    SEXP auto_maps_r,
 			    SEXP auto_num_bins_x_r,
 			    SEXP auto_num_bins_y_r,
@@ -2658,7 +2647,6 @@ SEXP grid_spacing_cwrap(SEXP cells_r,
 			    SEXP field_threshold_r,
 			    SEXP invalid_r)
 {
- int* cells = INTEGER_POINTER(cells_r);
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   double* all_autos = REAL(auto_maps_r);
   double* one_auto;
@@ -3149,7 +3137,6 @@ void border_score_rectangular_environment(int* cells,
   double* all_fields_map; // rate of all firing fields
   double* detection_map; // where fields get set to -1
   double max_fr_remaining=0;
-  int target_cell;
   double max_fr;
   double threshold_hz;
   double mean_x_field;
@@ -3190,8 +3177,6 @@ void border_score_rectangular_environment(int* cells,
     { // for each cell, 
       
       max_CM=0;
-      target_cell = cells[i];
-      //cerr << "cell: " << target_cell << '\n';
       one_map = maps + (i*total_bins);	      
       for(int j = 0; j < total_bins; j++)
 	{

@@ -1,6 +1,5 @@
 #include <math.h>
 #include "relectro.h"
-
 SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r, 
 			    SEXP window_size_ms_r, SEXP kernel_sd_ms_r, SEXP spike_bin_ms_r,
 			    SEXP cell_list_r, SEXP cell_lines_r,
@@ -138,9 +137,6 @@ void  firing_rate_per_cells_time_windows(int target_cell,
   int res_per_data_point_to_fft=spike_bin_ms*res_sampling_rate/1000;
   int win=0;
   int start_bin, end_bin;
-  int num_bins=firing_rate_in_bins_lines;
-  double* pt;
-  double* pt_time;
   double* local_spike_density; // each time point get local spike density from convol.
   double* kernel;
   double* spike_array;

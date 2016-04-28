@@ -1,5 +1,4 @@
 #include "relectro.h"
-
 int check_interval_chronology_between(int num_lines, 
 				      int* start, 
 				      int* end)

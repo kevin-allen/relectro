@@ -296,7 +296,6 @@ setMethod(f="getMapStats",
 
             ### get info scores
             sp@infoScore<- .Call("information_score_cwrap",
-                as.integer(sp@cellList),
                 length(sp@cellList),
                 as.numeric(sp@maps),
                 as.numeric(sp@occupancy),
@@ -304,7 +303,6 @@ setMethod(f="getMapStats",
             
             ### get sparsity scores
             sp@sparsity<- .Call("sparsity_score_cwrap",
-                                as.integer(sp@cellList),
                                 length(sp@cellList),
                                 as.numeric(sp@maps),
                                 as.numeric(sp@occupancy),
@@ -329,7 +327,6 @@ setMethod(f="getMapStats",
             # make spatial autocorrelations
             sp<-mapSpatialAutocorrelation(sp)
             sp@gridScore<-.Call("grid_score_cwrap",
-                                as.integer(sp@cellList),
                                 length(sp@cellList),
                                 sp@autos,
                                 sp@nRowAuto,
@@ -386,13 +383,11 @@ setMethod(f="getMapStatsShuffle",
               sp@peakRateShuffle <- c(sp@peakRateShuffle,apply(sp@maps,3,max))
               sp@infoScoreShuffle <- c(sp@infoScoreShuffle,
                                        .Call("information_score_cwrap",
-                                             as.integer(sp@cellList),
                                              length(sp@cellList),
                                              as.numeric(sp@maps),
                                              as.numeric(sp@occupancy),
                                              as.integer(sp@nColMap*sp@nRowMap)))
               sp@sparsityShuffle <- c(sp@sparsityShuffle, .Call("sparsity_score_cwrap",
-                                                                as.integer(sp@cellList),
                                                                 length(sp@cellList),
                                                                 as.numeric(sp@maps),
                                                                 as.numeric(sp@occupancy),
@@ -415,7 +410,6 @@ setMethod(f="getMapStatsShuffle",
               sp<-mapSpatialAutocorrelation(sp)
               sp@gridScoreShuffle<-c(sp@gridScoreShuffle,
                                      .Call("grid_score_cwrap",
-                                    as.integer(sp@cellList),
                                   length(sp@cellList),
                                   sp@autos,
                                   sp@nRowAuto,
@@ -456,7 +450,6 @@ setMethod(f="mapSpatialAutocorrelation",
             sp@nColAuto = as.integer((sp@nColMap*2)+1)
             sp@nRowAuto = as.integer((sp@nRowMap*2)+1)
             results<- .Call("map_autocorrelation_cwrap",
-                  as.integer(sp@cellList),
                   length(sp@cellList),
                   as.numeric(sp@maps),
                   sp@nRowMap,
@@ -611,7 +604,6 @@ setMethod(f="gridScore",
             if(length(sp@autos)==0)
               stop("Need to call mapSpatialAutocorrelation first to run gridScore()")
             sp@gridScore<-.Call("grid_score_cwrap",
-                  as.integer(sp@cellList),
                   length(sp@cellList),
                   sp@autos,
                   sp@nRowAuto,

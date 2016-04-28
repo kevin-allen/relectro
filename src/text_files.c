@@ -1,6 +1,7 @@
 #include "relectro.h"
 #include<stdio.h>
 #include<stdlib.h>
+
 int file_lines(const char* file_name)
 {
   // count the number of lines in the file called filename                                    
@@ -29,7 +30,6 @@ int read_one_column_int_file(const char* file_name,int* data, int lines)
     Rprintf("problem opening the file\n");
     return 1;
   }
-  int ret;
   for(int i = 0; i < lines; i++)
   {
     if(fscanf(fp,"%d\n",&data[i])<1){

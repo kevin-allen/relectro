@@ -1,4 +1,5 @@
-PKG_CPPFLAGS=  
+PKG_CPPFLAGS= 
+PKG_CFLAGS= -Wall
 PKG_LIBS= -lfftw3 -lm  
 
 all: $(SHLIB)

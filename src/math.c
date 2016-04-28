@@ -1,6 +1,5 @@
 #include <math.h>
 #include "relectro.h"
-
 double sum_double(int num_data, double* data, double invalid)
 {
   /* calculate the sum of an array */
@@ -507,7 +506,7 @@ void smooth_double_gaussian_circular(double* array, int array_size, double smoot
   double sum_weight;
   double sum_value;
   int index_value_for_kernel;
-  int index_value_for_kernel_wrapped;
+  int index_value_for_kernel_wrapped=0;
   // make a gaussian kernel
   kernel=(double*) malloc(kernel_size*sizeof(double));
   results =(double*) malloc(array_size*sizeof(double));
@@ -755,14 +754,13 @@ SEXP detect_ttl_downs_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r)
   UNPROTECT(1);
   return(out);
 }
-SEXP circular_stats_rate_histogram_cwrap(SEXP cells_r,
-					 SEXP cell_lines_r,
+
+SEXP circular_stats_rate_histogram_cwrap(SEXP cell_lines_r,
 					 SEXP all_histos_r,
 					 SEXP histo_size_r)
 {
   int cell_lines = INTEGER_VALUE(cell_lines_r);
   int histo_size = INTEGER_VALUE(histo_size_r);
-  int* cells = INTEGER_POINTER(cells_r);
   double* histos = REAL(all_histos_r);
   double* one_histo;
   SEXP out = PROTECT(allocMatrix(REALSXP,2,cell_lines));
@@ -787,7 +785,6 @@ void circular_stats_rate_histogram(double* histo,
      used for head direction analysis
   */
   double R;
-  double Z;
   double S;
   double C;
   double degree;

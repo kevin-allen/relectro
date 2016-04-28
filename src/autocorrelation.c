@@ -236,7 +236,7 @@ SEXP autocorrelation_cwrap(SEXP cell_list_r,
   probability=INTEGER_VALUE(probability_r);
 
   // might want to check the arguments here
-  if(probability!=0&probability!=1)
+  if((probability!=0)&&(probability!=1))
     {
       Rprintf("probability needs to be 0 or 1 but was %d\n",probability);
       UNPROTECT(5);

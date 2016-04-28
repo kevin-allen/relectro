@@ -73,7 +73,7 @@ double distance(double x1, double y1, double x2, double y2);
 SEXP detect_ttl_ups_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
 SEXP detect_ttl_downs_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
 void circular_stats_rate_histogram(double* histo, int num_bins, double* mean_direction, double* mean_vector_length);
-SEXP circular_stats_rate_histogram_cwrap(SEXP cells_r, SEXP cell_lines_r,SEXP all_histos_r, SEXP histo_size_r);
+SEXP circular_stats_rate_histogram_cwrap(SEXP cell_lines_r,SEXP all_histos_r, SEXP histo_size_r);
 
 
 // ifr.c
@@ -132,21 +132,21 @@ SEXP occupancy_map_cwrap(SEXP x_bins_r, SEXP y_bins_r, SEXP pixels_per_bin_x_r, 
 void create_place_field( int x_bins, int y_bins, double pixels_per_bin_x, double pixels_per_bin_y, double *x_spike,  double *y_spike, int *clu, int res_lines, int target_cell, double *occupancy_map, double *place_field);
 SEXP firing_rate_map_2d_cwrap(SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP pixels_per_bin_x_r,SEXP pixels_per_bin_y_r, SEXP x_spike_r, SEXP y_spike_r, SEXP clu_r,SEXP res_lines_r, SEXP cells_r, SEXP num_cells_r, SEXP occ_map_r, SEXP smooth_map_sd_r);
 double information_score(double* fr_map, double* occ_map, int map_size);
-SEXP information_score_cwrap(SEXP cells_r,SEXP cell_lines_r, SEXP all_rate_maps_r,SEXP occupancy_map_r, SEXP map_size_r);
+SEXP information_score_cwrap(SEXP cell_lines_r, SEXP all_rate_maps_r,SEXP occupancy_map_r, SEXP map_size_r);
 double sparsity_score(double* fr_map, double* occ_map, int map_size);
-SEXP sparsity_score_cwrap(SEXP cells_r,SEXP cell_lines_r,SEXP all_rate_maps_r, SEXP occupancy_map_r, SEXP map_size_r);
-SEXP map_autocorrelation_cwrap(SEXP cells_r, SEXP cell_lines_r,SEXP maps_r, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r,SEXP min_bins_for_autocorrelation_r);
+SEXP sparsity_score_cwrap(SEXP cell_lines_r,SEXP all_rate_maps_r, SEXP occupancy_map_r, SEXP map_size_r);
+SEXP map_autocorrelation_cwrap(SEXP cell_lines_r,SEXP maps_r, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r,SEXP min_bins_for_autocorrelation_r);
 void map_autocorrelation(double *one_place, double *one_auto, int x_bins_place_map, int y_bins_place_map, int x_bins_auto_map, int y_bins_auto_map, int min_for_correlation);
 void map_rotate(double* map,int x_bins,int y_bins,double deg,double invalid);
 void detect_one_field_with_field( double* map, int x_bins, int y_bins, int min_num_bins_fields,double threshold, double* mean_x_field, double* mean_y_field, double* max_radius_field, int* num_bins_field,  double invalid,  double* field);
 void detect_one_field( double* map, int x_bins, int y_bins, int min_num_bins_fields, double threshold, double* mean_x_field, double* mean_y_field, double* max_radius_field, int* num_bins_field, double invalid);
 double hux_heading(double delta_x, double delta_y);
 double degree_to_radian(double degree);
-SEXP gridness_score_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r, SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
+SEXP grid_score_cwrap(SEXP cell_lines_r, SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r, SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
 double gridness_score(double* one_auto_map, int auto_num_bins_x,int auto_num_bins_y, double pixels_per_bin, int number_fields_to_detect,int min_num_bins_per_field, double field_threshold, double invalid);
 double grid_orientation(double *map, int x_bins, int y_bins, double pixels_per_bin, int num_fields_to_detect, int min_num_bins_fields, float threshold, double invalid);
-SEXP grid_orientation_cwrap(SEXP cells_r, SEXP cell_lines_r,SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r,SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
-SEXP grid_spacing_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r, SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
+SEXP grid_orientation_cwrap(SEXP cell_lines_r,SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r,SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
+SEXP grid_spacing_cwrap(SEXP cell_lines_r, SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r, SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
 double grid_spacing(double *map, int x_bins, int y_bins, double pixels_per_bin, int num_fields_to_detect, int min_num_bins_fields, float threshold, double invalid);
 int identify_border_pixels_in_occupancy_map(double* occ_map, int num_bins_x, int num_bins_y,int* border_map, int* border_x, int* border_y, int* num_bins_border);
 int find_border_starting_point(double* occ_map, int num_bins_x, int num_bins_y,int*border_map,int*border_x,int* border_y,int* num_bins_border);

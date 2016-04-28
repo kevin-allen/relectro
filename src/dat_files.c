@@ -9,12 +9,10 @@
 #define MAXNUMBERFILES 100
 #define MAXBLOCKSIZE 50000000 // 50MB to work with many files at same time
 
-
 // write the cwrap functions 
 // get data one channels
 // detect up
 // detect down
-
 
 SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r)
 {
