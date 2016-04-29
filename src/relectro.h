@@ -362,3 +362,16 @@ SEXP meanFiringRate_cwrap(SEXP cell_list_r,
 			  SEXP interval_lines_r,
 			  SEXP sampling_rate_r);
 
+/*************************************************
+ * signal_processing.c
+ ************************************************/
+int band_pass_filter_one_channel_fftw(double* channel_data, int num_samples, int filtered_signal_size,
+                                      int sampling_rate,double lower_pass, double higher_pass);
+int make_butterworth_filter(int sampling_rate,
+                            int filter_length, 
+                            double* filter_function,
+                            double low_pass,                           
+                            double high_pass);
+SEXP band_pass_filter_one_channel_fftw_cwrap(SEXP channel_data_r, SEXP num_samples_r,
+                                             SEXP sampling_rate_r, 
+                                             SEXP lower_pass_r, SEXP higher_pass_r);

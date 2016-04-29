@@ -1,5 +1,5 @@
 library(relectro)
-
+library(testthat)
 context("DatFiles")
 test_that("DatFiles",{
   
@@ -14,6 +14,8 @@ test_that("DatFiles",{
   f1.size<-file.info("k01.dat")$size
   f2.size<-file.info("k02.dat")$size
   s<-c(f1.size,f2.size)
+  
+  
   
   ## check size of files and samples
   df<-new("DatFiles")
@@ -48,6 +50,9 @@ test_that("DatFiles",{
   ## with several indices
   d<-datFilesGetOneChannel(df,channelNo=0,firstSample=c(3,2),lastSample=c(5,4))
   expect_equal(d,c(4,5,6,3,4,5))
+  
+  ## arrays out of bound, 11 samples, 10 is the last index
+  expect_error(datFilesGetOneChannel(df,channelNo=0,firstSample=0,lastSample=11))
   
   file.remove("k01.dat","k02.dat")
   rm(nChannels,nSamples,f,f1.size,f2.size,s,df,d)

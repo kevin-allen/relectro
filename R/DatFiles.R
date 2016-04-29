@@ -103,8 +103,11 @@ setMethod(f="datFilesSamples",
 #' 
 #' @param df A DatFiles object
 #' @param channelNo The channel to retrieve the data from. The first channelNo in the file is 0.  
-#' @param firstSample Numeric vector containing the first sample to retrieve. You can give several if you want to get a series of data chunks.
+#' @param firstSample Numeric vector containing the first sample to retrieve. 
+#' You can give several if you want to get a series of data chunks.
+#' First sample in the file is 0
 #' @param lastSample Numeric vector containing the last sample to retrieve. You can give several if you want to get a series of data chunks.
+#' Index stats at 0
 #' @return A integer vector containing the data read from the dat files.
 #' @docType methods
 #' @rdname datFilesGetOneChannel-methods
@@ -146,10 +149,10 @@ setMethod(f="datFilesGetOneChannel",
               stop(paste("lastSample<0",df@fileNames[1]))
             if(any(firstSample>lastSample))
               stop(paste("firstSample > lastSample",df@fileNames[1]))
-            if(any(firstSample>sum(df@samples)))
-              stop(paste("firstSample is larger than total number of samples:",sum(df@samples),df@fileNames[1]))
-            if(any(lastSample>sum(df@samples)))
-              stop(paste("lastSample is larger than total number of samples",sum(df@samples),df@fileNames[1]))
+            if(any(firstSample>(sum(df@samples)-1)))
+              stop(paste("firstSample(",firstSample,") is larger or equal than total number of samples:",sum(df@samples),df@fileNames[1]))
+            if(any(lastSample> (sum(df@samples)-1)))
+              stop(paste("lastSample(",lastSample,") is larger or equal than total number of samples",sum(df@samples),df@fileNames[1]))
             
             if(length(firstSample)!=length(lastSample))
               stop(paste("length(firstSample)!=length(lastSample",df@fileNames[1]))
