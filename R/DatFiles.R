@@ -1,8 +1,15 @@
-#' An S4 class representing a group of .dat files
+#' A class representing one or more .dat files
 #' 
 #' This class is used to read data from one or several .dat files.
 #' Because the .dat files are binary files, you can't read them with the usual read functions within R.
 #' If several dat files are set in an object, they are treated as though they are a single file.
+#' 
+#' Dat files have a very simple organisation. Each data point has 2 bytes. 
+#' There is no header. The data from sample 0 appear first, then sample 1, etc.
+#' If c is for channel and s is for sample, a file with 3 channel would look like this
+#' s0c0, s0c1, s0c2, s1c0, s1c1, s1c2, s2c0, s2c1, s2c2, etc.
+#' 
+#' 
 #' @slot fileNames A character vector containing the names of the files
 #' @slot path The directory in which the files are located
 #' @slot samples Numeric vector with the number of samples in each file.
@@ -22,7 +29,7 @@ DatFiles <- setClass(
 #' Function to set the parameters of a DatFile object
 #' @param df A DatFiles object
 #' @param fileNames A character vector containing the names of the .dat files
-#' @param path A directory where the files are located
+#' @param path A directory where the files are located. If empty the working directory is used.
 #' @param nChannels The number of channels in the dat files
 #' @return A DatFiles object with the values set.
 #' @docType methods
@@ -147,11 +154,6 @@ setMethod(f="datFilesGetOneChannel",
             if(length(firstSample)!=length(lastSample))
               stop(paste("length(firstSample)!=length(lastSample",df@fileNames[1]))
            
-            
-              
-            
-            
-             
             number.samples=sum(lastSample-firstSample+1)
             results<-numeric(length=number.samples)
             startIndex<-1
