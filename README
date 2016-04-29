@@ -1,19 +1,12 @@
-This is a R package to analysis electrophysiological data with R.
+** relectro **
+R package to analysis electrophysiological data. The focus at the moment is on date from tetrode recording experiments.
 
 If you are starting you might want to look at the vignette in the vignettes directory.
 
 To build and install the package
+
 R CMD build relectro
 R CMD INSTALL relectro
-
-
-NEXT STEPS
-Add tests for the different functions
-Add some examples in the documentation
-Add tests to remove as many bugs as possible
-
-
-Make sure that the spikes at startResIndexc and endResIndexc are considered valid because they are within the intervals
 
 
 2D indexing in R and C
