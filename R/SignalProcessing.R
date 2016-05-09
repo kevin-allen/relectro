@@ -2,27 +2,29 @@
 #' 
 #' Use a Butterworth filter.
 #' 
-#' NOT TESTED AT ALL
+#' This function was not tested extensively
 #' 
 #' @param data Numeric vector containing the data to filter
 #' @param samplingRate Sampling rate of the data in Hz
-#' @param minPass Minimal frequency in Hz that is kept
-#' @param maxPass Maximal frequency in Hz that is kept
-#' @return Filtered version of the argument data
-bandPassFilter<-function(data,samplingRate,minPass,maxPass){
+#' @param minPassHz Minimal frequency in Hz that is kept
+#' @param maxPassHz Maximal frequency in Hz that is kept
+#' @return Filtered copy of the argument data
+bandPassFilter<-function(data,samplingRate,minPassHz,maxPassHz){
   
-  if(samplingRate<0|samplingRAte>100000)
+  if(samplingRate<0|samplingRate>100000)
     stop(paste("bandPassFilter(), samplingRate should be between 0 and 100000 Hz but was",samplingRate))
-  if(minPass<=0|minPass>samplingRate/2)
-    stop(paste("bandPassFilter(), minPass should between 0 and Nyquist frequency but was",minPass))
-  if(maxPass<=0|maxPass>samplingRate/2)
-    stop(paste("bandPassFilter(), maxPass should between 0 and Nyquist frequency but was",maxPass))
-  if(minPass<=maxPass)
-    stop(paste("minPass (",minPass,") should be smaller than maxPass(",maxPass,")"))
+  if(minPassHz<=0|minPassHz>samplingRate/2)
+    stop(paste("bandPassFilter(), minPass should between 0 and Nyquist frequency but was",minPassHz))
+  if(maxPassHz<=0|maxPassHz>samplingRate/2)
+    stop(paste("bandPassFilter(), maxPass should between 0 and Nyquist frequency but was",maxPassHz))
+  if(minPassHz>maxPassHz)
+    stop(paste("minPass (",minPassHz,") should be smaller than maxPass(",maxPassHz,")"))
   
   results<- .Call("band_pass_filter_one_channel_fftw_cwrap",
                   data, length(data),
                   samplingRate,
-                  minPass,maxPass)
+                  minPassHz,maxPassHz)
+  return(results)
 }
+
 

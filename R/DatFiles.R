@@ -124,7 +124,7 @@ setMethod(f="datFilesGetOneChannel",
           {
             
             
-            if(any(file.exists(df@fileNames)==FALSE)){
+            if(any(file.exists(paste(df@path,df@fileNames,sep="/"))==FALSE)){
               stop(paste("This file is missing:",df@fileNames[! file.exists(df@fileNames)]," "))
             }
             
