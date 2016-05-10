@@ -280,7 +280,7 @@ It is often useful to create and load the spike trains, position data, dat file 
 
 ## ElectroProject
 
-Projects usually contains several recording sessions from different animals. ElectroProject is a class to represent all your recording session.
+Projects usually contain several recording sessions from different animals. ElectroProject is a class to represent all your recording sessions.
 Here is an example of a project we have. Normally you would create it with `ep<-new("ElectroProject",directory="/data/projects/vtrack")` and `ep<-setSessionList(ep)` but since you might not have the project on your computer we will load it from the object saved with the package.
 
 ```{r electroProject}
@@ -294,7 +294,7 @@ Here is an example of a project we have. Normally you would create it with `ep<-
 
 
 ## Running code on several recording sessions
-Now you might want to do some analysis on individual recording session. The trick is to create a function to do the analysis on a single session. For reasons explain below, if you function returns data, put them into a list of named elements. Then use `lapply` to run the function to individual recording session.
+Now you might want to do some analysis on individual recording sessions. The trick is to create a function to do the analysis on a single session. For reasons explain below, if you function returns data, put them into a list of named elements. Then use `lapply` to run the function on individual recording sessions.
 
 ```{r severalSessions}
 myFunction<-function(x){

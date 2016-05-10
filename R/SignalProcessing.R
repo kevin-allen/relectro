@@ -2,7 +2,6 @@
 #' 
 #' Use a Butterworth filter.
 #' 
-#' This function was not tested extensively
 #' 
 #' @param data Numeric vector containing the data to filter
 #' @param samplingRate Sampling rate of the data in Hz
@@ -27,4 +26,25 @@ bandPassFilter<-function(data,samplingRate,minPassHz,maxPassHz){
   return(results)
 }
 
-
+#' Calculate the root mean square within a sliding window
+#' 
+#' 
+#' @param data Numeric vector containing the signal
+#' @param windowSizeSamples Window size in number of samples within which the power will be calculated
+#' @param windowSlide Shift of the window between calculation of root mean square
+#' @return Numeric, root mean square of all windows
+powerRootMeanSquare<-function(data,windowSizeSamples,windowSlide){
+  
+  if(length(data)==0)
+    stop(paste("powerRootMeanSquare, length(data)==0"))
+  if(windowSizeSamples<=0)
+    stop(paste("powerRootMeanSquare, windowSizeSamples<=0"))
+  if(windowSlide<=0)
+    stop(paste("powerRootMeanSquare, windowSlide<=0"))
+  
+  results<- .Call("power_root_mean_square",
+                  data, length(data),
+                  windowSizeSamples,
+                  windowSlide)
+  return(results)
+}

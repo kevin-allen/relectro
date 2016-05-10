@@ -375,3 +375,13 @@ int make_butterworth_filter(int sampling_rate,
 SEXP band_pass_filter_one_channel_fftw_cwrap(SEXP channel_data_r, SEXP num_samples_r,
                                              SEXP sampling_rate_r, 
                                              SEXP lower_pass_r, SEXP higher_pass_r);
+SEXP power_root_mean_square(SEXP channel_data_r, SEXP num_samples_r, SEXP window_size_samples_r, SEXP window_slide_r);
+
+/*************************************************
+ * spike_extraction.c
+ * ***********************************************/
+SEXP identify_spike_times(SEXP dataf_r, SEXP dataf_size_r,
+                          SEXP power_r, SEXP power_size_r,
+                          SEXP powerWindowSize_r,
+                          SEXP powerWindowSlide_r,
+                          SEXP powerThreshold_r);

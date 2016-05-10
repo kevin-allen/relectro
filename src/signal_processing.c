@@ -304,7 +304,6 @@ int make_butterworth_filter(int sampling_rate, // max freq is sr/2
   return 0;
 }
 
-
 SEXP band_pass_filter_one_channel_fftw_cwrap(SEXP channel_data_r, SEXP num_samples_r,
                                             SEXP sampling_rate_r, SEXP lower_pass_r, SEXP higher_pass_r){
   int num_samples=INTEGER_VALUE(num_samples_r);
@@ -313,8 +312,13 @@ SEXP band_pass_filter_one_channel_fftw_cwrap(SEXP channel_data_r, SEXP num_sampl
   double higher_pass = REAL(higher_pass_r)[0];
   int filtered_signal_size=2;
   
-  while(filtered_signal_size<num_samples)
-    filtered_signal_size=filtered_signal_size*2;
+  if(num_samples<100000){
+    while(filtered_signal_size<num_samples)
+      filtered_signal_size=filtered_signal_size*2;
+  } 
+  else {
+    filtered_signal_size=pow(2,17);
+  }
   
   // will not affect the input vector
   double* array= (double*)malloc(num_samples*sizeof(double));
@@ -331,4 +335,53 @@ SEXP band_pass_filter_one_channel_fftw_cwrap(SEXP channel_data_r, SEXP num_sampl
   UNPROTECT(1);
   free(array);
   return out;
+}
+
+SEXP power_root_mean_square(SEXP channel_data_r, SEXP num_samples_r, 
+                            SEXP window_size_samples_r, SEXP window_slide_r){
+  int num_samples=INTEGER_VALUE(num_samples_r);
+  int window_size_samples=INTEGER_VALUE(window_size_samples_r);
+  int window_slide=INTEGER_VALUE(window_slide_r);
+  
+  if(num_samples<0){
+    Rprintf("power_root_mean_square: num_samples should be larger than 0%d\n", num_samples);
+    return 0;
+    
+  }
+  if(window_size_samples<0){
+     Rprintf("power_root_mean_square: window_size_samples should be larger than 0%d\n", window_size_samples);
+    return 0;
+  }
+  if(window_slide<0){
+    Rprintf("power_root_mean_square: window_slide should be larger than 0%d\n", window_slide);
+    return 0;
+  }
+  
+  int num_windows=1+(num_samples-window_size_samples)/window_slide;
+  
+  double* pwr= (double*)malloc(num_windows*sizeof(double));
+  int start_index;
+  int end_index;
+  double sum_square;
+  double mean_square;
+  
+  for(int i = 0; i < num_windows; i++){
+    start_index=i*window_slide;
+    end_index=start_index+window_size_samples;
+    sum_square = 0;
+    
+    for (int j = start_index; j < end_index; j++)
+    {
+      sum_square=sum_square+(REAL(channel_data_r)[j]*REAL(channel_data_r)[j]);
+    }
+    mean_square=sum_square/window_size_samples;
+    pwr[i]=sqrt(mean_square);
+  }
+  
+  SEXP out = PROTECT(allocVector(REALSXP, num_windows));
+  for(int i=0;i< num_windows;i++)
+    REAL(out)[i]=pwr[i];
+  free(pwr);
+  UNPROTECT(1);
+  return(out);
 }
