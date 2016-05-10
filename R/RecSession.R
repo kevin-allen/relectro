@@ -96,13 +96,19 @@ setMethod(f="loadRecSession",
             max.channelsTetrode<-max(unlist(lapply(chan,length))-1)
             rs@channelsTetrode<-matrix(nrow=rs@nElectrodes,ncol=max.channelsTetrode)
             
-            for(i in 1:rs@nElectrodes){
+            if(rs@nElectrodes>0) { 
+            for(i in 1:rs@nElectrodes) {
               l1<-length((rs@channelsTetrode[i,]))
               l2<-length((as.numeric(chan[[i]][-1])))
               if(l2>l1)
                 stop(paste("loadRecSession, problem with number of channels on a tetrode",rs@session))
               rs@channelsTetrode[i,1:l2]<-as.numeric(chan[[i]][-1])
             }
+            } else {
+              print("No channelsTetrode")
+              rs@channelsTetrode<-matrix(NA)
+            }
+            
             if(file.exists(paste(rs@fileBase,"desen",sep="."))){
               rs@env<-as.character(read.table(paste(rs@fileBase,"desen",sep="."))$V1)
               if(length(rs@env)!=length(rs@trialNames))
