@@ -304,9 +304,31 @@ int make_butterworth_filter(int sampling_rate, // max freq is sr/2
   return 0;
 }
 
+
 SEXP band_pass_filter_one_channel_fftw_cwrap(SEXP channel_data_r, SEXP num_samples_r,
                                             SEXP sampling_rate_r, SEXP lower_pass_r, SEXP higher_pass_r){
-  int filtered_signal_size;
-  SEXP out = PROTECT(allocVector(REALSXP, INTEGER_VALUE(num_samples_r)));
+  int num_samples=INTEGER_VALUE(num_samples_r);
+  int sampling_rate = INTEGER_VALUE(sampling_rate_r);
+  double lower_pass = REAL(lower_pass_r)[0];
+  double higher_pass = REAL(higher_pass_r)[0];
+  int filtered_signal_size=2;
+  
+  while(filtered_signal_size<num_samples)
+    filtered_signal_size=filtered_signal_size*2;
+  
+  // will not affect the input vector
+  double* array= (double*)malloc(num_samples*sizeof(double));
+  for(int i=0;i< num_samples;i++)
+    array[i]=REAL(channel_data_r)[i];
+  
+  band_pass_filter_one_channel_fftw(array, num_samples, 
+                                    filtered_signal_size,
+                                    sampling_rate, lower_pass, higher_pass);
+  
+  SEXP out = PROTECT(allocVector(REALSXP, num_samples));
+  for(int i=0;i< num_samples;i++)
+    REAL(out)[i]=array[i];
+  UNPROTECT(1);
+  free(array);
   return out;
 }
