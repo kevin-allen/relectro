@@ -33,7 +33,7 @@ ElectroProject <- setClass(
 
 #' Create a list of RecSession objects for the ElectroProject
 #'
-#' Will list directories in the project directories
+#' Will list directories in the project directories.
 #' Only directories with an hyphen in their names are considered recSession directories.
 #'
 #' @param ep ElectroProject object
@@ -60,7 +60,7 @@ setMethod(f="setSessionList",
             ## list all directories in the project path
             dirs<-list.dirs(path=ep@directory)
             
-            ## only keep the directory with a hyphen in the name
+            ## only keep the directories with a hyphen in the name
             ep@sessionPathList<-dirs<-dirs[grepl(pattern="-",dirs)]
             ep@sessionPathList
             ep@nSessions<-length(dirs)
@@ -81,7 +81,7 @@ setMethod(f="setSessionList",
 
 #' Create a List of RecSessions objects from the SessionNameList
 #' 
-#' The RecSession objects will be initialized
+#' The RecSession objects will be initialized.
 #'
 #' @param ep ElectroProject object
 #' @return ElectroProject object with RecSession loaded
