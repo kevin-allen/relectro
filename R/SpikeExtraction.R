@@ -5,17 +5,8 @@
 #' A RecSession object is used to get the information about the assignation of the recorded channels to tetrodes and the file names.
 #' 
 #' @param rs RecSession object
-#' @param minPassHz Minimal frequency in Hz that is kept before calculating power
-#' @param maxPassHz Maximal frequency in Hz that is kept
-#' @param powerWindowSizeMs Size in ms of the sliding window to calculate power
-#' @param powerWindowSlideMs Shift in ms of the power window for power calculation
-#' @param SDThreshold Power threshold in standard deviation above the mean for detection of a spike
-#' @param waveformWindowSizeMs Window size used when extracting the spike waveforms.
-#' @param simultaneousSpikeMaxJitterMs Maximum jitter between two detected spikes to be consider the same spike
-spikeExtractionSession<-function(rs,minPassHz=800,maxPassHz=5000,powerWindowSizeMs=0.5,powerWindowSlideMs=0.5,SDThreshold=5,
-                                 waveformWindowSizeMs=1,
-                                 simultaneousSpikeMaxJitterMs=0.2
-                                 ){
+
+spikeExtractionSession<-function(rs){
   df<-new("DatFiles")
   df<-datFilesSet(df,
                   fileNames=paste(rs@trialNames,"dat",sep="."),
@@ -23,12 +14,7 @@ spikeExtractionSession<-function(rs,minPassHz=800,maxPassHz=5000,powerWindowSize
                   nChannels=rs@nChannels)
   for (i in 1:rs@nElectrodes)
   {
-    spikeExtractionTetrode(rs,df,tetrodeNumber=i,
-                           minPassHz=minPassHz,maxPassHz=maxPassHz,powerWindowSizeMs=powerWindowSizeMs,
-                           powerWindowSlideMs=powerWindowSlideMs,
-                           SDThreshold=SDThreshold,
-                           waveformWindowSizeMs=waveformWindowSizeMs,
-                           simultaneousSpikeMaxJitterMs=simultaneousSpikeMaxJitterMs)
+    spikeExtractionTetrode(rs,df,tetrodeNumber=i)
   }
 }
 
@@ -58,18 +44,19 @@ spikeExtractionSession<-function(rs,minPassHz=800,maxPassHz=5000,powerWindowSize
 #' @param waveformWindowSizeMs Window size used when extracting the spike waveforms.
 #' @return Return 0 if sucessfull
 spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
-                                 minPassHz=800,maxPassHz=5000,powerWindowSizeMs=0.5,powerWindowSlideMs=0.1,SDThreshold=3,
-                                 spikeDetectionRefractoryMs=0.4,
+                                 minPassHz=800,maxPassHz=5000,powerWindowSizeMs=0.5,powerWindowSlideMs=0.1,SDThreshold=5,
+                                 simultaneousSpikeMaxJitterMs=0.2,                               
                                  waveformWindowSizeMs=1){
+  if(minPassHz<0){
+    stop(paste("spikeExtractionTetrode: minPassHz<0"))
+  }
+  if(powerWindowSlideMs/rs@samplingRate*1000<1){
+    stop(paste("spikeExtractionTetrode: powerWindowSlideMs/rs@samplingRate*1000<1"))
+  }
   
-  tetrodeNumber=1
-  minPassHz=800
-  maxPassHz=5000
-  powerWindowSizeMs=0.5
-  powerWindowSlideMs=0.10
-  SDThreshold=5
-  spikeDetectionRefractoryMs=0.4
-  simultaneousSpikeMaxJitterMs=0.2
+  
+  
+  
   ## get the channel of the electrode
   channels<-rs@channelsTetrode[tetrodeNumber,]
   
@@ -88,7 +75,7 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
                               lastSample=df@samples[1])
     ## filter the data
     dataf<-bandPassFilter(data,rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
-  
+    
     ## save a file with filtered data for each channel
     writeBin(dataf,con=paste(paste(rs@path,rs@session,sep="/"),"fil",chan,sep="."),size=4)
     
@@ -139,31 +126,124 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   ## join spikes that are within 0.2 ms of each other (4 samples)
   res<-mergeSimultaneousSpikes(spikes[,"time"],spikes[,"trough"],simultaneousSpikeMaxJitterMs*rs@samplingRate/1000)
   
+  ## remove res values below 1 ms because we may not have all the waveform
+  res<-res[which(res>rs@samplingRate/1000)]
+  
   #########################################
   ## write the res file for this tetrode ##
   #########################################
   write(res,file=paste(paste(rs@path,rs@session,sep="/"),"res",tetrodeNumber,sep="."),ncolumns=1)
-  
+  write(rep(1,length(res)+1),file=paste(paste(rs@path,rs@session,sep="/"),"clu",tetrodeNumber,sep="."),ncolumns=1)
   
   ###################################
   ## visualize the detected spikes ##
   ###################################
-  plotSpikes(rs,channels,head(res,n=100))
+  #plotSpikes(rs,channels,head(res,n=100))
   
   ###################################################
   # extract waveform of each spike, save .spk files #
   ###################################################
+  window=32
   createSpkFile(rs,channels,res,window,tetrodeNumber)
-  
-  
   
   ##########################################
   # PCA for each channel, save .fet files ##
   ##########################################
-  spikePCA(rs,chan,res)
+  window=20
+  spikePCA(rs,channels,res,window,tetrodeNumber)
+  
+  ##############################
+  ### delete the fil files  ####
+  ##############################
+  for(chan in channels){
+    file.remove(paste(paste(rs@path,rs@session,sep="/"),"fil",chan,sep="."))
+  }
 }
 
 
+
+#'  Do PCA analysis on the spike waveforms
+#'    
+#'  Use the fil file for each channel. Work on each channel independently.
+#'  Make a matrix with a spike per row.
+#'  Do PCA analysis of spikes.
+#'  Combine the first components of each wire.
+#'  Save a fet file
+#' 
+#' @param rs RecSession
+#' @param channels Numeric with the list of channels for the tetrode on which the spikes were detected
+#' @param res Numeric with the time stamps of the spikes in sample value
+#' @param window Number of ms that will be shown
+#' @param tetrodeNumber Tetrode number used in the file name
+spikePCA<-function(rs,channels,res,window=32,tetrodeNumber){
+  if(length(channels)==0)
+    stop(paste("spikePCA: length(channels)==0"))
+  if(length(res)==0)
+    stop(paste("spikePCA: length(res)==0"))
+  
+  if(window<=0)
+    stop(paste("spikePCA: window<=0"))
+  
+  for(i in 1:length(channels)){
+    if(!file.exists(paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
+      stop(paste("missing file:",paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
+  }
+  
+  if(length(channels)<4){
+    featuresPerChannel=4
+  } else {
+    featuresPerChannel=3
+  }
+  
+  fet<-matrix(ncol=featuresPerChannel*length(channels),nrow=length(res))
+  ## for each channel
+  for(i in 1:length(channels)){
+    v<-readBin(what="numeric",con=paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep="."),size=4,n=1000000000)
+    m<-getWaveformMatrix(as.integer(res),as.integer(v),window)
+    spike.pca<-prcomp(m)
+    fet[,((i-1)*featuresPerChannel+1):((i-1)*featuresPerChannel+featuresPerChannel)]<-predict(spike.pca,m)[,1:featuresPerChannel]
+  }
+  
+  ## add time as last column
+  fet<-cbind(fet,res)
+  
+  write(ncol(fet),ncolumns=1,
+        file=paste(paste(rs@path,rs@session,sep="/"),"fet",tetrodeNumber,sep="."))
+  write(t(fet), ncolumns = ncol(fet),
+        file=paste(paste(rs@path,rs@session,sep="/"),"fet",tetrodeNumber,sep="."),
+        append=T)
+  return(fet)
+}
+
+
+
+
+#'  Get the waveform matrix, one spike per row
+#' 
+#' @param res Numeric with the time stamps of the spikes in sample value
+#' @param v electrophysiological signal
+#' @param window Number of data points for each spike
+#' @return matrix
+getWaveformMatrix<-function(res,v,window=20){
+  if(length(res)==0)
+    stop("getWaveformMatrix: length(res)==0")
+  if(length(v)==0)
+    stop("getWaveformMatrix: length(v)==0")
+  if(window<=0)
+    stop("getWaveformMatrix: window<=0")
+  if(max(res)+window/2>length(v))
+    stop("getWaveformMatrix: max(res)+window/2>length(v)")
+  
+  results<- .Call("get_waveform_matrix",
+                  v,
+                  length(v),
+                  as.integer(res),
+                  length(res),
+                  as.integer(window))
+  return(results)
+  
+}
+  
 
 
 
@@ -176,7 +256,7 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
 #' @param res Numeric with the time stamps of the spikes in sample value
 #' @param window Number of ms that will be shown
 #' @param tetrodeNumber Tetrode number used in the file name
-createSpkFile<-function(rs,channnels,res,window=32,tetrodeNumber){
+createSpkFile<-function(rs,channels,res,window=32,tetrodeNumber){
   
   if(length(channels)==0)
     stop(paste("createSpkFile: length(channels)==0"))
@@ -201,11 +281,14 @@ createSpkFile<-function(rs,channnels,res,window=32,tetrodeNumber){
     m[,i]<-readBin(what="numeric",con=paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep="."),size=4,n=1000000000)
   }
   
+  results<- .Call("create_spk_file",
+                  as.integer(m),nrow(m),ncol(m),
+                  as.integer(res),
+                  length(res),
+                  as.integer(window),
+                  paste(paste(rs@path,rs@session,sep="/"),"spk",tetrodeNumber,sep="."))
+
 }
-
-
-
-
 
 
 #'  Plot the waveform of spikes
@@ -293,11 +376,6 @@ mergeSimultaneousSpikes<-function(time,
 }
 
 
-
-
-
-
-
 #' Detect spike time using filtered signal and root mean square arrays
 #' 
 #' 
@@ -306,7 +384,7 @@ mergeSimultaneousSpikes<-function(time,
 #' @param powerWindowSize Size of the power window
 #' @param powerWindowSlide Amount of shift in the power window between subsequent power estimates
 #' @param powerThreshold Threshold used to detect spikes
-#' @return Matrix containing spike times and negative peak value of the spike
+#' @return Matrix containing spike times and negative peak value of the spike. The spike times are in sample index starting at index 0.
 identifySpikeTimes<-function(dataf,
                             power,
                             powerWindowSize,

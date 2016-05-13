@@ -175,3 +175,66 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
   UNPROTECT(1);
   return(out);
 }
+
+SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r, SEXP file_name_r){
+  const char* file_name = CHAR(STRING_ELT(file_name_r,0));
+  int * m = INTEGER_POINTER(data_r);
+  int nrow=INTEGER_VALUE(nrow_r);
+  int ncol=INTEGER_VALUE(ncol_r);
+  int* res=INTEGER_POINTER(res_r);
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  int window = INTEGER_VALUE(window_r);
+  
+  
+  Rprintf("writing %s from %d %d array and %d spikes\n",
+          file_name,
+          nrow,ncol,
+          res_lines);
+  
+  // memory for one spike
+  short int* out=(short int*)malloc(sizeof(short int)*window*ncol);
+  
+  FILE *my_file = fopen(file_name, "wb");
+  
+  //
+  int index;
+  int wb;// begin window
+  for(int i = 0; i < res_lines; i++){
+    index=0;
+    wb=res[i]-window/2;
+    for(int k =0; k < window; k++){
+      for(int j = 0; j < ncol; j++){
+        out[index]= (short int)m[j*nrow+wb+k];
+        index++;
+      }
+    }
+   fwrite(out,sizeof(short int),window*ncol,my_file);
+  // save this spike
+  }
+  fclose(my_file);
+  free(out);  
+  return(R_NilValue);
+}
+
+
+SEXP get_waveform_matrix(SEXP signal_r, SEXP signal_lines_r, SEXP res_r, SEXP res_lines_r, SEXP window_r){
+  int * signal = INTEGER_POINTER(signal_r);
+  int signal_lines =INTEGER_VALUE(signal_lines_r);
+  int* res=INTEGER_POINTER(res_r);
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  int window = INTEGER_VALUE(window_r);
+  
+  SEXP out = PROTECT(allocMatrix(INTSXP,res_lines,window));
+  int* o = INTEGER_POINTER(out);
+  
+  int wb;// begin window
+  for(int i = 0; i < res_lines; i++){
+    wb=res[i]-window/2;
+    for(int k =0; k < window; k++){
+        o[k*res_lines+i]= signal[wb+k];
+      }
+    }
+
+  UNPROTECT(1);
+  return(out);
+}
