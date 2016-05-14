@@ -34,8 +34,6 @@ SEXP identify_spike_times(SEXP dataf_r,
     return 0;
   }
 
-  
-  
   // set the arry to one spike per power window, which is way too many
   double* negVal = (double*)malloc(num_windows*sizeof(double));
   int* spikes=(int*)malloc(num_windows*sizeof(int));
@@ -51,15 +49,13 @@ SEXP identify_spike_times(SEXP dataf_r,
   {
     if(power[i]>powerThreshold){
       j=i;
-      while(i<num_windows&&power[i]>powerThreshold) //loop until power is below threshold
-        i++;
-      i--; // don't consider the last while iteration that was below threshold
-      // above threshold from index j to i
+      while(j+1<num_windows&&power[j+1]>powerThreshold) //loop until power is below threshold
+        j++;
       
       // get the peak power, not necessarily at the same time as spike
-      for(int k = j; k <= i; k++)
+      for(int k = i; k <= j; k++)
       {
-        if(k==j)
+        if(k==i)
           powerPeak[numSpikes]=power[k];
         else{
           if(powerPeak[numSpikes]<power[k])
@@ -67,9 +63,8 @@ SEXP identify_spike_times(SEXP dataf_r,
         }
       }
       
-      
-      indexDataStart=powerWindowSlide*j;
-      indexDataEnd=powerWindowSlide*i+powerWindowSize;
+      indexDataStart=powerWindowSlide*i;
+      indexDataEnd=powerWindowSlide*j+powerWindowSize; // 0 to 9, 10 to 19
       for(int k=indexDataStart; k < indexDataEnd; k++)
       {
         if(k==indexDataStart){
@@ -84,9 +79,29 @@ SEXP identify_spike_times(SEXP dataf_r,
           }
         }
       }
+      i=j;
       numSpikes++;
     }
   }
+  
+  // make sure that the same spike was not detected twice because of overlapping time windows
+  for(int i = 0; i < numSpikes;i++)
+  {
+    if(i+1<numSpikes&&spikes[i]==spikes[i+1])
+    {
+      // remove the second spike
+      for(j=i+1; j<numSpikes;j++)
+      {
+        spikes[j-1]=spikes[j];
+        negVal[j-1]=negVal[j];
+        powerPeak[j-1]=powerPeak[j];
+      }
+      numSpikes--;
+    }
+  }
+  
+  
+  
   
   SEXP out = PROTECT(allocMatrix(REALSXP,numSpikes,3));
   double* outc = REAL(out);

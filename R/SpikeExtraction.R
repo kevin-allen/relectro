@@ -12,7 +12,7 @@ spikeExtractionSession<-function(rs){
                   fileNames=paste(rs@trialNames,"dat",sep="."),
                   path=rs@path,
                   nChannels=rs@nChannels)
-  for (i in 1:rs@nElectrodes)
+  for (i in 3:rs@nElectrodes)
   {
     spikeExtractionTetrode(rs,df,tetrodeNumber=i)
   }
@@ -44,28 +44,38 @@ spikeExtractionSession<-function(rs){
 #' @param waveformWindowSizeMs Window size used when extracting the spike waveforms.
 #' @return Return 0 if sucessfull
 spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
-                                 minPassHz=800,maxPassHz=5000,powerWindowSizeMs=0.5,powerWindowSlideMs=0.1,SDThreshold=5,
+                                 minPassHz=800,maxPassHz=5000,powerWindowSizeMs=0.4,powerWindowSlideMs=0.1,SDThreshold=2.5,
                                  simultaneousSpikeMaxJitterMs=0.2,                               
                                  waveformWindowSizeMs=1){
   if(minPassHz<0){
     stop(paste("spikeExtractionTetrode: minPassHz<0"))
   }
-  if(powerWindowSlideMs/rs@samplingRate*1000<1){
-    stop(paste("spikeExtractionTetrode: powerWindowSlideMs/rs@samplingRate*1000<1"))
+  if(maxPassHz<=minPassHz){
+    stop(paste("spikeExtractionTetrode: maxPassHz<=minPassHz"))
   }
-  
-  
-  
+    
+  if(powerWindowSlideMs*rs@samplingRate/1000<1){
+    stop(paste("spikeExtractionTetrode: powerWindowSlideMs*rs@samplingRate/1000<1"))
+  }
   
   ## get the channel of the electrode
   channels<-rs@channelsTetrode[tetrodeNumber,]
+  window=32
   
   ## array to store the detected spike times
   spikes<-matrix(ncol=4)
-  colnames(spikes)<-c("time","trough","power","channel")
+  colnames(spikes)<-c("time","power","trough","channel")
   
   if(length(channels)==0)
     stop(paste("spikeExtractionTetrode, session:", rs@session, ", tetrode:",tetrodeNumber,", channels has length of 0"))
+  
+  print(paste("sampling rate:", rs@samplingRate,"Hz"))
+  print(paste("minPassHz:", minPassHz,"Hz"))
+  print(paste("maxPassHz:", maxPassHz,"Hz"))
+  print(paste("powerWindowSizeMs:", powerWindowSizeMs,"ms"))
+  print(paste("powerWindowSlideMs:", powerWindowSlideMs,"ms"))
+  print(paste("SDThreshold:", SDThreshold))
+  
   ## loop for each channel of the electrode
   for(chan in channels){
     print(paste("spike detection tetrode:",tetrodeNumber," channel:",chan))
@@ -79,30 +89,22 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
     ## save a file with filtered data for each channel
     writeBin(dataf,con=paste(paste(rs@path,rs@session,sep="/"),"fil",chan,sep="."),size=4)
     
-    # calculate power (root mean square)
-    rms<-powerRootMeanSquare(data=dataf,
-                             windowSizeSamples=powerWindowSizeMs*rs@samplingRate/1000,
-                             windowSlide=powerWindowSlideMs*rs@samplingRate/1000)
-  
-    # get the time point of power window
-    rms.t<-seq(from=(powerWindowSizeMs*rs@samplingRate/1000)/2, # middle of power window
-               by=powerWindowSlideMs*rs@samplingRate/1000,
-               length.out=length(rms))
-  
-    # get the power baseline and threshold
-    rms.sd<-sd(rms)
-    rms.mean<-mean(rms)
-    rms.threshold<- rms.mean+(rms.sd*SDThreshold)
-  
-    # identify spikes by detecting negative peaks in windows with power above threshold
-    sp<-identifySpikeTimes(dataf,
-                      power=rms,
-                      powerWindowSize=powerWindowSizeMs*rs@samplingRate/1000,
-                      powerWindowSlide=powerWindowSlideMs*rs@samplingRate/1000,
-                      powerThreshold=rms.threshold)
-  
-    sp<-cbind(sp,rep(chan,length(sp[,1]))) # add channel number in the spike matrix
-    spikes<-rbind(spikes,sp) 
+    sdetec<-detectSpikesFromTrace(data=dataf,
+                          rs@samplingRate,
+                          powerWindowSizeMs,
+                          powerWindowSlideMs,
+                          SDThreshold)
+    
+    sp<-cbind(sdetec$spikeTime,
+              sdetec$spikePower,
+              sdetec$spikeTrough,
+              rep(chan,length(sdetec$spikeTime)))
+    
+    ## remove spikes at the very beginning and end of signal
+    sp<-sp[which(sp[,1]<(length(dataf)-(window/2+1))),]
+    sp<-sp[which(sp[,1]>(window/2+1)),]
+    
+    spikes<-rbind(spikes,sp)
     #   
     #   # plot data
 #       m=47000
@@ -126,8 +128,6 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   ## join spikes that are within 0.2 ms of each other (4 samples)
   res<-mergeSimultaneousSpikes(spikes[,"time"],spikes[,"trough"],simultaneousSpikeMaxJitterMs*rs@samplingRate/1000)
   
-  ## remove res values below 1 ms because we may not have all the waveform
-  res<-res[which(res>rs@samplingRate/1000)]
   
   #########################################
   ## write the res file for this tetrode ##
@@ -143,7 +143,6 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   ###################################################
   # extract waveform of each spike, save .spk files #
   ###################################################
-  window=32
   createSpkFile(rs,channels,res,window,tetrodeNumber)
   
   ##########################################
@@ -159,6 +158,52 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
     file.remove(paste(paste(rs@path,rs@session,sep="/"),"fil",chan,sep="."))
   }
 }
+
+
+
+#' Detect spikes in a signal
+#' 
+#' If there are low components in the signal, they should be filtered out.
+#' 
+#' @param data Vector containing the spikes and some noise
+#' @param samplingRate Sampling rate of the trace
+#' @param powerWindowSizeMs Window size when calculating power (root mean square)
+#' @param powerWindowSlideMs Shift of the window in ms between estimation of power
+#' @param SDThreshold Power threshold for spike detection.
+#' @return list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower
+detectSpikesFromTrace<-function(data,
+                             samplingRate,
+                             powerWindowSizeMs,
+                             powerWindowSlideMs,
+                             SDThreshold)
+{
+  rms<-powerRootMeanSquare(data=data,
+                           windowSizeSamples=powerWindowSizeMs*samplingRate/1000,
+                           windowSlide=powerWindowSlideMs*samplingRate/1000)
+  # get the time point of power window
+  rms.t<-seq(from=(powerWindowSizeMs*samplingRate/1000)/2, # middle of power window
+             by=powerWindowSlideMs*samplingRate/1000,
+             length.out=length(rms))
+  # get the power baseline and threshold
+  rms.sd<-sd(rms)
+  rms.mean<-mean(rms)
+  rms.threshold<- rms.mean+(rms.sd*SDThreshold)
+  # identify spikes by detecting negative peaks in windows with power above threshold
+  sp<-identifySpikeTimes(data,
+                         power=rms,
+                         powerWindowSize=powerWindowSizeMs*samplingRate/1000,
+                         powerWindowSlide=powerWindowSlideMs*samplingRate/1000,
+                         powerThreshold=rms.threshold)
+  list(rms=rms,
+       rmsT=rms.t,
+       rmsSD=rms.sd,
+       rmsMean=rms.mean,
+       rmsThreshold=rms.threshold,
+       spikeTime=sp[,1],
+       spikePower=sp[,2],
+       spikeTrough=sp[,2])
+}
+
 
 
 
@@ -232,7 +277,7 @@ getWaveformMatrix<-function(res,v,window=20){
   if(window<=0)
     stop("getWaveformMatrix: window<=0")
   if(max(res)+window/2>length(v))
-    stop("getWaveformMatrix: max(res)+window/2>length(v)")
+    stop(paste("getWaveformMatrix: max(res)+window/2>length(v)",max(res)+window/2,length(v)))
   
   results<- .Call("get_waveform_matrix",
                   v,
@@ -411,3 +456,84 @@ identifySpikeTimes<-function(dataf,
   
   return(results)
 }
+
+#' Generate a raw trace with some background gaussian noise and surimposed spikes
+#' 
+#' Several different waveforms can be used. They are all generated from the same generic spike by adding gaussian noise to it.
+#' 
+#' @param samplingRate Sampling rate of the trace
+#' @param durationSec Total duration in second of the trace
+#' @param noiseSD Standard deviation of gaussian noise
+#' @param noiseMean Mean of noise
+#' @param wavefromAmplitude Negative amplitude of the generic spike waveform
+#' @param nClusters Number of different waveforms (neurons) in the trace
+#' @param waveformDifferentiationSD Differentiation of the waveforms of different cluster (gaussian noise added in generic waveform)
+#' @return list containing trace, spikeTimes and cluId
+simulateRawTrace<-function(samplingRate=20000,
+                           durationSec=1,
+                           noiseSD=100,
+                           noiseMean=0,
+                           waveformAmplitude=700,
+                           nClusters=3,
+                           waveformDifferentiationSD=200,
+                           maxSpikes=10000)
+{
+  # noise in signal gaussian
+  noise<-rnorm(n=samplingRate*durationSec,mean=noiseMean,sd=noiseSD)
+  signal<-rep(0,length(noise))
+  
+  # generic waveform
+  genericWaveform<-c(0.0,0.2,0,-0.3,-1,-0.6,0,0.2,0.1,0.05,0)*waveformAmplitude
+  # generate different spike patterns
+  spikeWaveforms<-matrix(ncol=length(genericWaveform),nrow=nClusters)
+  for(clu in 1:nClusters){
+    spikeWaveforms[clu,] <- genericWaveform + rnorm(n=length(genericWaveform),mean=0,sd=waveformDifferentiationSD)
+  }
+  
+  # get some spike times, minimum of 1 ms isi, one spikes every 10 ms, so 100 Hz on wire
+  isi<-rpois(n=maxSpikes,lambda=10)*samplingRate/1000
+  isi<-isi[which(isi>samplingRate/1000)]
+  spikeTime<-(cumsum(isi))
+  # remove spikes at the very end end
+  spikeTime<-spikeTime[which(spikeTime<(length(noise)-length(spikeWaveforms)))]
+  # remove spikes at the very beginning
+  spikeTime<-spikeTime[which(spikeTime>length(spikeWaveforms))]
+  # get clu id for each spike
+  cluId<-sample(x=1:nClusters,size=length(spikeTime),replace=T)
+  
+  spikeLength<-length(genericWaveform)
+  for(i in 1:length(spikeTime)){
+    signal[spikeTime[i]:(spikeTime[i]+spikeLength-1)]<-spikeWaveforms[cluId[i],]
+  }
+  
+  # set spikeTime to the trough of spikes
+  spikeTime<-spikeTime+which.min(genericWaveform)-1
+  trace<-signal+noise
+  list(trace=trace,spikeTime=spikeTime,cluId=cluId)
+}
+
+
+#' Get the results of spike detection
+#' 
+#' @param sTimeD Spike times of detected spikes
+#' @param sTimeT Spike times of simulated spikes
+#' @param maxJitter Max jitter to considered simulated and detected spike as the same spikes
+spikeDetectionAccuracy<-function(sTimeD,sTimeT,maxJitter=2)
+{
+## how many of the detected spikes were true spikes
+detectedTrue<-sum(sapply(sTimeD,function(x,y){min(abs(x-y))},sTimeT)<=maxJitter)
+detectedFalse<-length(sTimeD)-detectedTrue
+## how many of the true spikes were detected
+trueDetected<-sum(sapply(sTimeT,function(x,y){min(abs(x-y))},sTimeD)<=maxJitter)
+## how many of the true spikes were not detected
+trueNonDetected<-length(sTimeT)-trueDetected
+list(detectedTrue=detectedTrue,
+     detectedFalse=detectedFalse,
+     trueDetected=trueDetected,
+     trueNonDetected=trueNonDetected)
+}
+
+
+
+
+
