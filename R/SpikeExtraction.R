@@ -161,6 +161,8 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
 
 
 
+
+
 #' Detect spikes in a signal
 #' 
 #' If there are low components in the signal, they should be filtered out.
@@ -203,6 +205,57 @@ detectSpikesFromTrace<-function(data,
        spikePower=sp[,2],
        spikeTrough=sp[,2])
 }
+
+#' Detect spikes on the channels of a tetrode
+#' 
+#' If there are low components in the signal, they should be filtered out.
+#' 
+#' @param data Matrix containing the spikes and some noise, one channel per column
+#' @param samplingRate Sampling rate of the trace
+#' @param powerWindowSizeMs Window size when calculating power (root mean square)
+#' @param powerWindowSlideMs Shift of the window in ms between estimation of power
+#' @param SDThreshold Power threshold for spike detection.
+#' @return list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower
+detectSpikesTetrodes<-function(data,
+                               samplingRate,
+                               powerWindowSizeMs,
+                               powerWindowSlideMs,
+                               SDThreshold,
+                               simultaneousSpikeMaxJitterMs,
+                               noDetectionBeginEndMs=0.5)
+{
+  nChannels=ncol(data)
+  ## array to store the detected spike times
+  spikes<-matrix(ncol=4)
+  colnames(spikes)<-c("time","power","trough","channel")
+  results<-list()
+  for(chan in 1:nChannels){
+    sdetec<-detectSpikesFromTrace(data[,chan],
+                          samplingRate,
+                          powerWindowSizeMs,
+                          powerWindowSlideMs,
+                          SDThreshold)
+    sp<-cbind(sdetec$spikeTime,
+              sdetec$spikePower,
+              sdetec$spikeTrough,
+              rep(chan,length(sdetec$spikeTime)))
+    
+    ## remove spikes at the very beginning and end of signal
+    sp<-sp[which(sp[,1]<(length(data[,chan])-noDetectionBeginEndMs*samplingRate/1000)),]
+    sp<-sp[which(sp[,1]>(noDetectionBeginEndMs*samplingRate/1000)),]
+    spikes<-rbind(spikes,sp)
+  }
+  spikes<-spikes[order(spikes[,1]),] # sort spike matrix according to time
+  spikes<-spikes[complete.cases(spikes),] # remove a row of NA that was there from creation of spike matrix
+  
+  ## join spikes that are within 0.2 ms of each other (4 samples)
+  res<-mergeSimultaneousSpikes(spikes[,"time"],spikes[,"trough"],simultaneousSpikeMaxJitterMs*samplingRate/1000)
+  return(res)
+}
+
+
+
+
 
 
 
@@ -457,60 +510,6 @@ identifySpikeTimes<-function(dataf,
   return(results)
 }
 
-#' Generate a raw trace with some background gaussian noise and surimposed spikes
-#' 
-#' Several different waveforms can be used. They are all generated from the same generic spike by adding gaussian noise to it.
-#' 
-#' @param samplingRate Sampling rate of the trace
-#' @param durationSec Total duration in second of the trace
-#' @param noiseSD Standard deviation of gaussian noise
-#' @param noiseMean Mean of noise
-#' @param wavefromAmplitude Negative amplitude of the generic spike waveform
-#' @param nClusters Number of different waveforms (neurons) in the trace
-#' @param waveformDifferentiationSD Differentiation of the waveforms of different cluster (gaussian noise added in generic waveform)
-#' @return list containing trace, spikeTimes and cluId
-simulateRawTrace<-function(samplingRate=20000,
-                           durationSec=1,
-                           noiseSD=100,
-                           noiseMean=0,
-                           waveformAmplitude=700,
-                           nClusters=3,
-                           waveformDifferentiationSD=200,
-                           maxSpikes=10000)
-{
-  # noise in signal gaussian
-  noise<-rnorm(n=samplingRate*durationSec,mean=noiseMean,sd=noiseSD)
-  signal<-rep(0,length(noise))
-  
-  # generic waveform
-  genericWaveform<-c(0.0,0.2,0,-0.3,-1,-0.6,0,0.2,0.1,0.05,0)*waveformAmplitude
-  # generate different spike patterns
-  spikeWaveforms<-matrix(ncol=length(genericWaveform),nrow=nClusters)
-  for(clu in 1:nClusters){
-    spikeWaveforms[clu,] <- genericWaveform + rnorm(n=length(genericWaveform),mean=0,sd=waveformDifferentiationSD)
-  }
-  
-  # get some spike times, minimum of 1 ms isi, one spikes every 10 ms, so 100 Hz on wire
-  isi<-rpois(n=maxSpikes,lambda=10)*samplingRate/1000
-  isi<-isi[which(isi>samplingRate/1000)]
-  spikeTime<-(cumsum(isi))
-  # remove spikes at the very end end
-  spikeTime<-spikeTime[which(spikeTime<(length(noise)-length(spikeWaveforms)))]
-  # remove spikes at the very beginning
-  spikeTime<-spikeTime[which(spikeTime>length(spikeWaveforms))]
-  # get clu id for each spike
-  cluId<-sample(x=1:nClusters,size=length(spikeTime),replace=T)
-  
-  spikeLength<-length(genericWaveform)
-  for(i in 1:length(spikeTime)){
-    signal[spikeTime[i]:(spikeTime[i]+spikeLength-1)]<-spikeWaveforms[cluId[i],]
-  }
-  
-  # set spikeTime to the trough of spikes
-  spikeTime<-spikeTime+which.min(genericWaveform)-1
-  trace<-signal+noise
-  list(trace=trace,spikeTime=spikeTime,cluId=cluId)
-}
 
 
 #' Get the results of spike detection
@@ -537,3 +536,70 @@ list(detectedTrue=detectedTrue,
 
 
 
+
+#' Generate raw traces with some background gaussian noise and surimposed spikes
+#' 
+#' Several different waveforms can be used. They are all generated from the same generic spike by adding gaussian noise to it.
+#' 
+#' @param samplingRate Sampling rate of the trace
+#' @param durationSec Total duration in second of the trace
+#' @param noiseSD Standard deviation of gaussian noise
+#' @param noiseMean Mean of noise
+#' @param wavefromAmplitude Negative amplitude of the generic spike waveform
+#' @param nClusters Number of different waveforms (neurons) in the trace
+#' @param nChannels Number of channels, 4 in case of tetrodes
+#' @param waveformDifferentiationSD Differentiation of the waveforms of different cluster (gaussian noise added in generic waveform)
+#' @return list containing trace, spikeTimes and cluId
+simulateRawTrace<-function(samplingRate=20000,
+                           durationSec=1,
+                           noiseSD=100,
+                           noiseMean=0,
+                           waveformAmplitude=700,
+                           nClusters=3,
+                           nChannels=4,
+                           waveformDifferentiationSD=200,
+                           maxSpikes=10000)
+{
+  # noise in signal gaussian
+  noise<-matrix(data=rnorm(n=samplingRate*durationSec*nChannels,mean=noiseMean,sd=noiseSD),
+                nrow=samplingRate*durationSec,ncol=nChannels)
+  signal<-matrix(data=rep(0,ncol(noise)*nrow(noise)),
+                 nrow=samplingRate*durationSec,ncol=nChannels)
+  
+  # generic waveform
+  genericWaveform<-c(0.0,0.2,0,-0.3,-1,-0.6,0,0.2,0.1,0.05,0)*waveformAmplitude
+  # generate different spike patterns, shared across channels
+  spikeWaveforms<-matrix(ncol=length(genericWaveform),nrow=nClusters)
+  for(clu in 1:nClusters){
+    spikeWaveforms[clu,] <- genericWaveform + rnorm(n=length(genericWaveform),mean=0,sd=waveformDifferentiationSD)
+  }
+  # resize the spike so that amplitude vary across channels
+  channelScaling<-matrix(data=runif(nChannels*nClusters, 0, 1),nrow=nClusters,ncol=nChannels)
+  # ensure that one random channel has an Scaling of 1 for each cluster
+  for(i in nClusters){
+    channelScaling[i,sample(1:4,1)]=1
+  }
+  
+  # get some spike times, minimum of 1 ms isi, one spikes every 10 ms, so 100 Hz on wire
+  isi<-rpois(n=maxSpikes,lambda=10)*samplingRate/1000
+  isi<-isi[which(isi>samplingRate/1000)]
+  spikeTime<-(cumsum(isi))
+  # remove spikes at the very end end
+  spikeTime<-spikeTime[which(spikeTime<(length(noise[,1])-length(spikeWaveforms)))]
+  # remove spikes at the very beginning
+  spikeTime<-spikeTime[which(spikeTime>length(spikeWaveforms))]
+  # get clu id for each spike
+  cluId<-sample(x=1:nClusters,size=length(spikeTime),replace=T)
+  
+  spikeLength<-length(genericWaveform)
+  for(i in 1:length(spikeTime)){
+    for(j in 1:nChannels){
+      signal[spikeTime[i]:(spikeTime[i]+spikeLength-1),j]<-spikeWaveforms[cluId[i],]*channelScaling[cluId[i],j]
+    }
+  }
+  
+  # set spikeTime to the trough of spikes
+  spikeTime<-spikeTime+which.min(genericWaveform)-1
+  trace<-signal+noise
+  list(trace=trace,spikeTime=spikeTime,cluId=cluId)
+}
