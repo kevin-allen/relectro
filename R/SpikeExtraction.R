@@ -549,6 +549,8 @@ list(detectedTrue=detectedTrue,
 #' @param nClusters Number of different waveforms (neurons) in the trace
 #' @param nChannels Number of channels, 4 in case of tetrodes
 #' @param waveformDifferentiationSD Differentiation of the waveforms of different cluster (gaussian noise added in generic waveform)
+#' @param minChannelScalling Minimal value (between 0 and 1) that can be used for creating the tetorde effect 
+#' (scalling of waveform on different channels)
 #' @return list containing trace, spikeTimes and cluId
 simulateRawTrace<-function(samplingRate=20000,
                            durationSec=1,
@@ -558,6 +560,7 @@ simulateRawTrace<-function(samplingRate=20000,
                            nClusters=3,
                            nChannels=4,
                            waveformDifferentiationSD=200,
+                           minChannelScalling=0.3,
                            maxSpikes=10000)
 {
   # noise in signal gaussian
@@ -574,7 +577,7 @@ simulateRawTrace<-function(samplingRate=20000,
     spikeWaveforms[clu,] <- genericWaveform + rnorm(n=length(genericWaveform),mean=0,sd=waveformDifferentiationSD)
   }
   # resize the spike so that amplitude vary across channels
-  channelScaling<-matrix(data=runif(nChannels*nClusters, 0, 1),nrow=nClusters,ncol=nChannels)
+  channelScaling<-matrix(data=runif(nChannels*nClusters, minChannelScalling, 1),nrow=nClusters,ncol=nChannels)
   # ensure that one random channel has an Scaling of 1 for each cluster
   for(i in nClusters){
     channelScaling[i,sample(1:4,1)]=1
