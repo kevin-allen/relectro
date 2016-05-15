@@ -22,7 +22,6 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   struct group_data_file_si gdf;
   int num_samples;
   int needed_samples;
-  short int* data;
 
   PROTECT(file_names_r = AS_CHARACTER(file_names_r));
   file_lines = LENGTH(file_names_r);
@@ -63,11 +62,10 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   needed_samples=INTEGER_VALUE(end_index_r)-INTEGER_VALUE(start_index_r)+1;
   SEXP out = PROTECT(allocVector(INTSXP,needed_samples));
   int* ptr = INTEGER_POINTER(out);
-  data = (short*) malloc(needed_samples*sizeof(short));
   
   if ((group_data_file_si_get_data_one_channel(&gdf,
   					       INTEGER_VALUE(channel_no_r),
-  					       data,
+  					       ptr,
   					       INTEGER_VALUE(start_index_r),
   					       INTEGER_VALUE(end_index_r)))!=0)
     {
@@ -75,14 +73,10 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
       UNPROTECT(2);
       return (R_NilValue);
     }
-  // copy the data to R object
-  for(int i = 0 ; i < needed_samples;i++)
-    ptr[i]=data[i];
-  
+
   // free memory
   for (i=0; i<file_lines; i++)
     free(data_file_names[i]);
-  free(data);
   clean_group_data_file_si(&gdf);
   UNPROTECT(2);
   return(out);
@@ -140,11 +134,11 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,in
   return 0;
 }
 
-int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int channel_no, short int* one_channel, long int start_index, long int end_index)
+int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int channel_no, int* one_channel, long int start_index, long int end_index)
 {
   // function to get the data from one channel, intervals can cover more than one file
   // we do one read operation per file until we get all we need
-  short int* ptr;
+  int* ptr;
   int file_index;
   long int num_samples_read, to_read, within_file_start_index,total_needed;
   // check that the index given make sense
@@ -344,7 +338,7 @@ int data_file_si_load_block(struct data_file_si* df, long int start_index, long 
     }
   return 0;
 }
-int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, short int* one_channel, long int start_index, long int end_index)
+int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, int* one_channel, long int start_index, long int end_index)
 {
   /*function to read the data from one channel
     the index as parameters are in sample number
