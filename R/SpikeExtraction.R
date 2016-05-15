@@ -12,7 +12,7 @@ spikeExtractionSession<-function(rs){
                   fileNames=paste(rs@trialNames,"dat",sep="."),
                   path=rs@path,
                   nChannels=rs@nChannels)
-  for (i in 3:rs@nElectrodes)
+  for (i in 1:rs@nElectrodes)
   {
     spikeExtractionTetrode(rs,df,tetrodeNumber=i)
   }
@@ -47,6 +47,7 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
                                  minPassHz=800,maxPassHz=5000,powerWindowSizeMs=0.4,powerWindowSlideMs=0.1,SDThreshold=2.5,
                                  simultaneousSpikeMaxJitterMs=0.2,                               
                                  waveformWindowSizeMs=1){
+  print(paste("spike extration for",rs@session,tetrodeNumber))
   if(minPassHz<0){
     stop(paste("spikeExtractionTetrode: minPassHz<0"))
   }
@@ -60,74 +61,30 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   
   ## get the channel of the electrode
   channels<-rs@channelsTetrode[tetrodeNumber,]
-  window=32
-  
-  ## array to store the detected spike times
-  spikes<-matrix(ncol=4)
-  colnames(spikes)<-c("time","power","trough","channel")
   
   if(length(channels)==0)
     stop(paste("spikeExtractionTetrode, session:", rs@session, ", tetrode:",tetrodeNumber,", channels has length of 0"))
   
   print(paste("sampling rate:", rs@samplingRate,"Hz"))
-  print(paste("minPassHz:", minPassHz,"Hz"))
-  print(paste("maxPassHz:", maxPassHz,"Hz"))
-  print(paste("powerWindowSizeMs:", powerWindowSizeMs,"ms"))
-  print(paste("powerWindowSlideMs:", powerWindowSlideMs,"ms"))
-  print(paste("SDThreshold:", SDThreshold))
-  
-  ## loop for each channel of the electrode
-  for(chan in channels){
-    print(paste("spike detection tetrode:",tetrodeNumber," channel:",chan))
-    ## load all data from one channel
-    data<-datFilesGetOneChannel(df,chan,
-                              firstSample=0,
-                              lastSample=df@samples[1])
-    ## filter the data
-    dataf<-bandPassFilter(data,rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
-    
-    ## save a file with filtered data for each channel
-    writeBin(dataf,con=paste(paste(rs@path,rs@session,sep="/"),"fil",chan,sep="."),size=4)
-    
-    sdetec<-detectSpikesFromTrace(data=dataf,
-                          rs@samplingRate,
-                          powerWindowSizeMs,
-                          powerWindowSlideMs,
-                          SDThreshold)
-    
-    sp<-cbind(sdetec$spikeTime,
-              sdetec$spikePower,
-              sdetec$spikeTrough,
-              rep(chan,length(sdetec$spikeTime)))
-    
-    ## remove spikes at the very beginning and end of signal
-    sp<-sp[which(sp[,1]<(length(dataf)-(window/2+1))),]
-    sp<-sp[which(sp[,1]>(window/2+1)),]
-    
-    spikes<-rbind(spikes,sp)
-    #   
-    #   # plot data
-#       m=47000
-#       M=48000
-#       plot(seq(m,M,1),dataf[m:M],type='l')
-#       lines(rms.t[which(rms.t>m&rms.t<M)],
-#             rms[which(rms.t>m&rms.t<M)],col='red')
-#       lines(c(m,M),c(rms.threshold,rms.threshold),col="purple")
-#       points(sp[which(sp[,"time"]>m&sp[,"time"]<M),"time"]+1,
-#              sp[which(sp[,"time"]>m&sp[,"time"]<M),"trough"],
-#              col="red")
-#       
-#     
-    rm(sp,data,dataf,rms)
-  
+  print(paste("filters:", minPassHz,maxPassHz,"Hz"))
+  print(paste("Power window:", powerWindowSizeMs,"ms, slide:", powerWindowSlideMs,"ms"))
+  print(paste("Power SD threshold:", SDThreshold))
+  traces<-matrix(ncol=length(channels),nrow=sum(df@samples))
+  for(chan in 1:length(channels)){
+    print(paste("reading channel",channels[chan]))
+    ## load the raw trace from dat files
+    traces[,chan]<-datFilesGetOneChannel(df,channels[chan],
+                                      firstSample=0,
+                                      lastSample=sum(df@samples)-1)
+    ## filter
+    traces[,chan]<-bandPassFilter(traces[,chan],rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
   }
-  
-  spikes<-spikes[order(spikes[,1]),] # sort spike matrix according to time
-  spikes<-spikes[complete.cases(spikes),] # remove a row of NA that was there from creation of spike matrix
-  
-  ## join spikes that are within 0.2 ms of each other (4 samples)
-  res<-mergeSimultaneousSpikes(spikes[,"time"],spikes[,"trough"],simultaneousSpikeMaxJitterMs*rs@samplingRate/1000)
-  
+  res<-detectSpikesTetrodes(data=traces,
+                            samplingRate=rs@samplingRate,
+                            powerWindowSizeMs=powerWindowSizeMs,
+                            powerWindowSlideMs=powerWindowSlideMs,
+                            SDThreshold=SDThreshold,
+                            simultaneousSpikeMaxJitterMs=simultaneousSpikeMaxJitterMs)
   
   #########################################
   ## write the res file for this tetrode ##
@@ -135,31 +92,121 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   write(res,file=paste(paste(rs@path,rs@session,sep="/"),"res",tetrodeNumber,sep="."),ncolumns=1)
   write(rep(1,length(res)+1),file=paste(paste(rs@path,rs@session,sep="/"),"clu",tetrodeNumber,sep="."),ncolumns=1)
   
-  ###################################
-  ## visualize the detected spikes ##
-  ###################################
-  #plotSpikes(rs,channels,head(res,n=100))
-  
   ###################################################
   # extract waveform of each spike, save .spk files #
   ###################################################
-  createSpkFile(rs,channels,res,window,tetrodeNumber)
+  createSpkFile(traces,rs,res,32,tetrodeNumber)
   
+  #######################################
+  # get spike waveforms in a 3D array ###
+  #######################################
+  swf<-spikeWaveformFromTraces(traces,res,20)
+  
+  rm(traces)
   ##########################################
   # PCA for each channel, save .fet files ##
   ##########################################
-  window=20
-  spikePCA(rs,channels,res,window,tetrodeNumber)
-  
-  ##############################
-  ### delete the fil files  ####
-  ##############################
-  for(chan in channels){
-    file.remove(paste(paste(rs@path,rs@session,sep="/"),"fil",chan,sep="."))
-  }
+  fet<-spikePCA(swf)
+  fet<-cbind(fet,res)
+  write(ncol(fet),ncolumns=1,
+        file=paste(paste(rs@path,rs@session,sep="/"),"fet",tetrodeNumber,sep="."))
+  write(t(fet), ncolumns = ncol(fet),
+        file=paste(paste(rs@path,rs@session,sep="/"),"fet",tetrodeNumber,sep="."),
+        append=T)
+  rm(res,fet,swf)
 }
 
 
+#'  Create the spike waveform array
+#'    
+#'  Returns a 3D array with the waveforms of each spike for each channel.
+#'  array[spike,time,channel]
+#' 
+#' @param traces Matrix with the traces for each channel. Each column is a channel
+#' @param res Numeric with the time stamps of the spikes in sample value
+#' @param window Number of samples for each spike
+#' @return array[spike,time,channel]
+spikeWaveformFromTraces<-function(traces,res,window=20){
+  if(class(traces)!="matrix")
+    stop("spikeWaveformFromTraces: traces should be a matrix")
+  if(length(res)==0)
+    stop(paste("spikeWaveformFromTraces: length(res)==0"))
+  if(window<=0)
+    stop(paste("spikeWaveformFromTraces: window<=0"))
+  if((length(traces[,1])-window/2)<max(res)){
+    print(paste("length(traces[,1]):",length(traces[,1]),"max(res)",max(res)))
+    stop(paste("spikeWaveformFromTraces:",
+               "length(traces[,1]):",length(traces[,1]),"max(res)",max(res),
+                "traces not long enough for some spike times"))
+  }
+  if(min(res)<window/2)
+    stop(paste("spikeWaveformFromTraces: some res values start before the half window mark"))
+  
+  results<- .Call("spike_waveform_from_traces",
+                  as.integer(traces),nrow(traces),ncol(traces),
+                  as.integer(res),
+                  length(res),
+                  as.integer(window))
+  return(array(data=results,dim=c(length(res),window,ncol(traces))))
+}
+
+
+#'  Create the spk file for each tetrode
+#'    
+#'  Use the fil file for each channel
+#' 
+#' @param traces Matrix with the electrophysiological traces
+#' @param rs RecSession
+#' @param res Numeric with the time stamps of the spikes in sample value
+#' @param window Number of ms that will be shown
+#' @param tetrodeNumber Tetrode number used in the file name
+createSpkFile<-function(traces,rs,res,window=32,tetrodeNumber){
+  
+  if(class(traces)!="matrix")
+    stop("createSpkFile: traces is not a matrix")
+  if(length(res)==0)
+    stop(paste("createSpkFile: length(res)==0"))
+  if(window<=0)
+    stop(paste("createSpkFile: window<=0"))
+  
+  results<- .Call("create_spk_file",
+                  as.integer(traces),nrow(traces),ncol(traces),
+                  as.integer(res),
+                  length(res),
+                  as.integer(window),
+                  paste(paste(rs@path,rs@session,sep="/"),"spk",tetrodeNumber,sep="."))
+  
+}
+
+#'  Do PCA analysis on the spike waveforms, treating each channel independently
+#'  
+#'  Do PCA analysis from spike waveform, keep the first 3 or 4 principal components
+#'  Combine the first components of each wire.
+#' 
+#' @param swf Array with the spike waveforms [spike,time,channel]
+#' @return Matrix with the different spike features, one spike per row
+
+spikePCA<-function(swf){
+  if(class(swf)!="array")
+    stop(paste("spikePCA: swf is not an array but a",class(swf)))
+  if(length(swf[,1,1])<2)
+    stop("spikePCA: swf[,1,1]<2, too few spikes")
+  if(length(dim(swf))!=3)
+    stop("spikePCA: swf does not have 3 dimensions")
+  if(dim(swf)[3]<4){
+    featuresPerChannel=4
+  } else {
+    featuresPerChannel=3
+  }
+  
+  fet<-matrix(ncol=featuresPerChannel*dim(swf)[3],nrow=length(swf[,1,1]))
+  ## for each channel
+  for(i in 1:dim(swf)[3]){
+    spike.pca<-prcomp(swf[,,i])
+    fet[,((i-1)*featuresPerChannel+1):((i-1)*featuresPerChannel+featuresPerChannel)]<-predict(spike.pca,swf[,,i])[,1:featuresPerChannel]
+  }
+  return(fet)
+}
 
 
 
@@ -260,59 +307,6 @@ detectSpikesTetrodes<-function(data,
 
 
 
-#'  Do PCA analysis on the spike waveforms
-#'    
-#'  Use the fil file for each channel. Work on each channel independently.
-#'  Make a matrix with a spike per row.
-#'  Do PCA analysis of spikes.
-#'  Combine the first components of each wire.
-#'  Save a fet file
-#' 
-#' @param rs RecSession
-#' @param channels Numeric with the list of channels for the tetrode on which the spikes were detected
-#' @param res Numeric with the time stamps of the spikes in sample value
-#' @param window Number of ms that will be shown
-#' @param tetrodeNumber Tetrode number used in the file name
-spikePCA<-function(rs,channels,res,window=32,tetrodeNumber){
-  if(length(channels)==0)
-    stop(paste("spikePCA: length(channels)==0"))
-  if(length(res)==0)
-    stop(paste("spikePCA: length(res)==0"))
-  
-  if(window<=0)
-    stop(paste("spikePCA: window<=0"))
-  
-  for(i in 1:length(channels)){
-    if(!file.exists(paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
-      stop(paste("missing file:",paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
-  }
-  
-  if(length(channels)<4){
-    featuresPerChannel=4
-  } else {
-    featuresPerChannel=3
-  }
-  
-  fet<-matrix(ncol=featuresPerChannel*length(channels),nrow=length(res))
-  ## for each channel
-  for(i in 1:length(channels)){
-    v<-readBin(what="numeric",con=paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep="."),size=4,n=1000000000)
-    m<-getWaveformMatrix(as.integer(res),as.integer(v),window)
-    spike.pca<-prcomp(m)
-    fet[,((i-1)*featuresPerChannel+1):((i-1)*featuresPerChannel+featuresPerChannel)]<-predict(spike.pca,m)[,1:featuresPerChannel]
-  }
-  
-  ## add time as last column
-  fet<-cbind(fet,res)
-  
-  write(ncol(fet),ncolumns=1,
-        file=paste(paste(rs@path,rs@session,sep="/"),"fet",tetrodeNumber,sep="."))
-  write(t(fet), ncolumns = ncol(fet),
-        file=paste(paste(rs@path,rs@session,sep="/"),"fet",tetrodeNumber,sep="."),
-        append=T)
-  return(fet)
-}
-
 
 
 
@@ -345,48 +339,7 @@ getWaveformMatrix<-function(res,v,window=20){
 
 
 
-#'  Create the spk file for each tetrode
-#'    
-#'  Use the fil file for each channel
-#' 
-#' @param rs RecSession
-#' @param channels Numeric with the list of channels for the tetrode on which the spikes were detected
-#' @param res Numeric with the time stamps of the spikes in sample value
-#' @param window Number of ms that will be shown
-#' @param tetrodeNumber Tetrode number used in the file name
-createSpkFile<-function(rs,channels,res,window=32,tetrodeNumber){
-  
-  if(length(channels)==0)
-    stop(paste("createSpkFile: length(channels)==0"))
-  
-  if(length(res)==0)
-    stop(paste("createSpkFile: length(res)==0"))
 
-  if(window<=0)
-    stop(paste("createSpkFile: window<=0"))
-  
-  for(i in 1:length(channels)){
-    if(!file.exists(paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
-      stop(paste("missing file:",paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
-  }
-  
-  ## check the length of the fil files
-  a<-readBin(what="numeric",con=paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep="."),size=4,n=1000000000)
-  ## allocate a matrix to load the data
-  m<-matrix(ncol=length(channels),nrow=length(a))
-  ## fill the matrix
-  for(i in 1:length(channels)){
-    m[,i]<-readBin(what="numeric",con=paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep="."),size=4,n=1000000000)
-  }
-  
-  results<- .Call("create_spk_file",
-                  as.integer(m),nrow(m),ncol(m),
-                  as.integer(res),
-                  length(res),
-                  as.integer(window),
-                  paste(paste(rs@path,rs@session,sep="/"),"spk",tetrodeNumber,sep="."))
-
-}
 
 
 #'  Plot the waveform of spikes

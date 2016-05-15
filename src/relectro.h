@@ -391,3 +391,4 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
                                SEXP max_time_difference_r);
 SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r, SEXP file_name_r);
 SEXP get_waveform_matrix(SEXP signal_r, SEXP signal_lines_r, SEXP res_r, SEXP res_lines_r, SEXP window_r);
+SEXP spike_waveform_from_traces(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r);
