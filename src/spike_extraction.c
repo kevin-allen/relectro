@@ -237,10 +237,8 @@ SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res
   int window = INTEGER_VALUE(window_r);
   
   
-  Rprintf("writing %s with %d spikes\n",
-          file_name,
-          nrow,ncol,
-          res_lines);
+  Rprintf("writing %s\n",
+          file_name);
   
   // memory for one spike
   short int* out=(short int*)malloc(sizeof(short int)*window*ncol);
