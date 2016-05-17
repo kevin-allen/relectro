@@ -57,6 +57,10 @@ setMethod(f="setSessionList",
             
             ep@resultsDirectory=paste(ep@directory,"results",sep="/")
             
+            if(!file.exists(ep@resultsDirectory)){
+              dir.create(path=ep@resultsDirectory)
+            }
+            
             ## list all directories in the project path
             dirs<-list.dirs(path=ep@directory)
             
@@ -229,6 +233,15 @@ setMethod(f="runOnSessionList",
            if(parallel==T)
              if(class(cluster)[2]!="cluster")
                stop("runOnSessionList, give a valid snow cluster if you want to run the function on several threads")
+           if(save==T){
+             if(!file.exists(ep@resultsDirectory))
+             {
+               stop(paste("runOnSessionList,",ep@resultsDirectory,"does not exist"))
+             }
+           }
+             
+           
+           
            if(parallel==T){
              list.res<-snow::parLapply(cluster,sessionList,fnct)   
            } else {

@@ -1,6 +1,7 @@
 #' Join two sets of intervals using an AND logic
 #' 
-#' To be included in the output interval, the time period needs to be included in both set of time intervals
+#' To be included in the output interval, the time period needs to be included in both set of time intervals.
+#' Adjacent s1-e1 or s2-e2 will be joined together by default
 #'  
 #' @param s1 Numeric vector containing the start times of the first set of intervals
 #' @param e1 Numeric vector containing the end times of the first set of intervals
