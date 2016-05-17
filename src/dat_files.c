@@ -83,6 +83,114 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
 }
 
 
+SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channels_r, SEXP num_channels_get_r, SEXP start_index_r, SEXP end_index_r)
+{
+  // get the name of the first file
+  char* data_file_names[MAXNUMBERFILES];
+  int i, file_lines;
+  struct group_data_file_si gdf;
+  int num_samples;
+  int needed_samples;
+  int* channels;
+  int num_channels_get=INTEGER_VALUE(num_channels_get_r);
+  if(num_channels_get<1)
+  {
+    Rprintf("Number of channels to get is smaller than 1\n");
+    return(R_NilValue);
+  }
+  channels=INTEGER_POINTER(channels_r);
+  
+  PROTECT(file_names_r = AS_CHARACTER(file_names_r));
+  file_lines = LENGTH(file_names_r);
+  if(file_lines>MAXNUMBERFILES)
+  {
+    Rprintf("Number of files is larger than %d\n",MAXNUMBERFILES);
+    UNPROTECT(1);
+    return(R_NilValue);
+  }
+  
+  //copy the file names into a x-element array of pointer */
+  for (i=0; i<file_lines; i++) {
+    if((data_file_names[i]=malloc(strlen( CHAR(STRING_ELT(file_names_r, i))) + 1))==NULL)
+    {
+      Rprintf("group_data_File_si_get_group_channels_cwrap(): problem allocating memory for data_file_names\n");
+      UNPROTECT(1);
+      return(R_NilValue);
+    }
+    strcpy(data_file_names[i],CHAR(STRING_ELT(file_names_r, i)));
+    //    Rprintf("%s\n",data_file_names[i]);
+  }
+  
+  if(init_group_data_file_si(&gdf,data_file_names,file_lines,INTEGER_VALUE(num_channels_r))!=0)
+  {
+    Rprintf("problem with init_group_data_file_si\n");
+    UNPROTECT(1);
+    return (R_NilValue);
+  }
+  num_samples=(int)gdf.num_samples_all_files;
+  
+  if(INTEGER_VALUE(end_index_r) > num_samples)
+  {
+    Rprintf("end_index_r > num_samples\n");
+    UNPROTECT(1);
+    return (R_NilValue);
+  }
+  
+  needed_samples=INTEGER_VALUE(end_index_r)-INTEGER_VALUE(start_index_r)+1;
+  SEXP out = PROTECT(allocVector(INTSXP,needed_samples*num_channels_get));
+  int* ptr = INTEGER_POINTER(out);
+  
+  if ((group_data_file_si_get_data_group_channels(&gdf,
+                                               channels,
+                                               num_channels_get,
+                                               ptr,
+                                               INTEGER_VALUE(start_index_r),
+                                               INTEGER_VALUE(end_index_r)))!=0)
+  {
+    Rprintf("error reading from data file\n");
+    UNPROTECT(2);
+    return (R_NilValue);
+  }
+  
+  // free memory
+  for (i=0; i<file_lines; i++)
+    free(data_file_names[i]);
+  clean_group_data_file_si(&gdf);
+  UNPROTECT(2);
+  return(out);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,int num_files,int num_channels)
 {
   // function to initialize the variable and allocate memory
@@ -200,6 +308,84 @@ int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int 
   }
   return 0;
 }
+
+int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,int* channels,int num_channels, 
+                                               int* data, long int start_index, long int end_index)
+{
+
+  // function to get the data from one channel, intervals can cover more than one file
+  // we do one read operation per file until we get all we need
+  int* ptr;
+  int file_index;
+  long int num_samples_read, to_read, within_file_start_index,total_needed;
+  // check that the index given make sense
+  if (start_index<0)
+  {
+    Rprintf("group_data_file_si_get_data_one_channel(): start index is smaller than 0: %ld\n",start_index);
+    return 1;
+  }
+  if (end_index<start_index)
+  {
+    Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is smaller than start index(%ld)\n",end_index,start_index);
+    return 1;
+  }
+  if(end_index>gdf->num_samples_all_files)
+  {
+    Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is larger than the number of samples allfiles(%ld)\n",end_index,gdf->num_samples_all_files);
+    return 1;
+  }
+  // find the file containing the beginning of data
+  file_index=0;
+  while(file_index+1<gdf->num_files && start_index>gdf->resofs[file_index])
+  {file_index++;}
+  
+  
+  // get the index at which to start reading operation within the selected file
+  if(file_index==0)
+  {
+    within_file_start_index=start_index;
+  }
+  else
+  {
+    within_file_start_index=start_index-gdf->resofs[file_index-1];
+  }
+  
+  // set variables to know when we have enough data
+  num_samples_read=0;
+  total_needed=end_index-start_index+1;
+  while(num_samples_read<total_needed&&file_index<gdf->num_files)
+  {
+    to_read=total_needed-num_samples_read;
+    
+    // if we need more data that what is available in this file, read until the end of this file
+    if(to_read > gdf->file_group[file_index].num_samples_in_file-within_file_start_index)
+    {
+      to_read=gdf->file_group[file_index].num_samples_in_file-within_file_start_index;
+    }
+    
+    //ptr=one_channel+num_samples_read;
+    
+    //  Rprintf("reading file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
+    
+    //if((data_file_si_get_data_one_channel(&gdf->file_group[file_index], channel_no, ptr, within_file_start_index, within_file_start_index+to_read))!=0)
+    //{
+    //  Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
+    //}
+    num_samples_read+=to_read;
+    within_file_start_index=0;
+    file_index++;
+  }
+  return 0;
+}
+
+
+
+
+
+
+
+
+
 
 int clean_group_data_file_si(struct group_data_file_si * gdf)
 {
@@ -421,9 +607,7 @@ int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, i
 }
 int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data, long int start_index, long int end_index)
 {
-  /*function to read the data from one channel
-    the index as parameters are in sample number
-*/
+  
   if (start_index<0)
     {
       Rprintf("data_file_si_get_data_all_channels(): start_index < 0\n");
