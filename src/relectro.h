@@ -38,9 +38,11 @@ int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, i
 int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data, long int start_index, long int end_index);
 
 int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,int num_files,int num_channels);
-int group_data_file_si_get_data_one_channel(struct group_data_file_si* gf,int channel_no, int* one_channel, long int start_index, long int end_index);
+int group_data_file_si_get_data_one_channel(struct group_data_file_si* gdf,int channel_no, int* one_channel, long int start_index, long int end_index);
+int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,int* channels,int num_channels, int* data, long int start_index, long int end_index);
 int clean_group_data_file_si(struct group_data_file_si* gdf);
 SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r);
+SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channels_r, SEXP num_channels_get_r, SEXP start_index_r, SEXP end_index_r);
 
 // text_files.c
 int file_lines(const char* file_name);

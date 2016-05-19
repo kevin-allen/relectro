@@ -16,7 +16,6 @@ test_that("DatFiles",{
   s<-c(f1.size,f2.size)
   
   
-  
   ## check size of files and samples
   df<-new("DatFiles")
   df<-datFilesSet(df,fileNames=c("k01.dat","k02.dat"),path="",nChannels=5)
@@ -53,6 +52,10 @@ test_that("DatFiles",{
   
   ## arrays out of bound, 11 samples, 10 is the last index
   expect_error(datFilesGetOneChannel(df,channelNo=0,firstSample=0,lastSample=11))
+  
+  df<-datFileGetGroupChannels(df,channels,firstSample=0,lastSample)
+  
+  
   
   file.remove("k01.dat","k02.dat")
   rm(nChannels,nSamples,f,f1.size,f2.size,s,df,d)
