@@ -264,7 +264,6 @@ setMethod(f="firingRateMap2d",
                             as.numeric(sp@occupancy),
                             sp@smoothRateMapSd/sp@cmPerBin)
             sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
-            
             return(sp)
           }
 )
@@ -831,6 +830,82 @@ setMethod(f="speedScoreShuffle",
 )
 
 
+#' Calculate the center of mass of the firing rate maps in a SpatialProperties2d object
+#' 
+#' 
+#' @param sp1 SpatialProperties2d object
+#' @return matrix containing the center of mass of the firing rate maps
+#' 
+#' @docType methods
+#' @rdname firingRateMapCenterOfMass-methods
+setGeneric(name="firingRateMapCenterOfMass",
+           def=function(sp)
+           {standardGeneric("firingRateMapCenterOfMass")}
+)
+#' @rdname firingRateMapCenterOfMass-methods
+#' @aliases firingRateMapCenterOfMass,ANY,ANY-method
+setMethod(f="firingRateMapCenterOfMass",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@maps)==0)
+              stop("firingRateMapCenterOfMass: length(sp@maps)==0")
+            if(length(dim(sp@maps))!=3)
+              stop("firingRateMapCenterOfMass: length(dim(sp@maps))!=3")
+            
+            sp@maps[which(sp@maps==-1.0)]<-NA
+            
+            cm<-t(apply(sp@maps,3,centerOfMass))
+            colnames(cm)<-c("row","col")
+            return(cm)
+          }
+)
+
+
+
+
+#' Calculate a Pearson correlation coefficients between the firing rate maps of two SpatialProperties2d objects
+#' 
+#' Used to estimate map stability between the firing rate maps in two conditions.
+#' 
+#' 
+#' @param sp1 SpatialProperties2d object
+#' @param sp2 SpatialProperties2d object
+#' @return Numeric containing the Pearson correlation coefficients
+#' 
+#' @docType methods
+#' @rdname firingRateMapCorrelation-methods
+setGeneric(name="firingRateMapCorrelation",
+           def=function(sp1,sp2)
+           {standardGeneric("firingRateMapCorrelation")}
+)
+#' @rdname firingRateMapCorrelation-methods
+#' @aliases firingRateMapCorrelation,ANY,ANY-method
+setMethod(f="firingRateMapCorrelation",
+          signature="SpatialProperties2d",
+          definition=function(sp1,sp2)
+          {
+            if(class(sp1)!="SpatialProperties2d")
+              stop("firingRateMapCorrelation: sp1 is not a SpatialProperties2d object")
+            if(class(sp2)!="SpatialProperties2d")
+              stop("firingRateMapCorrelation: sp2 is not a SpatialProperties2d object")
+            if(length(sp1@maps)==0)
+              stop("firingRateMapCorrelation: length(sp1@maps)==0")
+            if(length(dim(sp1@maps))!=3)
+              stop("firingRateMapCorrelation: length(dim(sp1@maps))!=3")
+            if(!identical(dim(sp1@maps),dim(sp2@maps)))
+              stop("firingRateMapCorrelation: the dimensions of the maps arrays in sp1 and sp2 are not equal")
+            
+            sp1@maps[which(sp1@maps==-1.0)]<-NA
+            sp2@maps[which(sp2@maps==-1.0)]<-NA
+  
+            return(sapply(1:dim(sp1@maps)[3], 
+                   function(i) cor(as.numeric(sp1@maps[,,i]), as.numeric(sp2@maps[,,i]),use="pairwise.complete.obs")))
+          }
+)
+
+
+
 
 #' Return the firing rate maps in a data.frame
 #' 
@@ -911,3 +986,5 @@ setMethod(f="statsAsDataFrame",
             return(df)
           }
 )
+
+
