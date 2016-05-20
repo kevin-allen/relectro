@@ -13,6 +13,9 @@ Depends:
 Suggests:
     knitr,
     rmarkdown,
-    testthat
+    testthat,
+    lattice,
+    grid,
+    chron
 VignetteBuilder: rmarkdown
 RoxygenNote: 5.0.1
