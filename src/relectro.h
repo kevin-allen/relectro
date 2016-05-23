@@ -48,6 +48,7 @@ SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_cha
 int file_lines(const char* file_name);
 int read_one_column_int_file(const char* file_name,int* data, int lines);
 SEXP read_one_column_int_file_cwrap(SEXP file_name_r);
+SEXP read_fet_file_cwrap(SEXP file_name_r);
 
 // math.c
 double sum_double(int num_data, double* data, double invalid);

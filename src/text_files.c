@@ -55,3 +55,38 @@ SEXP read_one_column_int_file_cwrap(SEXP file_name_r)
   UNPROTECT(1);
   return(out);
 }
+SEXP read_fet_file_cwrap(SEXP file_name_r)
+{
+  const char* file_name = CHAR(asChar(file_name_r));
+  int lines;
+  lines=file_lines(file_name);
+  int ncol;
+  FILE *fp = fopen(file_name,"r");
+  if (!fp) {
+    Rprintf("problem opening %s\n",file_name);
+    return (R_NilValue);
+  }
+  
+ // first line is number of columns in subsequent lines
+  if(fscanf(fp,"%d\n",&ncol)<1){
+    Rprintf("problem reading %s\n",file_name);
+    return (R_NilValue);
+  }
+  if(ncol<1){
+    Rprintf("read_fet_file_cwrap, ncol is < 1, %s\n",file_name);
+    return (R_NilValue);
+  }
+  lines=lines-1;
+  SEXP out = PROTECT(allocMatrix(INTSXP,lines,ncol));
+  int* ptr = INTEGER_POINTER(out);
+  for(int i = 0; i < lines; i++)
+    for(int j = 0; j < ncol; j++)
+      if(fscanf(fp,"%d",&ptr[j*lines+i])<1){
+        Rprintf("problem reading %d element of %s\n",i,file_name);
+        UNPROTECT(1);
+        return (R_NilValue);
+      }
+  fclose(fp);
+  UNPROTECT(1);
+  return(out);
+}

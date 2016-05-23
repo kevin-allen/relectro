@@ -37,6 +37,8 @@
 #' @slot ifr Matrix containing the instantaneous firing rate of the neurons
 #' @slot ifrTime Time associated with each window of the instantaneous firing rate
 #' @slot meanFiringRate Mean firing rate of the neurons
+#' @slot isolationDistance Isolation distance of each cluster
+#' @slot refractoryRatio Refractory ratio of each cluster
 SpikeTrain <- setClass(
   "SpikeTrain", ## name of the class
   slots=c(session="character",
@@ -68,7 +70,9 @@ SpikeTrain <- setClass(
           ifr="matrix",
           ifrTime="numeric",
           #
-          meanFiringRate="numeric"
+          meanFiringRate="numeric",
+          isolationDistance="numeric",
+          refractoryRatio="numeric"
           ),  
   prototype = list(session="",ifrKernelSdMs=50,ifrWindowSizeMs=50,ifrSpikeBinMs=1))
 
@@ -651,6 +655,144 @@ setMethod(f="setEvents",
           }
 )
 
+#' Get the isolation distance of each cluster
+#' 
+#' For each cluster, the mahalanobis distance of all spikes relative to the cluster
+#' is calculated. The isolation distance is the minimal distance from the cluster center
+#' at which there are as many spikes from other cluster than from the cluster of interest.
+#' Distance is not defined for cases in which the number of cluster spikes is 
+#' greater than the number of noise spikes.
+#' 
+#' From Schmitzer-Torbert et al. 2005
+#'
+#' @param st SpikeTrain object
+#' @param cg CellGroup object
+#' @return a SpikeTrain object with the isolationDistance set.
+#' 
+#' @docType methods
+#' @rdname isolationDistance-methods
+setGeneric(name="isolationDistance",
+           def=function(st,cg)
+           {standardGeneric("isolationDistance")})
+#' @rdname isolationDistance-methods
+#' @aliases isolationDistance,ANY,ANY-method
+setMethod(f="isolationDistance",
+          signature = "SpikeTrain",
+          definition=function(st,cg)
+          {
+            if(class(cg)!="CellGroup")
+              stop("isolationDistance: cg should be an object of class CellGroup")
+            if(st@session=="")
+              stop("st@session is not set")
+            if(st@path=="") ## path is given or is getwd()
+              st@path=getwd()
+            pathSession=paste(st@path,st@session,sep="/")
+            index=1
+            for(tetrode in unique(cg@tetrode)){
+            
+              clus<-cg@cluToTetrode[which(cg@tetrode==tetrode)]
+            
+              ## check if the files are there
+              if(!file.exists(paste(pathSession,"fet",tetrode,sep=".")))
+                stop("isolationDistance needs",paste(pathSession,"fet",tetrode,sep="."))
+              if(!file.exists(paste(pathSession,"clu",tetrode,sep=".")))
+                stop("isolationDistance needs",paste(pathSession,"clu",tetrode,sep="."))
+              
+              ## load the tetrode clu file
+              cluTet<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"clu",tetrode,sep=".")))
+              cluTet<-cluTet[-1]# remove first line
+              
+              ## load the tetrode fet file
+              fet<-readFetFile(paste(pathSession,"fet",tetrode,sep="."))
+              fet<-fet[,1:(ncol(fet)-1)] # remove time, last column
+              
+              if(length(cluTet)!=nrow(fet))
+                stop("isolationDistance, length of cluTet and fet not equal")
+              
+              for(clu in clus){
+                # get the mahalanobis distance of each spikes relative to clu
+                fetClu<-fet[which(cluTet==clu),]
+                maha<-mahalanobis(x=fet,colMeans(fetClu),cov=cov(fetClu))
+                cm<-cbind(cluTet,maha) # cluTet - mahalanobis distance
+                cm<-cm[order(cm[,2]),] ## order spikes according to distance
+                propSpikeFromClu<-cumsum(cm[,1]==clu)/1:length(cm[,1]) ## probability that spikes are from clu
+                if(any(propSpikeFromClu<.5)){
+                  st@isolationDistance[index]=min(cm[which(propSpikeFromClu<.5),2])  
+                } else{
+                  st@isolationDistance[index]=NA
+                }
+                index<-index+1
+              }
+            }
+            return(st)
+          }
+)
+
+
+#' Get refractory ratio
+#' 
+#' This is calculated from the spike-time autocorrelation of the clusters.
+#' This is the ratio between the max number of spikes falling in one bin of the refractory period
+#' compared to the max number of spikes falling in one bin of the control period outside the refractory period.
+#' Note that the spike-time autocorrelations in the SpikeTrain object will be modified.
+#'
+#' @param st SpikeTrain object
+#' @param refractoryMs Length of the refractory period in ms
+#' @param binSizeMs Size of the bins in the spike-time autocorrelation
+#' @param windowSizeMs Size of the window used to construct the spike-time autocorrelation
+#' @param minControlWindowMs Minimum time of the control window
+#' @param maxControlWindowMs Maximal time of the control window
+#' @return a SpikeTrain object with the refractoryRation set.
+#' 
+#' @docType methods
+#' @rdname refractoryRatio-methods
+setGeneric(name="refractoryRatio",
+           def=function(st,...)
+           {standardGeneric("refractoryRatio")})
+#' @rdname refractoryRatio-methods
+#' @aliases refractoryRatio,ANY,ANY-method
+setMethod(f="refractoryRatio",
+          signature = "SpikeTrain",
+          definition=function(st,refractoryMs=1.5,binSizeMs=0.5,windowSizeMs=25,
+                              minControlWindowMs=5.0,maxControlWindowMs=25)
+          {
+            
+            if(st@session=="")
+              stop("st@session is not set")
+            if(st@path=="") ## path is given or is getwd()
+              st@path=getwd()
+            if(refractoryMs>windowSizeMs)
+              stop("refractoryRatio, refractoryMs>windowSizeMs")
+            if(minControlWindowMs>windowSizeMs)
+              stop("refractoryRatio, minControlWindowMs>windowSizeMs")
+            if(maxControlWindowMs>windowSizeMs)
+              stop("refractoryRatio, maxControlWindowMs>windowSizeMs")
+            if(minControlWindowMs>=maxControlWindowMs)
+              stop("refractoryRatio, minControlWindowMs>=maxControlWindowMs")
+            st<-spikeTimeAutocorrelation(st,binSizeMs=binSizeMs,
+                                      windowSizeMs=windowSizeMs,probability=F)
+            st@refractoryRatio<-apply(st@auto,2,function(x,autoMsPerBin,refractoryMs,minControlWindowMs,maxControlWindowMs)
+              {
+                time<-seq(-st@autoMsPerBin*length(x)/2+st@autoMsPerBin/2,
+                             st@autoMsPerBin*length(x)/2,st@autoMsPerBin)
+                ref<-mean(x[which(time>=0&time<=refractoryMs)])
+                con<-max(x[which(time>=minControlWindowMs&time<=maxControlWindowMs)])
+                if(con==0)
+                {
+                  return(NA)
+                } else{
+                  return(ref/con)
+                  
+                }
+            },
+            st@autoMsPerBin,
+            refractoryMs,
+            minControlWindowMs,
+            maxControlWindowMs)
+            return(st)
+          }
+)
+
 
 ### show ###
 setMethod("show", "SpikeTrain",
@@ -670,6 +812,15 @@ setMethod("show", "SpikeTrain",
               print(paste("firing rate (Hz):"))
               print(paste(object@meanFiringRate))
             }
+            if(length(object@isolationDistance)!=0){
+              print(paste("isolation distance:"))
+              print(paste(object@isolationDistance))
+            }
+            if(length(object@refractoryRatio)!=0){
+              print(paste("refractory ratio:"))
+              print(paste(object@refractoryRatio))
+            }
+            
             
             if(length(object@startInterval)!=0){
               print(paste("nIntervals:",length(object@startInterval))) 
