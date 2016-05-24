@@ -836,7 +836,10 @@ setMethod(f="crossRefractoryRatio",
               stop("refractoryRatio, maxControlWindowMs>windowSizeMs")
             if(minControlWindowMs>=maxControlWindowMs)
               stop("refractoryRatio, minControlWindowMs>=maxControlWindowMs")
-           
+            if(st@nCells==1){
+              st@crossRefractoryRatio[1]<-NA
+              return(st)
+            }
             st<-spikeTimeCrosscorrelation(st,binSizeMs=binSizeMs,
                                          windowSizeMs=windowSizeMs,probability=F)
             
@@ -859,14 +862,29 @@ setMethod(f="crossRefractoryRatio",
             minControlWindowMs,
             maxControlWindowMs)
             
-            for(clu in 1:st@nCells){
-              st@crossRefractoryRatio[clu]<-min(refractoryRatio[which(st@cellPairList[,1]==st@cellList[clu]|
-                                      st@cellPairList[,2]==st@cellList[clu])])
+            # get the sum of spikes in the positive side of the crosscorrelation
+            if(ncol(st@cross)>1){
+              totalSpikes<-colSums(st@cross[ (nrow(st@cross)/2):(nrow(st@cross))  , ])
+            } else {
+              totalSpikes<-sum(st@cross[(length(st@cross)/2):(length(st@cross))])
             }
             
+            # don't consider the cc with very few spikes
+            refractoryRatio[which(totalSpikes<200)]<-NA
+            
+            for(clu in 1:st@nCells){
+              if(all(is.na(refractoryRatio[which(st@cellPairList[,1]==st@cellList[clu]|
+                                                 st@cellPairList[,2]==st@cellList[clu])]))){
+                st@crossRefractoryRatio[clu]<-NA
+              }else{
+                st@crossRefractoryRatio[clu]<-min(refractoryRatio[which(st@cellPairList[,1]==st@cellList[clu]|
+                                                                      st@cellPairList[,2]==st@cellList[clu])],na.rm=T)
+              }
+            }
             return(st)
-          }
+            }
 )
+
 
 
 
