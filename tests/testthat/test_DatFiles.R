@@ -53,7 +53,7 @@ test_that("DatFiles",{
   ## arrays out of bound, 11 samples, 10 is the last index
   expect_error(datFilesGetOneChannel(df,channelNo=0,firstSample=0,lastSample=11))
   
-  df<-datFileGetGroupChannels(df,channels,firstSample=0,lastSample)
+  #df<-datFileGetGroupChannels(df,channels,firstSample=0,lastSample)
   
   
   

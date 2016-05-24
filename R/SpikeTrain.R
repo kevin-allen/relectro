@@ -39,6 +39,9 @@
 #' @slot meanFiringRate Mean firing rate of the neurons
 #' @slot isolationDistance Isolation distance of each cluster
 #' @slot refractoryRatio Refractory ratio of each cluster
+#' @slot crossRefractoryRatio Refractory ratio found in the spike-time crosscorrelation between a cluster 
+#' and all other clusters. The smallest ratio is used.
+
 SpikeTrain <- setClass(
   "SpikeTrain", ## name of the class
   slots=c(session="character",
@@ -72,7 +75,8 @@ SpikeTrain <- setClass(
           #
           meanFiringRate="numeric",
           isolationDistance="numeric",
-          refractoryRatio="numeric"
+          refractoryRatio="numeric",
+          crossRefractoryRatio="numeric"
           ),  
   prototype = list(session="",ifrKernelSdMs=50,ifrWindowSizeMs=50,ifrSpikeBinMs=1))
 
@@ -728,11 +732,9 @@ setMethod(f="isolationDistance",
           }
 )
 
-
-#' Get refractory ratio
+#' Get refractory ratio of each cluster from its spike-time autocorrelation
 #' 
-#' This is calculated from the spike-time autocorrelation of the clusters.
-#' This is the ratio between the max number of spikes falling in one bin of the refractory period
+#' This is the ratio between the mean number of spikes falling in the bins of the refractory period
 #' compared to the max number of spikes falling in one bin of the control period outside the refractory period.
 #' Note that the spike-time autocorrelations in the SpikeTrain object will be modified.
 #'
@@ -793,6 +795,81 @@ setMethod(f="refractoryRatio",
           }
 )
 
+#' Get the cross refractory ratio of each cluster from its spike-time crosscorrelation
+#' 
+#' This tells you whether a cluster has a common refractory period with other cluster. If this is the 
+#' case, perhaps the two clusters are from the same neuron.
+#' 
+#' This is the ratio between the mean number of spikes falling in the bins of the refractory period
+#' compared to the max number of spikes falling in one bin of the control period outside the refractory period.
+#' Note that the spike-time crosscorrelations in the SpikeTrain object will be modified.
+#'
+#' @param st SpikeTrain object
+#' @param refractoryMs Length of the refractory period in ms
+#' @param binSizeMs Size of the bins in the spike-time autocorrelation
+#' @param windowSizeMs Size of the window used to construct the spike-time autocorrelation
+#' @param minControlWindowMs Minimum time of the control window
+#' @param maxControlWindowMs Maximal time of the control window
+#' @return a SpikeTrain object with the refractoryRation set.
+#' 
+#' @docType methods
+#' @rdname crossRefractoryRatio-methods
+setGeneric(name="crossRefractoryRatio",
+           def=function(st,...)
+           {standardGeneric("crossRefractoryRatio")})
+#' @rdname crossRefractoryRatio-methods
+#' @aliases crossRefractoryRatio,ANY,ANY-method
+setMethod(f="crossRefractoryRatio",
+          signature = "SpikeTrain",
+          definition=function(st,refractoryMs=1.5,binSizeMs=0.5,windowSizeMs=25,
+                              minControlWindowMs=5.0,maxControlWindowMs=25)
+          {
+            if(st@session=="")
+              stop("st@session is not set")
+            if(st@path=="") ## path is given or is getwd()
+              st@path=getwd()
+            if(refractoryMs>windowSizeMs)
+              stop("refractoryRatio, refractoryMs>windowSizeMs")
+            if(minControlWindowMs>windowSizeMs)
+              stop("refractoryRatio, minControlWindowMs>windowSizeMs")
+            if(maxControlWindowMs>windowSizeMs)
+              stop("refractoryRatio, maxControlWindowMs>windowSizeMs")
+            if(minControlWindowMs>=maxControlWindowMs)
+              stop("refractoryRatio, minControlWindowMs>=maxControlWindowMs")
+           
+            st<-spikeTimeCrosscorrelation(st,binSizeMs=binSizeMs,
+                                         windowSizeMs=windowSizeMs,probability=F)
+            
+            refractoryRatio<-apply(st@cross,2,function(x,crossMsPerBin,refractoryMs,minControlWindowMs,maxControlWindowMs)
+            {
+              time<-seq(-st@crossMsPerBin*length(x)/2+st@crossMsPerBin/2,
+                        st@crossMsPerBin*length(x)/2,st@crossMsPerBin)
+              ref<-mean(x[which(time>=0&time<=refractoryMs)])
+              con<-max(x[which(time>=minControlWindowMs&time<=maxControlWindowMs)])
+              if(con==0)
+              {
+                return(NA)
+              } else{
+                return(ref/con)
+                
+              }
+            },
+            st@crossMsPerBin,
+            refractoryMs,
+            minControlWindowMs,
+            maxControlWindowMs)
+            
+            for(clu in 1:st@nCells){
+              st@crossRefractoryRatio[clu]<-min(refractoryRatio[which(st@cellPairList[,1]==st@cellList[clu]|
+                                      st@cellPairList[,2]==st@cellList[clu])])
+            }
+            
+            return(st)
+          }
+)
+
+
+
 
 ### show ###
 setMethod("show", "SpikeTrain",
@@ -819,6 +896,10 @@ setMethod("show", "SpikeTrain",
             if(length(object@refractoryRatio)!=0){
               print(paste("refractory ratio:"))
               print(paste(object@refractoryRatio))
+            }
+            if(length(object@crossRefractoryRatio)!=0){
+              print(paste("crosscorrelation refractory ratio:"))
+              print(paste(object@crossRefractoryRatio))
             }
             
             

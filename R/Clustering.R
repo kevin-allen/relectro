@@ -16,7 +16,10 @@ clusterIsolationCheck<-function(rs){
   st<-meanFiringRate(st)
   st<-isolationDistance(st,cg)
   st<-refractoryRatio(st)
-
+  st<-crossRefractoryRatio(st)
+  st
+  cg
+  ## get crosscorrelation refractory
 
 }
 
