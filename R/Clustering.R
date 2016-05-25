@@ -33,15 +33,17 @@ clusterIsolationCheck<-function(rs){
   check[which(!is.na(st@isolationDistance)&st@isolationDistance<5)]<-TRUE
   
   ## plot the autocorrelation and crosscorrelation so we double check.
-  cluster.check<-data.frame(cluId=cg@id,
-       tetrode=cg@tetrode,
-       cluToTetrode=cg@cluToTetrode,
-       meanFiringRate=st@meanFiringRate,
-       isolationDistance=st@isolationDistance,
-       refractoryRatio=st@refractoryRatio,
-       crossRefractoryRatio=st@crossRefractoryRatio,
-       check=check)
-  cluster.check
+  cluster.check<-data.frame(
+      session=rs@session,
+      clu=cg@clu,
+      cluId=cg@id,
+      tetrode=cg@tetrode,
+      cluToTetrode=cg@cluToTetrode,
+      meanFiringRate=st@meanFiringRate,
+      isolationDistance=st@isolationDistance,
+      refractoryRatio=st@refractoryRatio,
+      crossRefractoryRatio=st@crossRefractoryRatio,
+      check=check)
   return(list(cluster.check=cluster.check))
 }
 
