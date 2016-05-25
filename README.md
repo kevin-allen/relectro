@@ -1,6 +1,6 @@
 # relectro
 
-R package to analysis electrophysiological data. It is still in development and new functionalities are added regularly. The focus is on data from tetrode recording experiments. Most of the package is written in R. Some sections of the code are written in C for speed. Analyses can easily be run in parallel with the snow package. If you want to know more, a good starting point is the vignette included with the package (see the vignettes directory in the source code).
+R package to analyze electrophysiological data. It is still in development and new functionalities are added regularly. The focus is on data from tetrode recording experiments. Most of the package is written in R but some sections are written in C for speed. Analysis can easily be run in parallel with the snow package. If you want to know more, a good starting point is the vignette included with the package (see the vignettes directory in the source code).
 
 ## Install
 
