@@ -1,7 +1,7 @@
-#' Check if clusters of a recording session are well isolated from other clusters
+#' Check if clusters of a recording session are well isolated from one another
 #' 
 #' This function generate a data.frame with the isolation distance and refractory period ratio for all clusters.
-#' It is returned within a list to conform to runOnSessionList policy on returned object
+#' It is returned within a list to conform to runOnSessionList policy on returned object.
 #'  
 #' @param rs RecSession
 #' @return A list including isolation distance and refractory ratio of all clusters. The check element is a
@@ -46,6 +46,57 @@ clusterIsolationCheck<-function(rs){
 }
 
 
+#' Delete a specific cluster in a recording session
+#' 
+#' This will delete the cluster in the tetrode specific clu file
+#' The deleted cluster is assigned a value of 1 in the clu file.
+#' Don't forget to recreate the new session wide clu and res file with
+#' the function mergeTetrodeSpecificResCluFiles()
+#' 
+#' @param rs RecSession
+#' @param clu Cluster number. This is the session wide cluster number.
+#' Not the tetrode specific number
+#' 
+deleteCluster<-function(rs,clu)
+{
+  if(class(rs)!="RecSession")
+    stop("deleteCluster, the class of rs should be RecSession")
+  if(class(clu)!="numeric")
+    stop("deleteCluster, the class of clu should be numeric")
+  if(length(clu)!=1)
+    stop("deleteCluster, length of clu should be 1")
+  
+  cg<-new("CellGroup",session=rs@session,path=rs@path,nTetrodes=rs@nElectrodes)
+  cg<-loadCellGroup(cg)
+  if(clu%in%cg@clu==FALSE)
+    stop(paste("deleteCluster: cluster to delete is not in the list of clusters of the CellGroup object"))
+  index<-which(cg@clu==clu)
+  tetrode=cg@tetrode[index]
+  cluToTet=cg@cluToTetrode[index]
+  print(paste("Delete cluster",cluToTet, "from tetrode",tetrode))
+  
+  ## read clu file
+  cfile=paste(paste(rs@path,rs@session,sep="/"),".clu.",tetrode,sep="")
+  if(!file.exists(cfile))
+    stop(paste("deleteCluster:",cfile,"missing"))
+  c<-as.numeric(.Call("read_one_column_int_file_cwrap", cfile))
+  nClu<-c[1]
+  c<-c[-1]
+  
+  ## delete the cluster
+  c[which(c==cluToTet)]<- 1
+  
+  ## add the new cluster number at the head of clu data
+  c<-c(nClu-1,c)
+
+  ## save the new clu file
+  write(x=as.integer(c),
+        file=cfile,
+        ncolumns = 1,
+        append=F)
+}
+
+
 #' Merge tetrode specific clu and res file into a main res and clu file
 #' 
 #' This is run after the clustering of all tetrodes is done. It create
@@ -58,6 +109,8 @@ clusterIsolationCheck<-function(rs){
 #' @param rs RecSession
 #' 
 mergeTetrodeSpecificResCluFiles<-function(rs){
+  if(class(rs)!="RecSession")
+    stop("mergeTetrodeSpecificResCluFiles, the class of rs should be RecSession")
   mclu<-vector()
   mres<-vector()
   preClu=0
@@ -77,10 +130,8 @@ mergeTetrodeSpecificResCluFiles<-function(rs){
       stop(paste("mergeTetrodeSpecificResCluFiles: problem with length of",rfile,"and",cfile))
     if(nClu>1)
       c[which(c>1)]<-c[which(c>1)]+preClu
-
     mres<-c(mres,r)
     mclu<-c(mclu,c)
-    
     preClu=preClu+nClu-1        
   }
  
@@ -102,10 +153,6 @@ mergeTetrodeSpecificResCluFiles<-function(rs){
         ncolumns = 1,
         append=F)
 }
-
-
-
-
 
 
 
