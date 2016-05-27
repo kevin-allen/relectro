@@ -96,6 +96,8 @@ test_that("firing rate maps",{
   
   st<-new("SpikeTrain")
   ## set the spike trains in the object
+  nSpikes=1
+  spikeTimes<-(length(x)*pt@resSamplesPerWhlSample/2)-(maxx/2*pt@resSamplesPerWhlSample)
   st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,nSpikes),samplingRate=20000)
   st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
 
@@ -103,27 +105,23 @@ test_that("firing rate maps",{
   sp@smoothRateMapSd=0
   sp@smoothOccupancySd=0
   sp<-firingRateMap2d(sp,st,pt)   
-  #firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
+  firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
   ## occ maps the animal was 3 times in each bin, resSamplesPerWhlSample/samplingRateDat*1000*3 = 60
   expect_equal(max(sp@occupancy),60)
   ## one spike in 60 ms time 
   expect_equal(max(sp@maps),1/60*1000)
-  max(sp@maps)
+
   
   
   ## make sure the filter does not affect the sum of the firing rates 
-  
+  sumSmoothZero<-sum(sp@maps[which(sp@maps!=-1.0)])
   sp@cmPerBin=1
   sp@smoothRateMapSd=3
   sp@smoothOccupancySd=3
-  nSpikes=maxx
-  spikeTimes<-as.integer(seq(resPerWhlSamples,by=resPerWhlSamples,length=nSpikes))
-  st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,nSpikes),samplingRate=20000)
-  st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
-  
   sp<-firingRateMap2d(sp,st,pt)   
   firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
-  getMapStats(sp,st,pt)
-
+  sumSmoothThree<-sum(sp@maps[which(sp@maps!=-1.0)])
+  expect_equal(sumSmoothZero,sumSmoothThree)  
+  
   
 })
