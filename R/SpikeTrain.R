@@ -181,7 +181,7 @@ setMethod(f="loadSpikeTrain",
             if(length(st@cellList>1))
               st@cellPairList<-makePairs(st@cellList)
             st@startInterval<-0
-            st@endInterval<-max(st@res)
+            st@endInterval<-max(st@res)+1 ## add one so that the last spike is within the intervals by default
             st@startResIndexc<-0
             st@endResIndexc<-length(st@res)-1
             return(st)
@@ -233,7 +233,7 @@ setMethod(f="setSpikeTrain",
             if(length(st@cellList)>1)
               st@cellPairList<-makePairs(st@cellList)
             st@startInterval<-0
-            st@endInterval<-max(st@res)
+            st@endInterval<-max(st@res)+1 # add one so that the last spike is considered
             st@startResIndexc<-0
             st@endResIndexc<-length(st@res)-1
             return(st)

@@ -196,7 +196,8 @@ setMethod(f="firingRateMap2d",
               y<-pt@y
             }
             
-            #plot(x,y)
+            
+            
             ## use -1 as invalid values in c functions
             x[is.na(x)]<- -1.0
             y[is.na(y)]<- -1.0
@@ -218,6 +219,7 @@ setMethod(f="firingRateMap2d",
                   length(st@startInterval))
             sp@xSpikes<-results[1,]
             sp@ySpikes<-results[2,]
+            
             #plot(head(sp@xSpikes[which(sp@xSpikes!=-1.0)],n=20000),head(sp@ySpikes[which(sp@xSpikes!=-1.0)],n=20000))
             
             ## make the occupancy map
@@ -234,6 +236,9 @@ setMethod(f="firingRateMap2d",
                             as.integer(st@endInterval),
                             length(st@startInterval),
                             as.integer(pt@resSamplesPerWhlSample))
+            
+            sp@occupancy
+            
             #image((sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
             
             ## smooth the occupancy map
