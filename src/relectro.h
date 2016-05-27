@@ -94,8 +94,6 @@ SEXP convolution_fftw3_cwrap(SEXP inA_r,SEXP inA_size_r, SEXP inB_r, SEXP inB_si
 SEXP speed_from_whl_cwrap(SEXP x_whl_r,
 			  SEXP y_whl_r,
 			  SEXP whl_lines_r,
-			  SEXP look_back_max_r,
-			  SEXP look_ahead_max_r,
 			  SEXP px_per_cm_r,
 			  SEXP res_sampling_rate_r, // ex 20 000
 			  SEXP res_samples_per_whl_sample_r); // ex 512
@@ -103,11 +101,10 @@ void speed_from_whl(double* x_whl,
 		    double* y_whl,
 		    double* speed,
 		    int whl_lines,
-		    int look_back_max,
-		    int look_ahead_max,
 		    double px_per_cm,
 		    int res_sampling_rate, // ex 20 000
 		    int res_samples_per_whl_sample);
+
 SEXP angular_speed_from_hd_cwrap(SEXP hd_r,
 				 SEXP whl_lines_r,
 				 SEXP look_back_max_r,

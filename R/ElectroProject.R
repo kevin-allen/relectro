@@ -240,8 +240,6 @@ setMethod(f="runOnSessionList",
              }
            }
              
-           
-           
            if(parallel==T){
              list.res<-snow::parLapply(cluster,sessionList,fnct)   
            } else {

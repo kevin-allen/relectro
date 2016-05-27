@@ -114,8 +114,8 @@ setMethod(f="loadPositrack",
             if(min(pt@hdWhd< -1.0))
               stop(paste("min value of pt@hdWhd < -1.0:",min(pt@hdWhd)))
             ## pt@xWhl will never be changed, 
-            pt@x<-pt@xWhl
-            pt@y<-pt@yWhl
+            pt@x<-pt@xWhl/pt@pxPerCm
+            pt@y<-pt@yWhl/pt@pxPerCm
             pt@hd<-pt@hdWhd
             
             ## set the res value associated with eack whl sample
@@ -132,9 +132,7 @@ setMethod(f="loadPositrack",
                             pt@x,
                             pt@y,
                             length(pt@x),
-                            4, # look ahead
-                            4, # look back
-                            as.numeric(pt@pxPerCm),
+                            1.0, # already in cm
                             pt@samplingRateDat, 
                             pt@resSamplesPerWhlSample)
          
@@ -152,10 +150,6 @@ setMethod(f="loadPositrack",
             pt@y[which(pt@y==-1.0)]<-NA
             pt@hd[which(pt@hd==-1.0)]<-NA
             
-            # get cm
-            pt@x<-pt@x/pt@pxPerCm
-            pt@y<-pt@y/pt@pxPerCm
-                        
             return(pt)
           }
 )
@@ -169,8 +163,8 @@ setMethod(f="loadPositrack",
 #' This function also use the .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm files
 #' 
 #' @param pt Positrack object
-#' @param x Numeric with the x position of animal. x is in pixels
-#' @param y Numeric with the y position of animal. y is in pixels
+#' @param pxX Numeric with the x position of animal. x is in pixels
+#' @param pxY Numeric with the y position of animal. y is in pixels
 #' @param hd Numeric with the head direction of animal in degrees
 #' @param resSamplesPerWhlSample Number of electrophysiological samples per position sample
 #' @param samplingRateDat Sampling rate of electrophysiological data
@@ -180,19 +174,19 @@ setMethod(f="loadPositrack",
 #' @docType methods
 #' @rdname setPositrack-methods
 setGeneric(name="setPositrack",
-           def=function(pt,x,y,hd,resSamplesPerWhlSample,samplingRateDat,pxPerCm)
+           def=function(pt,pxX,pxY,hd,resSamplesPerWhlSample,samplingRateDat,pxPerCm)
            {standardGeneric("setPositrack")}
 )
 #' @rdname setPositrack-methods
 #' @aliases setPositrack,ANY,ANY-method
 setMethod(f="setPositrack",
           signature="Positrack",
-          definition=function(pt,x,y,hd,resSamplesPerWhlSample,samplingRateDat,pxPerCm)
+          definition=function(pt,pxX,pxY,hd,resSamplesPerWhlSample,samplingRateDat,pxPerCm)
           {
           
             ## get sampling rate
-            pt@xWhl<-x
-            pt@yWhl<-y
+            pt@xWhl<-pxX
+            pt@yWhl<-pxY
             pt@hdWhd<-hd
             pt@resSamplesPerWhlSample<-resSamplesPerWhlSample
             pt@samplingRateDat<-samplingRateDat
@@ -218,8 +212,8 @@ setMethod(f="setPositrack",
             if(min(pt@hdWhd< -1.0))
               stop(paste("min value of pt@hdWhd < -1.0:",min(pt@hdWhd)))
             ## pt@xWhl will never be changed, 
-            pt@x<-pt@xWhl
-            pt@y<-pt@yWhl
+            pt@x<-pt@xWhl/pt@pxPerCm
+            pt@y<-pt@yWhl/pt@pxPerCm
             pt@hd<-pt@hdWhd
             
             ## set the res value associated with eack whl sample
@@ -228,8 +222,6 @@ setMethod(f="setPositrack",
             ## apply a bit a smoothing to the x and y
             pt@x<-smoothGaussian(x=pt@x,sd=pt@defaultXYSmoothing,invalid=-1.0)
             pt@y<-smoothGaussian(x=pt@y,sd=pt@defaultXYSmoothing,invalid=-1.0)
-            plot(x,y)
-            plot(pt@x,pt@y)
             
             ## apply no smoothing to head direction
             
@@ -238,9 +230,7 @@ setMethod(f="setPositrack",
                              pt@x,
                              pt@y,
                              length(pt@x),
-                             4, # look ahead
-                             4, # look back
-                             as.numeric(pt@pxPerCm),
+                             1.0, # speed is already in cm
                              pt@samplingRateDat, 
                              pt@resSamplesPerWhlSample)
             
@@ -257,10 +247,6 @@ setMethod(f="setPositrack",
             pt@x[which(pt@x==-1.0)]<-NA
             pt@y[which(pt@y==-1.0)]<-NA
             pt@hd[which(pt@hd==-1.0)]<-NA
-            
-            # get cm
-            pt@x<-pt@x/pt@pxPerCm
-            pt@y<-pt@y/pt@pxPerCm
             
             return(pt)
           }

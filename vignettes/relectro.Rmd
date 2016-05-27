@@ -9,11 +9,13 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-This vignette documents the use of the relectro package. relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. relectro relies on several C functions for computationally intensive segment of the code. This increases the speed of the analysis to a respectable level. 
+This vignette documents the use of the relectro package. relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. relectro relies on several C functions for computationally intensive segments of the code. This increases the speed of the analysis to a respectable level. 
 
-You can get relectro from the Bitbucket repository of Kevin Allen. If you work with the source code of the package, I would recommand using the `devtools` package to load an build the package. This is especially usefull if you are developping new functions or object for relectro. The package `roxygen2` can be used to add the comments to the code you write.
+You can get relectro from its github repository. From a terminal run `git clone https://github.com/kevin-allen/relectro.git`.
 
-To install it, you can run R CMD build relectro and R CMD INSTALL relectro.
+If you work with the source code of the package, I would recommand first reading the book "R packages" by Hadley Wickham. I am using the following packages for development: `devtools`, `roxygen2` and `testthat`.
+
+To install relectro, you can run `R CMD build relectro` and `R CMD INSTALL relectro` from the terminal.
 
 Below is an introduction to the principal S4 objects within the package and how you can use them. 
 
@@ -326,7 +328,7 @@ rm(recTime)
 ##Parallel processing
 It is really easy to run code in parallel in R. It is often the case that same analysis is often run on several recording sessions. This is a perfect situation for parallel processing. You can use the `snow` package. You only need to install `snow` and of course `relectro` on all the computers that you want to use for the analysis. Then build a cluster of `workers` that you want to use. Instead of calling `lapply` use `parLapply`. 
 
-If using different computers, you need to load the `relectro` package at the top of the function to make sure they all have access to relectro. You also need to make sure that the other computers have an up-to-date version of relectro.
+If using different computers, you need to load the `relectro` package at the top of the function to make sure they all have access to relectro. You also need to make sure that the other computers have an up-to-date version of relectro. All computer should run the same version of R.
 
 ```{r parallel}
 library(snow)

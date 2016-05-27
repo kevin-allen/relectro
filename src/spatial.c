@@ -105,81 +105,54 @@ void speed_from_whl(double* x_whl,
 		    double* y_whl,
 		    double* speed,
 		    int whl_lines,
-		    int look_back_max,
-		    int look_ahead_max,
 		    double px_per_cm,
 		    int res_sampling_rate, // ex 20 000
 		    int res_samples_per_whl_sample) // ex 512
 {
   double samples_per_sec=(double)res_sampling_rate/(double)res_samples_per_whl_sample;
-  int after_distance = 0;
-  int before_distance = 0;
-  int before_index=0;
-  int after_index=0;
   double diff_x;
   double diff_y;
-  double distance_px;
+  double distance_1;
+  double distance_2;
   double distance_cm;
-  for (int i = 0; i < whl_lines; i++)
-   {
-     if ( x_whl[i] == -1.0 || y_whl[i] == -1.0)
-       {
-	 speed[i]=-1.0;
-       }
-     else
-       {
-	 after_index=i;
-	 after_distance=0;
-	 before_index=i;
-	 before_distance=0;
-
-	 // look after except if the last value in whl
-	 if (i < whl_lines-1)
-	   {
-	     // look if valid ok after
-	     do
-	       {
-		 after_index++;
-		 after_distance++;
-	       } while ((x_whl[after_index] == -1.0) && 
-			(after_distance < look_ahead_max) &&
-			(after_index < whl_lines));
-	   }
-	 // look before except if the first value in whl
-	 if ( i > 0)
-	   {
-	     // look if valid ok before
-	     do
-	       {
-		 before_index--;
-		 before_distance++;
-	       } while ((x_whl[before_index] == -1.0) && 
-			(before_distance < look_back_max) &&
-			(before_index >= 0));
-	   }
-	  if(x_whl[before_index] != -1.0 && x_whl[after_index] != -1.0)
-	   {
-	     // get the distance between current and after
-	     diff_x = sqrt(pow((x_whl[before_index] - x_whl[after_index]),2)); // distance px x
-	     diff_y = sqrt(pow((y_whl[before_index] - y_whl[after_index]),2)); // distance px y
-	     distance_px = diff_x*diff_x + diff_y*diff_y; // pythagoras
-	     distance_px = sqrt(distance_px)/ (after_distance+before_distance); //  pythagoras + ahead or back
-	     distance_cm = distance_px/px_per_cm; // in cm
-	     speed[i] = distance_cm*samples_per_sec;
-	   }
-	  else
-	    {
-	      speed[i] = -1.0;
-	    }
-       }
-   }
+  // the speed at index x is estimated from position x-1 to position x+1
+  // this is done to avoid introducing a shift, for example speed at index x is estimated from x and x+1
+  // speed for the first and last samples is set to -1.0
+  // if one of the 3 positions has -1.0, speed == -1.0
+  
+  speed[0]=-1.0;
+  speed[whl_lines-1]=-1.0;
+  
+  for (int i = 1; i < whl_lines-1; i++)
+  {
+    if (x_whl[i-1] == -1.0 || y_whl[i-1] == -1.0 ||
+        x_whl[i] == -1.0 || y_whl[i] == -1.0|| 
+        x_whl[i+1]==-1.0 || y_whl[i+1]==-1.0)
+    {
+      speed[i]=-1.0;
+    }
+    else
+    {
+      // get the distance between previous-current, and current-after
+      diff_x = sqrt(pow(x_whl[i-1] - x_whl[i],2)); 
+      diff_y = sqrt(pow(y_whl[i-1] - y_whl[i],2));
+      distance_1= sqrt(pow(diff_x,2)+pow(diff_y,2));
+      
+      diff_x = sqrt(pow(x_whl[i] - x_whl[i+1],2)); 
+      diff_y = sqrt(pow(y_whl[i] - y_whl[i+1],2));
+      distance_2= sqrt(pow(diff_x,2)+pow(diff_y,2));
+      
+      distance_cm= ((distance_1+distance_2)/2)/px_per_cm;
+      
+      speed[i] = distance_cm*samples_per_sec;
+    }
+  }
 }
+
 
 SEXP speed_from_whl_cwrap(SEXP x_whl_r,
 			  SEXP y_whl_r,
 			  SEXP whl_lines_r,
-			  SEXP look_back_max_r,
-			  SEXP look_ahead_max_r,
 			  SEXP px_per_cm_r,
 			  SEXP res_sampling_rate_r, 
 			  SEXP res_samples_per_whl_sample_r)
@@ -187,23 +160,16 @@ SEXP speed_from_whl_cwrap(SEXP x_whl_r,
 {
   int whl_lines=INTEGER_VALUE(whl_lines_r);
   SEXP out = PROTECT(allocVector(REALSXP, whl_lines));
-  double* speed = (double*)malloc(whl_lines*sizeof(double));
-
+  double* speed = REAL(out);
   // call c function
   speed_from_whl(REAL(x_whl_r),
   		 REAL(y_whl_r),
   		 speed,
   		 whl_lines,
-  		 INTEGER_VALUE(look_back_max_r),
-  		 INTEGER_VALUE(look_ahead_max_r),
   		 REAL(px_per_cm_r)[0],
   		 INTEGER_VALUE(res_sampling_rate_r),
   		 INTEGER_VALUE(res_samples_per_whl_sample_r));
 
-  for(int i=0;i< whl_lines;i++)
-    REAL(out)[i]=speed[i];
-  
-  free(speed);
   UNPROTECT(1);
   return(out);
 }
