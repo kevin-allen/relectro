@@ -180,12 +180,8 @@ setMethod(f="firingRateMap2d",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt)
           {
-            if(pt@session=="")
-              stop(paste("pt@session is empty in firingRateMap2d",st@session))
             if(length(pt@x)==0)
               stop(paste("pt@x has length of 0 in firingRateMap2d",st@session))
-            if(st@session=="")
-              stop(paste("st@session is empty in firingRateMap2d",st@session))
             if(st@nSpikes==0)
               stop(paste("st@nSpikes==0 in firingRateMap2d",st@session))
             

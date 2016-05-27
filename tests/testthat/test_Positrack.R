@@ -2,11 +2,12 @@ library(relectro)
 library(testthat)
 context("Positrack")
 test_that("Positrack",{
-  pt<-new("Positrack")
+ 
   ##########################################
   ## make a fake pt object                ##
   ## constant speed, filling all position ##
   ##########################################
+  pt<-new("Positrack")
   maxx=50
   minx=1
   maxy=50
@@ -51,9 +52,11 @@ test_that("Positrack",{
   expect_equal(mean(sp1,na.rm=T),
                mean(sqrt(diff(pt@x)^2+diff(pt@y)^2)/pt@pxPerCm*(pt@samplingRateDat/pt@resSamplesPerWhlSample))) # speed calculated in R
   expect_equal(length(pt@speed),length(pt@x))
-  pt@speed
   expect_equal(pt@speed[which(pt@speed!=-1.0)],sp1[which(!is.na(sp1))])
   
+  # first and last speed sample should be set to -1.0
+  expect_equal(pt@speed[1],-1.0)
+  expect_equal(pt@speed[length(pt@speed)],-1.0)
   
-  rm(pt,maxx,minx,maxy,miny,x,y,hd)
+  rm(pt,maxx,minx,maxy,miny,x,y,hd,sp1)
 })

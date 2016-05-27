@@ -44,7 +44,6 @@ void res_index_for_intervals(int* interval_lines,
   
   
   
-  
   if(remove_interval_after_last_res==1){
   // check that the intervals are in the recorded time
   if ((max_start > max_res + 1)||(max_end>max_res+1))

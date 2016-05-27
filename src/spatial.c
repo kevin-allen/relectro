@@ -659,82 +659,85 @@ void spike_position(double *x_whl,
   ///////////////////////////////////////////////////////////////////
   //	Function to get the position of each spike within intervals//
   ///////////////////////////////////////////////////////////////////
-
+  
   // get the res index for the intervals
   int* start_interval_index;
   int* end_interval_index;
   start_interval_index = (int*)malloc(interval_lines*sizeof(int));
   end_interval_index = (int*)malloc(interval_lines*sizeof(int));
-
   res_index_for_intervals(&interval_lines,
-			  start_interval,
-			  end_interval, 
-			  res_lines, 
-			  res,
-			  start_interval_index,
-			  end_interval_index,1);
+                          start_interval,
+                          end_interval, 
+                          res_lines, 
+                          res,
+                          start_interval_index,
+                          end_interval_index,
+                          1);
+  
+ // for(int i = 0; i < interval_lines;i++)
+ //   Rprintf("int %d, start: %d, end: %d\n",i,start_interval_index[i],end_interval_index[i]);
   // set all the spike position to -1
   set_array_to_value_double(x_spike,res_lines,-1.0);
   set_array_to_value_double(y_spike,res_lines,-1.0);
-
+  
   //loop for each interval and set the position when valid//
   int whl_index;
   int residual;
-    for (int k = 0; k < interval_lines; k++)
+  for (int k = 0; k < interval_lines; k++)
+  {
+    for (int i = start_interval_index[k]; i <= end_interval_index[k]; i++)
     {
-      for (int i = start_interval_index[k]; i < end_interval_index[k]; i++)
-	{
-	  if (res[i] != -1.0)
-	    {
-	      whl_index = (res[i] / res_samples_per_whl_sample) - 1;
-	      if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
-		{
-		  Rprintf("whl file is too small for some res value\n");
-		}
-	      residual = res[i] % res_samples_per_whl_sample;
-	      // spikes before the first frame capture
-	      if (whl_index == -1)
-		{
-		  x_spike[i] = x_whl[0];
-		  y_spike[i] = y_whl[0];
-		}
-	      // spikes between the first and last frame capture
-	      if ((whl_index < whl_lines -1) && (whl_index != -1))
-		{
-		  x_spike[i] =
-		    x_whl[whl_index] +
-		    ((x_whl[whl_index+1]- x_whl[whl_index])
-		     /res_samples_per_whl_sample * residual);
-		  
-		  y_spike[i] =
-		    y_whl[whl_index] +
-		    ((y_whl[whl_index+1]- y_whl[whl_index])
-		     /res_samples_per_whl_sample * residual);
-		}
-	      
-	      // if spikes after the last frame capture
-	      if (whl_index == whl_lines -1)
-		{
-		  x_spike[i] = x_whl[whl_index];
-		  y_spike[i] = y_whl[whl_index];
-		}
-	      // cope with the -1 values from the whl file
-	      if (x_whl[whl_index] == -1.0 || x_whl[whl_index+1]==-1.0)
-		{
-		  x_spike[i] = -1.0;
-		  y_spike[i] = -1.0;
-		}
-	    }
-	  else // the res value was set at -1
-	    {
-	      x_spike[i] = -1.0;
-	      y_spike[i] = -1.0;
-	    }
-	}
+      if (res[i] != -1.0)
+      {
+        whl_index = (res[i] / res_samples_per_whl_sample) - 1;
+        if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
+        {
+          Rprintf("whl file is too small for some res value\n");
+        }
+        residual = res[i] % res_samples_per_whl_sample;
+        // spikes before the first frame capture
+        if (whl_index == -1)
+        {
+          x_spike[i] = x_whl[0];
+          y_spike[i] = y_whl[0];
+        }
+        // spikes between the first and last frame capture
+        if ((whl_index < whl_lines -1) && (whl_index != -1))
+        {
+          x_spike[i] =
+            x_whl[whl_index] +
+            ((x_whl[whl_index+1]- x_whl[whl_index])
+               /res_samples_per_whl_sample * residual);
+          
+          y_spike[i] =
+          y_whl[whl_index] +
+          ((y_whl[whl_index+1]- y_whl[whl_index])
+             /res_samples_per_whl_sample * residual);
+        }
+        
+        // if spikes after the last frame capture
+        if (whl_index == whl_lines -1)
+        {
+          x_spike[i] = x_whl[whl_index];
+          y_spike[i] = y_whl[whl_index];
+        }
+        // cope with the -1 values from the whl file
+        if (x_whl[whl_index] == -1.0 || x_whl[whl_index+1]==-1.0)
+        {
+          x_spike[i] = -1.0;
+          y_spike[i] = -1.0;
+        }
+      }
+      else // the res value was set at -1
+      {
+        x_spike[i] = -1.0;
+        y_spike[i] = -1.0;
+      }
     }
-    free(start_interval_index);
-    free(end_interval_index);
-    return;
+  }
+  free(start_interval_index);
+  free(end_interval_index);
+  return;
 }
 
 SEXP occupancy_map_cwrap(SEXP x_bins_r, // num of bins x

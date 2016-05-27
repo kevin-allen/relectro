@@ -101,11 +101,11 @@ setMethod(f="loadPositrack",
               stop(paste("pt@sampingRateDat is out of bound:",pt@samplingRateDat))
             if(pt@pxPerCm<1|pt@pxPerCm>10000)
               stop(paste("pt@pxPerCm is out of bound:", pt@pxPerCm))
-            if(max(pt@xWhl)>2000|min(pt@xWhl)< -1.0){
+            if(max(pt@xWhl)>5000|min(pt@xWhl)< -1.0){
               print(paste("min x:",min(pt@xWhl),"max x:",max(pt@xWhl)))
               stop(paste("values of pt@xWhl are out of bound"))
             }
-            if(max(pt@yWhl)>2000|min(pt@yWhl)< -1.0){
+            if(max(pt@yWhl)>5000|min(pt@yWhl)< -1.0){
               print(paste("min y:",min(pt@yWhl),"max y:",max(pt@yWhl)))
               stop(paste("values of pt@xWhl are out of bound"))
             }
@@ -149,7 +149,6 @@ setMethod(f="loadPositrack",
             pt@x[which(pt@x==-1.0)]<-NA
             pt@y[which(pt@y==-1.0)]<-NA
             pt@hd[which(pt@hd==-1.0)]<-NA
-            
             return(pt)
           }
 )
