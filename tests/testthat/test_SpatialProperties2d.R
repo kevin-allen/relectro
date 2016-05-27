@@ -113,7 +113,6 @@ test_that("firing rate maps",{
   
   ## make sure the filter does not affect the sum of the firing rates 
   
-  
   sp@cmPerBin=1
   sp@smoothRateMapSd=3
   sp@smoothOccupancySd=3
