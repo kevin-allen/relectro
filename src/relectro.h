@@ -77,7 +77,8 @@ SEXP detect_ttl_ups_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
 SEXP detect_ttl_downs_cwrap(SEXP data_r,SEXP n_r,SEXP threshold_r);
 void circular_stats_rate_histogram(double* histo, int num_bins, double* mean_direction, double* mean_vector_length);
 SEXP circular_stats_rate_histogram_cwrap(SEXP cell_lines_r,SEXP all_histos_r, SEXP histo_size_r);
-
+double direction(double x1, double y1,double x2, double y2);
+double mean_vector_length_weighted(double * array,double * w, int size);
 
 // ifr.c
 SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r, SEXP window_size_ms_r, SEXP kernel_sd_ms_r, SEXP spike_bin_ms_r, SEXP cell_list_r, SEXP number_cells_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r, SEXP sampling_rate_r);
@@ -153,6 +154,9 @@ int find_border_starting_point(double* occ_map, int num_bins_x, int num_bins_y,i
 int find_an_adjacent_border_pixel(double* occ_map, int num_bins_x, int num_bins_y,int*border_map,int*border_x,int* border_y,int* num_bins_border);
 void border_score_rectangular_environment(int* cells, int cell_lines, int num_bins_x, int num_bins_y, double* occ_map, double* maps, double percent_threshold_field, int min_bins_in_field, double* border_score, double* cm, double* dm, int* num_fields_detected);
 SEXP border_score_rectangular_environment_cwrap(SEXP cells_r, SEXP cell_lines_r, SEXP num_bins_x_r,SEXP num_bins_y_r,SEXP occ_map_r,SEXP maps_r,SEXP percent_threshold_field_r,	SEXP min_bins_in_field_r);
+SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,SEXP num_bins_y_r,SEXP occ_map_r);
+SEXP border_detection_circular_environment_cwrap(SEXP num_bins_x_r,SEXP num_bins_y_r,SEXP occ_map_r);
+void border_score_circular_environment(int* cells, int cell_lines, int num_bins_x, int num_bins_y, double* occ_map, double* maps, double percent_threshold_field, int min_bins_in_field, double* border_score, double* cm, double* dm, int* num_fields_detected,double* map_polarity);
 void spike_head_direction(double *hd_whl, int whl_lines, int *res,  int res_lines,  double *hd_spike,  int res_samples_per_whl_sample, int* start_interval,  int* end_interval,  int interval_lines);
 SEXP spike_head_direction_cwrap(SEXP hd_whl_r, SEXP whl_lines_r, SEXP res_r, SEXP res_lines_r, SEXP res_samples_per_whl_sample_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r);
 void occupancy_histogram(int x_bins,double pixels_per_bin_x, double *x_whl, int whl_lines, double *map, double ms_per_sample,int *start_interval, int *end_interval, int interval_lines, int res_samples_per_whl_sample, int num_repetitions);

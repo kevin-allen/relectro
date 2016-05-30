@@ -128,7 +128,7 @@ test_that("border score, CM and DM in rectangular environments",{
   pt<-new("Positrack")
   maxx=50
   minx=1
-  maxy=50
+  maxy=40
   miny=1
   x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),3)-0.5
   y=rep(rep(seq(miny,maxy),each=maxx-minx+1),3)-0.5
@@ -151,7 +151,10 @@ test_that("border score, CM and DM in rectangular environments",{
   firingRateMapPlot(m=sp@maps[,,1])
   
   
-  b<-borderDetectionRectangularEnv(sp)
+  b<-borderDetection(sp,border="rectangular")
+  
+  firingRateMapPlot(m=b)
+  
   # returned matrix should be same size as occ map
   expect_equal(dim(b),dim(sp@occupancy))
   
@@ -159,12 +162,11 @@ test_that("border score, CM and DM in rectangular environments",{
   expect_equal(length(b[b!=0]),(maxx-minx)*2+(maxy-miny)*2)
   
   ## get the bottom column of the map with spikes
-  sp<-getMapStats(sp,st,pt)
+  sp<-getMapStats(sp,st,pt,border="rectangular")
   m<-sp@maps[,2,1]
   m<-m[which(!is.na(m))]
   l1<-length(m[which(m!=0.0)])
   CM<-l1/length(m)
-  sp@borderCM
   expect_equal(CM,sp@borderCM)
   
 
@@ -173,7 +175,7 @@ test_that("border score, CM and DM in rectangular environments",{
   spikeTimes<-(1:(maxx*expectedCM))*pt@resSamplesPerWhlSample
   st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
   st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
-  sp<-getMapStats(sp,st,pt)
+  sp<-getMapStats(sp,st,pt,border="rectangular")
   expect_equal(sp@borderCM,expectedCM)
   
   ## expect DM to be 0 because firing is limited to border pixels
@@ -186,15 +188,14 @@ test_that("border score, CM and DM in rectangular environments",{
   st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
   sp<-firingRateMap2d(sp,st,pt)   
   firingRateMapPlot(m=sp@maps[,,1])
-  sp<-getMapStats(sp,st,pt)
+  sp<-getMapStats(sp,st,pt,border="rectangular")
   expect_equal(sp@borderCM,NaN) # because there is no field detected
   
   
   sp@smoothRateMapSd=1.5
-  sp@smoothOccupancySd=1
   sp<-firingRateMap2d(sp,st,pt)   
   firingRateMapPlot(m=sp@maps[,,1])
-  sp<-getMapStats(sp,st,pt)
+  sp<-getMapStats(sp,st,pt,border="rectangular")
   expect_equal(sp@borderCM,0)
   expect_gt(sp@borderDM,0.95) ## all firing rate are in the middle of the map
   
@@ -202,10 +203,92 @@ test_that("border score, CM and DM in rectangular environments",{
   rm(maxx,minx,maxy,miny,x,y,st,sp,pt,spikeTimes,expectedCM,l1,CM,m,b,hd)
 })
 
-test_that("Information score",{
+test_that("border score, CM and DM in circular environments",{
   
-})
+          ### animal is at all location only once, from 1 to 50 in a 2d matrix
+          pt<-new("Positrack")
+          maxx=50
+          minx=1
+          maxy=40
+          miny=1
+          x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),3)-0.5
+          y=rep(rep(seq(miny,maxy),each=maxx-minx+1),3)-0.5
+          hd<-(sin(cumsum(rnorm(mean=0, sd=0.3, n=length(x))))+1)/2*360
+          pt@defaultXYSmoothing=0
+          pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+          resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+          
+          st<-new("SpikeTrain")
+          ## set the spike trains in the object
+          spikeTimes<- (1:(maxx))*pt@resSamplesPerWhlSample
+          st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+          st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+          
+          sp<-new("SpatialProperties2d")
+          sp@cmPerBin=1
+          sp@smoothRateMapSd=0
+          sp@smoothOccupancySd=0
+          sp<-firingRateMap2d(sp,st,pt)   
+          firingRateMapPlot(m=sp@maps[,,1])
+          
+          ## number of bins at the border
+          b<-borderDetection(sp,border="circular")
+          firingRateMapPlot(m=b)
+          expect_equal(length(b[b!=0]),(maxx-minx)*2+(maxy-miny)*2)
+          
+          ## all bins at border so DM = 0
+          sp<-getMapStats(sp,st,pt,border="circular")
+          expect_equal(sp@borderDM,0)
+          
+          ## firing rate now cover one x lenght.
+          firingRateMapPlot(m=sp@maps[,,1])
+          m<-sp@maps[,,1]
+          expect_equal(length(m[which(m!=-1.0&m!=0)])/length(b[which(b==2)]),sp@borderCM)
+          
+          
+          
+          sp@smoothRateMapSd=2
+          spikeTimes<- (1:2)*pt@resSamplesPerWhlSample
+          st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+          st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+          sp<-firingRateMap2d(sp,st,pt)   
+          sp<-getMapStats(sp,st,pt,border="circular")
+          firingRateMapPlot(m=sp@maps[,,1])
+          firingRateMapPlot(m=b)
+          expect_equal(sp@mapPolarity,1.0,tolerance=0.01)
+          
+          
+          ## let's try with a 45 deg rotated box
+          radius=10
+          r<- -radius:radius
+          x<-rep(unlist(sapply(r,function(x){12+(-(11-(abs(x)))):(11-(abs(x))) })),3)
+          y<-rep(unlist(sapply(r,function(x){11+rep(x,length(12+(-(11-(abs(x)))):(11-(abs(x))))) })),3)
+          hd<-(sin(cumsum(rnorm(mean=0, sd=0.3, n=length(x))))+1)/2*360
+          pt@defaultXYSmoothing=0
+          pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                           resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+          
+          st<-new("SpikeTrain")
+          ## set the spike trains in the object
+          spikeTimes<- (1:3)*pt@resSamplesPerWhlSample
+          st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+          st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+          
+          sp<-new("SpatialProperties2d")
+          sp@cmPerBin=1
+          sp@smoothRateMapSd=2
+          sp<-firingRateMap2d(sp,st,pt)   
+          firingRateMapPlot(m=sp@maps[,,1])
+          
+          b<-borderDetection(sp,border="circular")
+          firingRateMapPlot(m=b)
+          sp<-getMapStats(sp,st,pt,border="circular")
+          
+          ## predicted length of border
+          expect_equal((length(r)-2)*2+(2*3),length(b[which(b==2)]))
+          
+          rm(maxx,minx,maxy,miny,x,y,hd,st,sp,pt,spikeTimes)
+}
+)
 
-test_that("Grid score",{
-  
-})
+

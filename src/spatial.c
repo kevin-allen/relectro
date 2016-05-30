@@ -3038,6 +3038,7 @@ SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,
   
   int total_bins= num_bins_x*num_bins_y;
   
+  // transpose the occ map for c functions
   double* tocc_map = (double*)malloc(total_bins*sizeof(double));
   for(int x = 0; x < num_bins_x; x++) 
     for(int y = 0; y < num_bins_y; y++)
@@ -3046,7 +3047,7 @@ SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,
   // 1) identify the borders in the occupancy map
   int num_bins_border=0;
   SEXP out = PROTECT(allocMatrix(INTSXP,num_bins_x,num_bins_y));
-  int* border_map = INTEGER_POINTER(out);
+  int* border_map = (int*) malloc(total_bins*sizeof(int));
   int* border_x =  (int*) malloc(total_bins*sizeof(int)); // list of x index for border bins
   int* border_y = (int*) malloc(total_bins*sizeof(int)); // list of y index for border bins
  // Rprintf("identify_border_pixels_in_occupancy_map() call\n");
@@ -3054,7 +3055,7 @@ SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,
   
   // 2) identify the four walls, remove border pixels that are not next to one of the 4 walls
   int* wall_id =  (int*) malloc(num_bins_border*sizeof(int));
-//  Rprintf("assign_wall_to_border_pixel() call\n");
+  //Rprintf("assign_wall_to_border_pixel() call\n");
   assign_wall_to_border_pixels(num_bins_x, num_bins_y, border_x, border_y, &num_bins_border, wall_id,border_map);
   
   int sum;
@@ -3073,6 +3074,14 @@ SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,
     border_map[border_x[i]*num_bins_y+border_y[i]]=wall_id[i]+1;
   }
   
+  int* o = INTEGER_POINTER(out);
+  //transpose the maps for R
+  for(int x =0; x < num_bins_x;x++)
+    for(int y =0; y < num_bins_y;y++)
+        o[y*num_bins_x+x]=border_map[x*num_bins_y+y];
+  
+
+  free(border_map);
   free(border_x);
   free(border_y);
   free(tocc_map);
@@ -3362,6 +3371,333 @@ void border_score_rectangular_environment(int* cells,
   free(detection_map);
   free(wall_id);
 }
+
+SEXP border_detection_circular_environment_cwrap(SEXP num_bins_x_r,
+                                                  SEXP num_bins_y_r,
+                                                  SEXP occ_map_r)
+{
+  int num_bins_x = INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y = INTEGER_VALUE(num_bins_y_r);
+  double* occ_map = REAL(occ_map_r);
+  
+  int total_bins= num_bins_x*num_bins_y;
+  
+  double* tocc_map = (double*)malloc(total_bins*sizeof(double));
+  for(int x = 0; x < num_bins_x; x++) 
+    for(int y = 0; y < num_bins_y; y++)
+      tocc_map[x*num_bins_y+y]=occ_map[x+num_bins_x*y];
+  
+  // 1) identify the borders in the occupancy map
+  int num_bins_border=0;
+  SEXP out = PROTECT(allocMatrix(INTSXP,num_bins_x,num_bins_y));
+  int* border_map = (int*) malloc(total_bins*sizeof(int));
+  int* border_x =  (int*) malloc(total_bins*sizeof(int)); // list of x index for border bins
+  int* border_y = (int*) malloc(total_bins*sizeof(int)); // list of y index for border bins
+  // Rprintf("identify_border_pixels_in_occupancy_map() call\n");
+  identify_border_pixels_in_occupancy_map(tocc_map,num_bins_x,num_bins_y,border_map,border_x,border_y,&num_bins_border);
+  
+  
+  for(int i = 0; i < num_bins_border;i++)
+  {
+    border_map[border_x[i]*num_bins_y+border_y[i]]=2;
+  }
+  
+  int* o = INTEGER_POINTER(out);
+  //transpose the maps for R
+  for(int x =0; x < num_bins_x;x++)
+    for(int y =0; y < num_bins_y;y++)
+      o[y*num_bins_x+x]=border_map[x*num_bins_y+y];
+  
+  
+  free(border_x);
+  free(border_y);
+  free(tocc_map);
+  UNPROTECT(1);
+  return (out);
+  
+}
+
+
+SEXP border_score_circular_environment_cwrap(SEXP cells_r,
+                                             SEXP cell_lines_r,
+                                             SEXP num_bins_x_r,
+                                             SEXP num_bins_y_r,
+                                             SEXP occ_map_r,
+                                             SEXP maps_r,
+                                             SEXP percent_threshold_field_r,
+                                             SEXP min_bins_in_field_r)
+{
+  int* cells = INTEGER_POINTER(cells_r);
+  int cell_lines = INTEGER_VALUE(cell_lines_r);
+  int num_bins_x = INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y = INTEGER_VALUE(num_bins_y_r);
+  double* occ_map = REAL(occ_map_r);
+  double* maps = REAL(maps_r);
+  double* one_map;
+  double* one_map_copy;
+  
+  int total_bins= num_bins_x*num_bins_y;
+  
+  // create a copy of map otherwise it will remove the fields from it
+  double* maps_copy = (double*)malloc(total_bins*cell_lines*sizeof(double));
+  double* tocc_map = (double*)malloc(total_bins*sizeof(double));
+  // transpose the map
+  for(int i =0; i < cell_lines;i++){
+    one_map=maps+(i*total_bins);
+    one_map_copy=maps_copy+(i*total_bins);
+    for(int x = 0; x < num_bins_x; x++) 
+      for(int y = 0; y < num_bins_y; y++)
+        one_map_copy[x*num_bins_y+y]=one_map[x+num_bins_x*y]; 
+  }
+  for(int x = 0; x < num_bins_x; x++) 
+    for(int y = 0; y < num_bins_y; y++)
+      tocc_map[x*num_bins_y+y]=occ_map[x+num_bins_x*y];
+  
+  
+  SEXP out = PROTECT(allocMatrix(REALSXP,5,cell_lines));
+  double* o = REAL(out);
+  
+  double* cm = (double*) malloc(cell_lines*sizeof(double));
+  double* dm = (double*) malloc(cell_lines*sizeof(double));
+  double* border_score =  (double*) malloc(cell_lines*sizeof(double));
+  int* num_fields_detected = (int*) malloc(cell_lines*sizeof(int));
+  double* map_polarity = (double*) malloc(cell_lines*sizeof(double));
+  border_score_circular_environment(cells,
+                                       cell_lines,
+                                       num_bins_x,
+                                       num_bins_y,
+                                       tocc_map,
+                                       maps_copy,
+                                       REAL(percent_threshold_field_r)[0],
+                                       INTEGER_VALUE(min_bins_in_field_r),
+                                       border_score, // border score
+                                       cm,
+                                       dm,
+                                       num_fields_detected,
+                                       map_polarity);
+  
+  for(int i = 0; i < cell_lines; i++)
+  {
+    o[i*4+0]=border_score[i];
+    o[i*4+1]=cm[i];
+    o[i*4+2]=dm[i];
+    o[i*4+3]=(double)num_fields_detected[i];
+    o[i*4+4]=map_polarity[i];
+    
+  }
+  
+  free(maps_copy);
+  free(tocc_map);
+  free(cm);
+  free(dm);
+  free(num_fields_detected);
+  free(map_polarity);
+  
+  UNPROTECT(1);
+  return (out);
+  
+}
+void border_score_circular_environment(int* cells, 
+                                       int cell_lines, 
+                                       int num_bins_x, 
+                                       int num_bins_y, 
+                                       double* occ_map, 
+                                       double* maps, 
+                                       double percent_threshold_field, 
+                                       int min_bins_in_field, 
+                                       double* border_score, 
+                                       double* cm, 
+                                       double* dm, 
+                                       int* num_fields_detected,
+                                       double* map_polarity){
+  
+  // 1) identify the borders in the occupancy map
+  int num_bins_border=0;
+  int total_bins=num_bins_x*num_bins_y;
+  int* border_map = (int*) malloc(total_bins*sizeof(int)); // map
+  int* border_x =  (int*) malloc(total_bins*sizeof(int)); // list of x index for border bins
+  int* border_y = (int*) malloc(total_bins*sizeof(int)); // list of y index for border bins
+  identify_border_pixels_in_occupancy_map(occ_map,num_bins_x,num_bins_y,border_map,border_x,border_y,&num_bins_border);
+  double* one_map;
+  double max_fr;
+  
+  // for each valid pixel in occ_map, find the closest distance to a border pixel, get the largest closest distance
+  double min_distance_one_pixel=0;
+  double dist=0;
+  int number_fields_detected=0;
+  double* bin_distance_to_nearest_border = (double*) malloc(total_bins*sizeof(double));
+  double CM=0;
+  double max_CM=0;
+  double DM=0;
+  double WVL=0;
+  int pixels_covered_one_wall;
+  double* one_field_map; // rate of one firing field
+  double* all_fields_map; // rate of all firing fields
+  double* detection_map; // where fields get set to -1
+  double max_fr_remaining=0;
+  double threshold_hz;
+  double mean_x_field;
+  double mean_y_field;
+  double radius_field;
+  int num_bins_field;
+  double sum_firing_rate_in_fields;
+  double* rad_map;
+  rad_map = (double*)malloc(total_bins*sizeof(double));
+  one_field_map = (double*) malloc(total_bins*sizeof(double));
+  all_fields_map = (double*) malloc(total_bins*sizeof(double));
+  detection_map = (double*) malloc(total_bins*sizeof(double));
+  
+  double max_possible_distance_to_border=0;
+  for(int x = 0; x < num_bins_x; x++)
+  {
+    for(int y = 0; y < num_bins_y; y++)
+    {
+      if (occ_map[(x*num_bins_y) + y] != -1)
+      {
+        min_distance_one_pixel=num_bins_x+num_bins_y;
+        for (int i = 0; i < num_bins_border; i++)
+        {
+          dist=distance(x,y,border_x[i],border_y[i]);
+          if(dist<min_distance_one_pixel)
+          {
+            min_distance_one_pixel=dist;
+          }
+        }
+        if(min_distance_one_pixel>max_possible_distance_to_border)
+        {
+          max_possible_distance_to_border=min_distance_one_pixel;
+        }
+      }
+    }
+  }
+  
+ 
+  for(int i = 0; i < cell_lines; i++)
+  { // for each cell, 
+    
+    max_CM=0;
+    one_map = maps + (i*total_bins);	      
+    for(int j = 0; j < total_bins; j++)
+    {
+      one_field_map[j] =-1.0;
+      all_fields_map[j] =-1.0;
+      detection_map[j]=one_map[j];
+    }
+    
+    // calculate the maximum CM
+    max_fr=find_max_double(total_bins,detection_map);
+    max_fr_remaining=max_fr;
+    threshold_hz = max_fr*percent_threshold_field/100;
+    number_fields_detected=0;
+    // cerr << "max fr: " << max_fr << '\n';
+    while(max_fr_remaining>=threshold_hz)
+    {
+      detect_one_field_with_field(detection_map,
+                                  num_bins_x,
+                                  num_bins_y,
+                                  min_bins_in_field,
+                                  threshold_hz,
+                                  &mean_x_field,
+                                  &mean_y_field,
+                                  &radius_field,
+                                  &num_bins_field,
+                                  -1.0,
+                                  one_field_map);
+      if (mean_x_field != -1)
+      {// valid field detected
+        number_fields_detected++;
+        // copy the field to the all field maps
+        for(int k=0; k < total_bins;k++)
+        {
+          if(one_field_map[k]!=-1.0)
+            all_fields_map[k]=one_field_map[k];
+        }
+        
+        // number of occupied wall pixels
+        pixels_covered_one_wall=0;
+        for(int m =0; m < num_bins_border; m++)
+        {
+          if(one_field_map[(border_x[m]*num_bins_y)+border_y[m]]!=-1.0)
+            pixels_covered_one_wall++;
+        }
+        if(pixels_covered_one_wall!=0)
+          CM=(double)pixels_covered_one_wall/ ((double)num_bins_border); // this is different from rectangular
+        else
+          CM=0;
+        if(CM>max_CM)
+          max_CM=CM;
+      }
+      max_fr_remaining=find_max_double(total_bins,detection_map);
+    }
+    CM=max_CM;
+    
+    // calculate DM
+    sum_firing_rate_in_fields=sum_double(total_bins,all_fields_map,-1.0);
+    DM=0;
+    for(int x = 0; x < num_bins_x; x++)
+    {
+      for(int y = 0; y < num_bins_y; y++)
+      {
+        if (all_fields_map[(x*num_bins_y) + y] != -1.0)// field bin
+        {
+          // find the closest distance to a border
+          min_distance_one_pixel=num_bins_x+num_bins_y;
+          for (int j = 0; j < num_bins_border; j++)
+          {
+            dist=distance(x,y,border_x[j],border_y[j]);
+            if(dist<min_distance_one_pixel)
+            {
+              min_distance_one_pixel=dist;
+            }
+          }
+          DM+=(min_distance_one_pixel/max_possible_distance_to_border)*one_map[(x*num_bins_y) + y];
+        }
+      }
+    }
+    DM=DM/sum_firing_rate_in_fields;
+    
+    
+    // calculate the vector length of the all_fields_map relative to the center of the occupancy map
+    // weighted with the firing rate of each pixel
+    
+    for(int i = 0; i < num_bins_x*num_bins_y;i++)
+      rad_map[i]=-1.0;
+    double x_center=num_bins_x/2.0;
+    double y_center=num_bins_y/2.0;
+    for(int x = 0; x < num_bins_x; x++)
+      for(int y = 0; y < num_bins_y; y++)
+        if(one_map[(x*num_bins_y)+y]!=-1.0)
+        {
+          rad_map[(x*num_bins_y)+y]=direction(x_center,y_center,x,y);
+        }
+        
+        //2 call a function to get a weighted vector length
+        WVL=mean_vector_length_weighted(rad_map,all_fields_map,num_bins_x*num_bins_y);
+        
+        if(number_fields_detected>0)
+        {
+          cm[i]= CM;
+          dm[i]= DM;
+          num_fields_detected[i]=number_fields_detected;
+          border_score[i]=(CM-DM)/(CM+DM);
+          map_polarity[i]=WVL;
+        }
+        else
+        {
+          cm[i]= NAN;
+          dm[i]= NAN;
+          num_fields_detected[i]=0;
+          border_score[i]=NAN;
+          map_polarity[i]=WVL;
+        }
+  }
+  free(bin_distance_to_nearest_border);
+  free(one_field_map);
+  free(all_fields_map);
+  free(detection_map);
+  free(rad_map);
+}
+
 
 void spike_head_direction(double *hd_whl, 
 			  int whl_lines, 

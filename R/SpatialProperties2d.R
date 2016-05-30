@@ -33,6 +33,8 @@
 #' @slot borderNumFieldsDetected Number of detected fields when calculating the border score
 #' @slot borderPercentageThresholdField Threshold for a bin being part of a field, expressed as percentage of peak
 #' @slot borderMinBinsInField Minimum number of bins to be considered a field
+#' @slot mapPolarity How polarized is the firing rate of the cell in the map. Each bin of the map is given an angle and firing rate.
+#' mapPolarity is the resultant mean vector length
 #' @slot gridScore Grid score calculated form the spatial autocorrelation
 #' @slot gridOrientation Grid orientation
 #' @slot gridSpacing Grid spacing in cm
@@ -52,6 +54,7 @@
 #' @slot borderScoreShuffle Border score form the shuffling analysis
 #' @slot borderCMShuffle Border CM from the shuffling analysis
 #' @slot borderDMShuffle Border DM from the shuffling analysis
+#' @slot mapPolarityShuffle Map polarity from the shuffling analysis
 #' @slot gridScoreShuffle Grid score from the shuffling analysis
 #' @slot speedScoreShuffle Speed score from the shuffling analysis
 SpatialProperties2d<- setClass(
@@ -86,6 +89,7 @@ SpatialProperties2d<- setClass(
             borderNumFieldsDetected="numeric",
             borderPercentageThresholdField="numeric",
             borderMinBinsInField="numeric",
+            mapPolarity="numeric",
             ##
             gridScore="numeric",
             gridOrientation="numeric",
@@ -108,6 +112,7 @@ SpatialProperties2d<- setClass(
             borderScoreShuffle="numeric",
             borderCMShuffle="numeric",
             borderDMShuffle="numeric",
+            mapPolarityShuffle="numeric",
             gridScoreShuffle="numeric",
             speedScoreShuffle="numeric"
             ),
@@ -200,8 +205,6 @@ setMethod(f="firingRateMap2d",
               y<-pt@y
             }
             
-            
-            
             ## use -1 as invalid values in c functions
             x[is.na(x)]<- -1.0
             y[is.na(y)]<- -1.0
@@ -278,20 +281,25 @@ setMethod(f="firingRateMap2d",
 #' @param sp SpatialProperties2d object
 #' @param st SpikeTrain object
 #' @param pt Positrack object
+#' @param border Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular. 
+#' Default value is "rectangular"
 #' @return SpatialProperties2d object with the stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
 #' 
 #' @docType methods
 #' @rdname getMapStats-methods
 setGeneric(name="getMapStats",
-           def=function(sp,st,pt)
+           def=function(sp,st,pt,...)
            {standardGeneric("getMapStats")}
 )
 #' @rdname getMapStats-methods
 #' @aliases getMapStats,ANY,ANY-method
 setMethod(f="getMapStats",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt)
+          definition=function(sp,st,pt,border="rectangular")
           {
+            if(border!="rectangular" & border!= "circular")
+              stop(paste("getMapstats, value of border can be \"rectangular\" or \"circular\" but is", border))
+            
             ## make the maps
             sp<-firingRateMap2d(sp,st,pt)
 
@@ -312,21 +320,42 @@ setMethod(f="getMapStats",
                                 as.numeric(sp@occupancy),
                                 as.integer(sp@nColMap*sp@nRowMap))
             
-            ### get border score
-            results<-.Call("border_score_rectangular_environment_cwrap", ## if no field is detected, you get NaN values
-                           as.integer(sp@cellList),
-                           length(sp@cellList),
-                           sp@nRowMap,
-                           sp@nColMap,
-                           sp@occupancy,
-                           sp@maps,
-                           sp@borderPercentageThresholdField,
-                           as.integer(sp@borderMinBinsInField))
-            sp@borderScore<-results[1,]
-            sp@borderCM<-results[2,]
-            sp@borderDM<-results[3,]
-            sp@borderNumFieldsDetected<-results[4,]
+            if(border=="rectangular"){
+              ### get border score
+              results<-.Call("border_score_rectangular_environment_cwrap", ## if no field is detected, you get NaN values
+                             as.integer(sp@cellList),
+                             length(sp@cellList),
+                             sp@nRowMap,
+                             sp@nColMap,
+                             sp@occupancy,
+                             sp@maps,
+                             sp@borderPercentageThresholdField,
+                             as.integer(sp@borderMinBinsInField))
+              sp@borderScore<-results[1,]
+              sp@borderCM<-results[2,]
+              sp@borderDM<-results[3,]
+              sp@borderNumFieldsDetected<-results[4,]
+            }
             
+            if(border=="circular")
+            {
+              ### get border score
+              results<-.Call("border_score_circular_environment_cwrap", ## if no field is detected, you get NaN values
+                             as.integer(sp@cellList),
+                             length(sp@cellList),
+                             sp@nRowMap,
+                             sp@nColMap,
+                             sp@occupancy,
+                             sp@maps,
+                             sp@borderPercentageThresholdField,
+                             as.integer(sp@borderMinBinsInField))
+              sp@borderScore<-results[1,]
+              sp@borderCM<-results[2,]
+              sp@borderDM<-results[3,]
+              sp@borderNumFieldsDetected<-results[4,]
+              sp@mapPolarity<-results[5,]
+            }
+
             # make spatial autocorrelations
             sp<-mapSpatialAutocorrelation(sp)
             sp@gridScore<-.Call("grid_score_cwrap",
@@ -353,19 +382,23 @@ setMethod(f="getMapStats",
 #' @param sp SpatialProperties2d object
 #' @param st SpikeTrain object
 #' @param pt Positrack object
+#' @param border Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular.
 #' @return SpatialProperties2d object with the random stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
 #' 
 #' @docType methods
 #' @rdname getMapStatsShuffle-methods
 setGeneric(name="getMapStatsShuffle",
-           def=function(sp,st,pt)
+           def=function(sp,st,pt,...)
            {standardGeneric("getMapStatsShuffle")}
 )
 #' @rdname getMapStatsShuffle-methods
 #' @aliases getMapStatsShuffle,ANY,ANY-method
 setMethod(f="getMapStatsShuffle",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt){
+          definition=function(sp,st,pt,border="rectangular"){
+        
+            if(border!="rectangular" & border!= "circular")
+              stop(paste("getMapstatsShuffle, value of border can be \"rectangular\" or \"circular\" but is", border))
             
             if(sp@nShufflings==0)            
               stop("sp@nShufflings==0")
@@ -395,19 +428,41 @@ setMethod(f="getMapStatsShuffle",
                                                                 as.numeric(sp@maps),
                                                                 as.numeric(sp@occupancy),
                                                                 as.integer(sp@nColMap*sp@nRowMap)))
-              ### get border score
-              results<-.Call("border_score_rectangular_environment_cwrap", # if no field is detected, you get NaN values
-                             as.integer(sp@cellList),
-                             length(sp@cellList),
-                             sp@nRowMap,
-                             sp@nColMap,
-                             sp@occupancy,
-                             sp@maps,
-                             sp@borderPercentageThresholdField,
-                             as.integer(sp@borderMinBinsInField))
-              sp@borderScoreShuffle <-c(sp@borderScoreShuffle,results[1,])
-              sp@borderCMShuffle<-c(sp@borderCMShuffle,results[2,])
-              sp@borderDMShuffle<-c(sp@borderDMShuffle,results[3,])
+              
+              if(border=="rectangular"){
+                ### get border score
+                results<-.Call("border_score_rectangular_environment_cwrap", # if no field is detected, you get NaN values
+                               as.integer(sp@cellList),
+                               length(sp@cellList),
+                               sp@nRowMap,
+                               sp@nColMap,
+                               sp@occupancy,
+                               sp@maps,
+                               sp@borderPercentageThresholdField,
+                               as.integer(sp@borderMinBinsInField))
+                sp@borderScoreShuffle <-c(sp@borderScoreShuffle,results[1,])
+                sp@borderCMShuffle<-c(sp@borderCMShuffle,results[2,])
+                sp@borderDMShuffle<-c(sp@borderDMShuffle,results[3,])
+              }
+              
+              if(border=="circular")
+              {
+                ### get border score
+                results<-.Call("border_score_circular_environment_cwrap", ## if no field is detected, you get NaN values
+                               as.integer(sp@cellList),
+                               length(sp@cellList),
+                               sp@nRowMap,
+                               sp@nColMap,
+                               sp@occupancy,
+                               sp@maps,
+                               sp@borderPercentageThresholdField,
+                               as.integer(sp@borderMinBinsInField))
+                sp@borderScoreShuffle<-results[1,]
+                sp@borderCMShuffle<-results[2,]
+                sp@borderDMShuffle<-results[3,]
+                sp@mapPolarityShuffle<-results[5,]
+              }
+              
               
               # make spatial autocorrelations
               sp<-mapSpatialAutocorrelation(sp)
@@ -681,15 +736,17 @@ setMethod(f="gridScore",
 #' @docType methods
 #' @rdname borderScore-methods
 setGeneric(name="borderScore",
-           def=function(sp)
+           def=function(sp,...)
            {standardGeneric("borderScore")}
 )
 #' @rdname borderScore-methods
 #' @aliases borderScore,ANY,ANY-method
 setMethod(f="borderScore",
           signature="SpatialProperties2d",
-          definition=function(sp)
+          definition=function(sp,border="rectangular")
           {
+            
+            
             if(length(sp@maps)==0)
               stop("Need to call firingRateMap2d first to run borderScore()")
             
@@ -711,38 +768,48 @@ setMethod(f="borderScore",
           }
 )
 
-#' Detect the border pixels in a rectangular environment and return
+#' Detect the border pixels in an environment and return
 #' a matrix with border pixels identified.
 #' 
 #' Call firingRateMap2d() to construct the map first before calling this function
 #' 
 #' @param sp SpatialProperties2d object
+#' @param border Set to rectangular or circular depending of the type of environment
+#' Default value is rectangular 
 #' @return A matrix with the border pixels set to non negative positive values
 #'  
 #'
 #' @docType methods
-#' @rdname borderDetectionRectangularEnv-methods
-setGeneric(name="borderDetectionRectangularEnv",
-           def=function(sp)
-           {standardGeneric("borderDetectionRectangularEnv")}
+#' @rdname borderDetection-methods
+setGeneric(name="borderDetection",
+           def=function(sp,...)
+           {standardGeneric("borderDetection")}
 )
-#' @rdname borderDetectionRectangularEnv-methods
-#' @aliases borderDetectionRectangularEnv,ANY,ANY-method
-setMethod(f="borderDetectionRectangularEnv",
+#' @rdname borderDetection-methods
+#' @aliases borderDetection,ANY,ANY-method
+setMethod(f="borderDetection",
           signature="SpatialProperties2d",
-          definition=function(sp)
+          definition=function(sp,border="rectangular")
           {
+            if(border!="rectangular" & border!= "circular")
+              stop(paste("borderDetection, value of border can be \"rectangular\" or \"circular\" but is", border))
+            
             if(length(sp@maps)==0)
-              stop("Need to call firingRateMap2d first to run borderDetectionRectangularEnv()")
-            results<-.Call("border_detection_rectangular_environment_cwrap",
-                           sp@nRowMap,
-                           sp@nColMap,
-                           sp@occupancy)
+              stop("Need to call firingRateMap2d first to run borderDetection()")
+            if(border=="rectangular"){
+              results<-.Call("border_detection_rectangular_environment_cwrap",
+                             sp@nRowMap,
+                             sp@nColMap,
+                             sp@occupancy)
+            }
+            if(border=="circular"){
+              results<-.Call("border_detection_circular_environment_cwrap",
+                             sp@nRowMap,
+                             sp@nColMap,
+                             sp@occupancy)
+            }
             return(results)
           })
-
-
-
 
 #' Speed scores from spike train and positrack
 #' 

@@ -835,4 +835,71 @@ void circular_stats_rate_histogram(double* histo,
   *mean_vector_length = R/sum_histo;
   return;
 }
-
+double direction(double x1,double y1,double x2, double y2){
+  /* return the direction (radian) of the vector*/
+  double dir;
+  double dx=x2-x1;
+  double dy=y2-y1;
+  dir = atan((dy)/(dx));
+  
+  // correct depending in which quardran we are
+  if(dy>=0&&dx<0) // second quadrant
+  {
+    dir=M_PI+dir;
+  }
+  if(dy<0&&dx<=0) // third quadrant
+  {
+    dir=M_PI+dir;
+  }
+  if(dy<0&&dx>0) // fourth quadrant
+  {
+    dir=(2*M_PI)+dir;
+  }
+  if(dir<0||dir>2*M_PI)
+    Rprintf("direction(), dir is <0 or > 2*M_PI: %lf\n",dir);
+    return dir;
+}
+double mean_vector_length_weighted(double * array,double * w, int size)
+{
+  /* return mean vector length from an array of directions in radian
+  see Statistical analysis of circular data by NI Fisher page 30*/
+  double C=0; // sum cos
+  double S=0; // sum sin
+  double R=0; // length of hypothenus
+  int n = 0;
+  double wsum;
+  double mean_vector_length = -1;
+  for (int i = 0 ; i < size; i++)
+  {
+    if ((array[i] < 0 || array[i] > 2*M_PI) && array[i]!=-1)
+    {
+      Rprintf("mean_vector_length_weighted, array[i] is (array[i] < 0 || array[i] > 2*M_PI)&& array[i]!=-1)\n");
+      return -1;
+    }
+    if (array[i]!=-1&&w[i]!=-1)
+    {
+      S=S+sin(array[i])*w[i];
+      C=C+cos(array[i])*w[i];
+      n++;
+    }
+  }
+  if (n!=0)
+  {
+    R=sqrt(C*C+S*S);
+    // get sum of w
+    wsum=sum_double(size, w,-1.0);
+    if(wsum>0)
+    {
+      mean_vector_length = R/wsum;
+    }
+    else
+    {
+      Rprintf("mean_vector_length_weighted(), wsum <= 0\n");
+    }
+    if (mean_vector_length>1|| mean_vector_length<0)
+    {
+      Rprintf("mean_vector_length_weighted(), mean length should be between 0 and 1 but is %lf\n)",mean_vector_length);
+    }
+  }
+  return mean_vector_length;
+}
