@@ -312,9 +312,8 @@ setMethod(f="getMapStats",
                                 as.numeric(sp@occupancy),
                                 as.integer(sp@nColMap*sp@nRowMap))
             
-            
             ### get border score
-            results<-.Call("border_score_rectangular_environment_cwrap",
+            results<-.Call("border_score_rectangular_environment_cwrap", ## if no field is detected, you get NaN values
                            as.integer(sp@cellList),
                            length(sp@cellList),
                            sp@nRowMap,
@@ -397,7 +396,7 @@ setMethod(f="getMapStatsShuffle",
                                                                 as.numeric(sp@occupancy),
                                                                 as.integer(sp@nColMap*sp@nRowMap)))
               ### get border score
-              results<-.Call("border_score_rectangular_environment_cwrap",
+              results<-.Call("border_score_rectangular_environment_cwrap", # if no field is detected, you get NaN values
                              as.integer(sp@cellList),
                              length(sp@cellList),
                              sp@nRowMap,

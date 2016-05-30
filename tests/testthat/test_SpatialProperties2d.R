@@ -38,7 +38,7 @@ test_that("spike position",{
 })
 test_that("occupancy maps",{
   
-  sp<-new("SpatialProperties2d")
+ 
   ### animal is at all location only once, from 1 to 50 in a 2d matrix
   pt<-new("Positrack")
   maxx=50
@@ -52,7 +52,7 @@ test_that("occupancy maps",{
   pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
                    resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
   
-  
+  sp<-new("SpatialProperties2d")
   sp@nRowMap=as.integer(((max(pt@x)+1)/sp@cmPerBin)+1) # x in R is a row
   sp@nColMap=as.integer(((max(pt@y)+1)/sp@cmPerBin)+1) # y in R is a col
   
@@ -73,7 +73,7 @@ test_that("occupancy maps",{
   ## the animal was 3 times in each bin, resSamplesPerWhlSample/samplingRateDat*1000*3 = 60
   expect_false(any(results!=60))
   
-  rm(maxx,minx,maxy,miny,x,y,hd,pt,st,sp)
+  rm(maxx,minx,maxy,miny,x,y,hd,pt,sp)
 })
 
 
@@ -140,8 +140,6 @@ test_that("border score, CM and DM in rectangular environments",{
   st<-new("SpikeTrain")
   ## set the spike trains in the object
   spikeTimes<- (1:(maxx))*pt@resSamplesPerWhlSample
-  summary(x)
-  1:(maxx/2)
   st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
   st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
   
@@ -160,9 +158,8 @@ test_that("border score, CM and DM in rectangular environments",{
   # number of pixels part of the border should be as follows
   expect_equal(length(b[b!=0]),(maxx-minx)*2+(maxy-miny)*2)
   
-  sp<-getMapStats(sp,st,pt)
-  
   ## get the bottom column of the map with spikes
+  sp<-getMapStats(sp,st,pt)
   m<-sp@maps[,2,1]
   m<-m[which(!is.na(m))]
   l1<-length(m[which(m!=0.0)])
@@ -170,10 +167,39 @@ test_that("border score, CM and DM in rectangular environments",{
   sp@borderCM
   expect_equal(CM,sp@borderCM)
   
+
+  ## have a cell with firing covering only half of the wall 
+  expectedCM<-0.5
+  spikeTimes<-(1:(maxx*expectedCM))*pt@resSamplesPerWhlSample
+  st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+  st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+  sp<-getMapStats(sp,st,pt)
+  expect_equal(sp@borderCM,expectedCM)
+  
+  ## expect DM to be 0 because firing is limited to border pixels
+  expect_equal(sp@borderDM,0)
   
   
+  nSpikes=1
+  spikeTimes<-(length(x)*pt@resSamplesPerWhlSample/2)-(maxx/2*pt@resSamplesPerWhlSample)
+  st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,nSpikes),samplingRate=20000)
+  st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+  sp<-firingRateMap2d(sp,st,pt)   
+  firingRateMapPlot(m=sp@maps[,,1])
+  sp<-getMapStats(sp,st,pt)
+  expect_equal(sp@borderCM,NaN) # because there is no field detected
   
   
+  sp@smoothRateMapSd=1.5
+  sp@smoothOccupancySd=1
+  sp<-firingRateMap2d(sp,st,pt)   
+  firingRateMapPlot(m=sp@maps[,,1])
+  sp<-getMapStats(sp,st,pt)
+  expect_equal(sp@borderCM,0)
+  expect_gt(sp@borderDM,0.95) ## all firing rate are in the middle of the map
+  
+  
+  rm(maxx,minx,maxy,miny,x,y,st,sp,pt,spikeTimes,expectedCM,l1,CM,m,b,hd)
 })
 
 test_that("Information score",{

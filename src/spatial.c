@@ -2885,6 +2885,9 @@ int assign_wall_to_border_pixels(int num_bins_x, int num_bins_y, int* border_x, 
      the two vertical or horizontal walls should be in different half of the map
      We simply count the number of border pixels for each row or column of the map
      Walls should results in a high number of pixel for a given row or column
+   
+     Note that a pixel can only be assigned to one border. It is assigned to the closest wall, if distances are equal the assignation
+     is arbitrary set by the order of if statements
   */
   
   double* col_sum = (double*) malloc(num_bins_x*sizeof(double));
@@ -3046,12 +3049,12 @@ SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,
   int* border_map = INTEGER_POINTER(out);
   int* border_x =  (int*) malloc(total_bins*sizeof(int)); // list of x index for border bins
   int* border_y = (int*) malloc(total_bins*sizeof(int)); // list of y index for border bins
-  Rprintf("identify_border_pixels_in_occupancy_map() call\n");
+ // Rprintf("identify_border_pixels_in_occupancy_map() call\n");
   identify_border_pixels_in_occupancy_map(tocc_map,num_bins_x,num_bins_y,border_map,border_x,border_y,&num_bins_border);
   
   // 2) identify the four walls, remove border pixels that are not next to one of the 4 walls
   int* wall_id =  (int*) malloc(num_bins_border*sizeof(int));
-  Rprintf("assign_wall_to_border_pixel() call\n");
+//  Rprintf("assign_wall_to_border_pixel() call\n");
   assign_wall_to_border_pixels(num_bins_x, num_bins_y, border_x, border_y, &num_bins_border, wall_id,border_map);
   
   int sum;
@@ -3062,15 +3065,13 @@ SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,
       if(wall_id[i]==j)
         sum++;      
     }
-    Rprintf("wall id: %d, sum: %d\n",j,sum);
+   // Rprintf("wall id: %d, sum: %d\n",j,sum);
   }
   
   for(int i = 0; i < num_bins_border;i++)
   {
     border_map[border_x[i]*num_bins_y+border_y[i]]=wall_id[i]+1;
   }
-  
-  
   
   free(border_x);
   free(border_y);
@@ -3312,8 +3313,8 @@ void border_score_rectangular_environment(int* cells,
       }
       max_fr_remaining=find_max_double(total_bins,detection_map);
     }
+    
     CM=max_CM;
-    //cerr << "max_CM:" << max_CM << '\n';
     
     // calculate DM
     sum_firing_rate_in_fields=sum_double(total_bins,all_fields_map,-1.0);
@@ -3349,8 +3350,8 @@ void border_score_rectangular_environment(int* cells,
     }
     else
     {
-      cm[i]= CM;
-      dm[i]= DM;
+      cm[i]= NAN;
+      dm[i]= NAN;
       num_fields_detected[i]=number_fields_detected;
       border_score[i]=(CM-DM)/(CM+DM);
     }

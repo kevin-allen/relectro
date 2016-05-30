@@ -3,7 +3,7 @@ library(relectro)
 context("set intervals")
 test_that("set intervals",{
   st<-new("SpikeTrain")
-  st<-setSpikeTrain(st,res=c(1,20000),clu=c(1,1),samplingRate=20000)
+  st<-setSpikeTrain(st,res=c(1,19999),clu=c(1,1),samplingRate=20000)
   expect_equal((sum(st@endInterval-st@startInterval)/st@samplingRate),1)
   st<-setIntervals(st,s=c(0),e=c(40000))
   
@@ -50,10 +50,10 @@ test_that("Sum of spikes in spike-time autocorrelation",{
 context("Firing rate")
 test_that("Sum of spikes in spike-time autocorrelation",{
   st<-new("SpikeTrain")
-  st<-setSpikeTrain(st,res=c(0,20000),clu=c(1,1),samplingRate=20000)
+  st<-setSpikeTrain(st,res=c(0,19999),clu=c(1,1),samplingRate=20000)
   st<-meanFiringRate(st)  
   expect_equal(st@meanFiringRate,2)
-  st<-setIntervals(st,s=c(0),e=c(20000))
+  st<-setIntervals(st,s=c(0),e=c(19999))
   st<-meanFiringRate(st)  
   expect_equal(st@meanFiringRate,0)
   st<-setSpikeTrain(st,res=c(1,19999),clu=c(1,1),samplingRate=20000)
