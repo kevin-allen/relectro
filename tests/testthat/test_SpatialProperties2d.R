@@ -93,7 +93,6 @@ test_that("firing rate maps",{
   pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
                    resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
   
-  
   st<-new("SpikeTrain")
   ## set the spike trains in the object
   nSpikes=1
@@ -111,8 +110,6 @@ test_that("firing rate maps",{
   ## one spike in 60 ms time 
   expect_equal(max(sp@maps),1/60*1000)
 
-  
-  
   ## make sure the filter does not affect the sum of the firing rates 
   sumSmoothZero<-sum(sp@maps[which(sp@maps!=-1.0)])
   sp@cmPerBin=1
@@ -123,5 +120,66 @@ test_that("firing rate maps",{
   sumSmoothThree<-sum(sp@maps[which(sp@maps!=-1.0)])
   expect_equal(sumSmoothZero,sumSmoothThree)  
   
+})
+
+test_that("border score, CM and DM in rectangular environments",{
+  
+  ### animal is at all location only once, from 1 to 50 in a 2d matrix
+  pt<-new("Positrack")
+  maxx=50
+  minx=1
+  maxy=50
+  miny=1
+  x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),3)-0.5
+  y=rep(rep(seq(miny,maxy),each=maxx-minx+1),3)-0.5
+  hd<-(sin(cumsum(rnorm(mean=0, sd=0.3, n=length(x))))+1)/2*360
+  pt@defaultXYSmoothing=0
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+  
+  st<-new("SpikeTrain")
+  ## set the spike trains in the object
+  spikeTimes<- (1:(maxx))*pt@resSamplesPerWhlSample
+  summary(x)
+  1:(maxx/2)
+  st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+  st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+  
+  sp<-new("SpatialProperties2d")
+  sp@cmPerBin=1
+  sp@smoothRateMapSd=0
+  sp@smoothOccupancySd=0
+  sp<-firingRateMap2d(sp,st,pt)   
+  firingRateMapPlot(m=sp@maps[,,1])
+  
+  
+  b<-borderDetectionRectangularEnv(sp)
+  # returned matrix should be same size as occ map
+  expect_equal(dim(b),dim(sp@occupancy))
+  
+  # number of pixels part of the border should be as follows
+  expect_equal(length(b[b!=0]),(maxx-minx)*2+(maxy-miny)*2)
+  
+  sp<-getMapStats(sp,st,pt)
+  
+  ## get the bottom column of the map with spikes
+  m<-sp@maps[,2,1]
+  m<-m[which(!is.na(m))]
+  l1<-length(m[which(m!=0.0)])
+  CM<-l1/length(m)
+  sp@borderCM
+  expect_equal(CM,sp@borderCM)
+  
+  
+  
+  
+  
+})
+
+test_that("Information score",{
+  
+})
+
+test_that("Grid score",{
   
 })

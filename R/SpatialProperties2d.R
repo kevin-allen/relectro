@@ -139,6 +139,10 @@ setMethod("show", "SpatialProperties2d",
               print(paste(object@infoScore))
               print("borderScore:")
               print(paste(object@borderScore))
+              print("DM:")
+              print(paste(object@borderDM))
+              print("CM:")
+              print(paste(object@borderCM))
               print("gridScore:")
               print(paste(object@gridScore))
             }
@@ -707,6 +711,39 @@ setMethod(f="borderScore",
             return(sp)
           }
 )
+
+#' Detect the border pixels in a rectangular environment and return
+#' a matrix with border pixels identified.
+#' 
+#' Call firingRateMap2d() to construct the map first before calling this function
+#' 
+#' @param sp SpatialProperties2d object
+#' @return A matrix with the border pixels set to non negative positive values
+#'  
+#'
+#' @docType methods
+#' @rdname borderDetectionRectangularEnv-methods
+setGeneric(name="borderDetectionRectangularEnv",
+           def=function(sp)
+           {standardGeneric("borderDetectionRectangularEnv")}
+)
+#' @rdname borderDetectionRectangularEnv-methods
+#' @aliases borderDetectionRectangularEnv,ANY,ANY-method
+setMethod(f="borderDetectionRectangularEnv",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@maps)==0)
+              stop("Need to call firingRateMap2d first to run borderDetectionRectangularEnv()")
+            results<-.Call("border_detection_rectangular_environment_cwrap",
+                           sp@nRowMap,
+                           sp@nColMap,
+                           sp@occupancy)
+            return(results)
+          })
+
+
+
 
 #' Speed scores from spike train and positrack
 #' 

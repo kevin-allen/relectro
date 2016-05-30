@@ -2723,75 +2723,124 @@ int identify_border_pixels_in_occupancy_map(double* occ_map, int num_bins_x, int
 int find_border_starting_point(double* occ_map, int num_bins_x, int num_bins_y,int*border_map,int*border_x,int* border_y,int* num_bins_border)
 {
   for (int x = 0 ; x < num_bins_x; x++)
+  {
+    for (int y = 0; y < num_bins_y; y++)
     {
-      for (int y = 0; y < num_bins_y; y++)
-	{
-	  if (x!=0&&x!=num_bins_x-1&&y!=0&&y!=num_bins_y-1)
-	    {  
-	      // a starting point could be a valid pixel, with 3 non visited pixels on right, and none on the left, or reverse
-	      if((border_map[((x)*num_bins_y)+y]!=1 &&
-		  occ_map[((x)*num_bins_y)+y]!=-1 &&
-		  occ_map[((x-1)*num_bins_y)+y-1]==-1 &&
-		  occ_map[((x-1)*num_bins_y)+y]==-1 &&
-		  occ_map[((x-1)*num_bins_y)+y+1]==-1 &&
-		  occ_map[((x+1)*num_bins_y)+y-1]!=-1 &&
-		  occ_map[((x+1)*num_bins_y)+y]!=-1 &&
-		  occ_map[((x+1)*num_bins_y)+y+1]!=-1)
-		 ||
-		 (border_map[((x)*num_bins_y)+y]!=1 &&
-		  occ_map[((x)*num_bins_y)+y]!=-1 &&
-		  occ_map[((x-1)*num_bins_y)+y-1]!=-1 &&
-		  occ_map[((x-1)*num_bins_y)+y]!=-1 &&
-		  occ_map[((x-1)*num_bins_y)+y+1]!=-1 &&
-		  occ_map[((x+1)*num_bins_y)+y-1]==-1 &&
-		  occ_map[((x+1)*num_bins_y)+y]==-1 &&
-		  occ_map[((x+1)*num_bins_y)+y+1]==-1))
-		{
-		  border_map[(x*num_bins_y)+y]=1;
-		  border_x[*num_bins_border]=x;
-		  border_y[*num_bins_border]=y;
-		  (*num_bins_border)++;
-		  return 1;
-		}
-	      // a border pixels could have 3 non visited pixels above, and none below, or reverse
-	      if((border_map[((x)*num_bins_y)+y]!=1 &&
-		  occ_map[((x)*num_bins_y)+y]!=-1 &&
-		  occ_map[((x-1)*num_bins_y)+y-1]==-1 &&
-		  occ_map[((x)*num_bins_y)+y-1]==-1 &&
-		  occ_map[((x+1)*num_bins_y)+y-1]==-1 &&
-		  occ_map[((x-1)*num_bins_y)+y+1]!=-1 &&
-		  occ_map[((x)*num_bins_y)+y+1]!=-1 &&
-		  occ_map[((x+1)*num_bins_y)+y+1]!=-1)
-		 ||
-		 (border_map[((x)*num_bins_y)+y]!=1 &&
-		  occ_map[((x)*num_bins_y)+y]!=-1 &&
-		  occ_map[((x-1)*num_bins_y)+y-1]!=-1 &&
-		  occ_map[((x)*num_bins_y)+y-1]!=-1 &&
-		  occ_map[((x+1)*num_bins_y)+y-1]!=-1 &&
-		  occ_map[((x-1)*num_bins_y)+y+1]==-1 &&
-		  occ_map[((x)*num_bins_y)+y+1]==-1 &&
-		  occ_map[((x+1)*num_bins_y)+y+1]==-1))
-		{
-		  border_map[(x*num_bins_y)+y]=1;
-		  border_x[*num_bins_border]=x;
-		  border_y[*num_bins_border]=y;
-		  (*num_bins_border)++;
-		  return 1;
-		}
-	    }
-	  else
-	    {// border could be a visited bin on the edge of the occ map
-	      if (occ_map[(x*num_bins_y)+y]!=-1&&border_map[((x)*num_bins_y)+y]!=1)
-		{
-		  border_map[(x*num_bins_y)+y]=1;
-		  border_x[*num_bins_border]=x;
-		  border_y[*num_bins_border]=y;
-		  (*num_bins_border)++;
-		  return 1;
-		}
-	    }
-	}
+      if (x!=0&&x!=num_bins_x-1&&y!=0&&y!=num_bins_y-1)
+      {  
+        // a starting point could be a valid pixel, with 3 non visited pixels on right, and none on the left, or reverse
+        if((border_map[((x)*num_bins_y)+y]!=1 &&
+           occ_map[((x)*num_bins_y)+y]!=-1 &&
+           occ_map[((x-1)*num_bins_y)+y-1]==-1 &&
+           occ_map[((x-1)*num_bins_y)+y]==-1 &&
+           occ_map[((x-1)*num_bins_y)+y+1]==-1 &&
+           occ_map[((x+1)*num_bins_y)+y-1]!=-1 &&
+           occ_map[((x+1)*num_bins_y)+y]!=-1 && 
+           occ_map[((x+1)*num_bins_y)+y+1]!=-1)
+             ||
+               (border_map[((x)*num_bins_y)+y]!=1 &&
+               occ_map[((x)*num_bins_y)+y]!=-1 &&
+               occ_map[((x-1)*num_bins_y)+y-1]!=-1 &&
+               occ_map[((x-1)*num_bins_y)+y]!=-1 &&
+               occ_map[((x-1)*num_bins_y)+y+1]!=-1 &&
+               occ_map[((x+1)*num_bins_y)+y-1]==-1 &&
+               occ_map[((x+1)*num_bins_y)+y]==-1 &&
+               occ_map[((x+1)*num_bins_y)+y+1]==-1))
+        {
+          border_map[(x*num_bins_y)+y]=1;
+          border_x[*num_bins_border]=x;
+          border_y[*num_bins_border]=y;
+         // Rprintf("starting at %d %d\n",x,y);
+          (*num_bins_border)++;
+          return 1;
+        }
+        // a border pixels could have 3 non visited pixels above, and none below, or reverse
+        if((border_map[((x)*num_bins_y)+y]!=1 &&
+           occ_map[((x)*num_bins_y)+y]!=-1 &&
+           occ_map[((x-1)*num_bins_y)+y-1]==-1 &&
+           occ_map[((x)*num_bins_y)+y-1]==-1 &&
+           occ_map[((x+1)*num_bins_y)+y-1]==-1 &&
+           occ_map[((x-1)*num_bins_y)+y+1]!=-1 &&
+           occ_map[((x)*num_bins_y)+y+1]!=-1 &&
+           occ_map[((x+1)*num_bins_y)+y+1]!=-1)
+             ||
+               (border_map[((x)*num_bins_y)+y]!=1 &&
+               occ_map[((x)*num_bins_y)+y]!=-1 &&
+               occ_map[((x-1)*num_bins_y)+y-1]!=-1 &&
+               occ_map[((x)*num_bins_y)+y-1]!=-1 &&
+               occ_map[((x+1)*num_bins_y)+y-1]!=-1 &&
+               occ_map[((x-1)*num_bins_y)+y+1]==-1 &&
+               occ_map[((x)*num_bins_y)+y+1]==-1 &&
+               occ_map[((x+1)*num_bins_y)+y+1]==-1))
+        {
+          border_map[(x*num_bins_y)+y]=1;
+          border_x[*num_bins_border]=x;
+          border_y[*num_bins_border]=y;
+          (*num_bins_border)++;
+         // Rprintf("starting at %d %d\n",x,y);
+          return 1;
+        }
+        
+        // a border pixel could have 3 non visited pixels and be at one of the 4 corners of the rectangle
+        // need this otherwise we miss 2 corners in a rectangular map
+        if((border_map[((x)*num_bins_y)+y]!=1 && // top left
+           occ_map[((x)*num_bins_y)+y]!=-1 &&
+           occ_map[((x-1)*num_bins_y)+y]==-1 &&
+           occ_map[((x-1)*num_bins_y)+y+1]==-1 &&
+           occ_map[((x)*num_bins_y)+y+1]==-1 &&
+           occ_map[((x)*num_bins_y)+y-1]!=-1 &&
+           occ_map[((x+1)*num_bins_y)+y]!=-1 &&
+           occ_map[((x+1)*num_bins_y)+y+1]!=-1)
+          ||
+            (border_map[((x)*num_bins_y)+y]!=1 && // top right
+            occ_map[((x)*num_bins_y)+y]!=-1 &&
+            occ_map[((x)*num_bins_y)+y+1]==-1 &&
+            occ_map[((x+1)*num_bins_y)+y+1]==-1 &&
+            occ_map[((x+1)*num_bins_y)+y]==-1 &&
+            occ_map[((x-1)*num_bins_y)+y]!=-1 &&
+            occ_map[((x-1)*num_bins_y)+y-1]!=-1 &&
+            occ_map[((x)*num_bins_y)+y-1]!=-1)
+          ||
+            (border_map[((x)*num_bins_y)+y]!=1 && // bottom left
+            occ_map[((x)*num_bins_y)+y]!=-1 &&
+            occ_map[((x-1)*num_bins_y)+y]==-1 &&
+            occ_map[((x-1)*num_bins_y)+y-1]==-1 &&
+            occ_map[((x)*num_bins_y)+y-1]==-1 &&
+            occ_map[((x)*num_bins_y)+y+1]!=-1 &&
+            occ_map[((x+1)*num_bins_y)+y+1]!=-1 &&
+            occ_map[((x+1)*num_bins_y)+y]!=-1)
+            ||
+            (border_map[((x)*num_bins_y)+y]!=1 && // bottom right
+            occ_map[((x)*num_bins_y)+y]!=-1 &&
+            occ_map[((x)*num_bins_y)+y-1]==-1 &&
+            occ_map[((x+1)*num_bins_y)+y-1]==-1 &&
+            occ_map[((x+1)*num_bins_y)+y]==-1 &&
+            occ_map[((x-1)*num_bins_y)+y]!=-1 &&
+            occ_map[((x-1)*num_bins_y)+y+1]!=-1 &&
+            occ_map[((x)*num_bins_y)+y+1]!=-1))
+        {
+          border_map[(x*num_bins_y)+y]=1;
+          border_x[*num_bins_border]=x;
+          border_y[*num_bins_border]=y;
+          (*num_bins_border)++;
+         // Rprintf("starting at %d %d\n",x,y);
+          return 1;
+        }
+      }
+      else
+      {// border could be a visited bin on the edge of the occ map
+        if (occ_map[(x*num_bins_y)+y]!=-1&&border_map[((x)*num_bins_y)+y]!=1)
+        {
+          border_map[(x*num_bins_y)+y]=1;
+          border_x[*num_bins_border]=x;
+          border_y[*num_bins_border]=y;
+          (*num_bins_border)++;
+        //  Rprintf("starting at %d %d\n",x,y);
+          return 1;
+        }
+      }
     }
+  }
   return 0;
 }
 
@@ -2799,27 +2848,32 @@ int find_an_adjacent_border_pixel(double* occ_map, int num_bins_x, int num_bins_
 {
   // look for a pixels around the last added pixel that could be a border, in the 9 pixels around it
   for (int x = border_x[(*num_bins_border)-1]-1;x<=border_x[(*num_bins_border)-1]+1;x++)
+  {
+    for (int y = border_y[(*num_bins_border)-1]-1;y<=border_y[(*num_bins_border)-1]+1;y++)
     {
-      for (int y = border_y[(*num_bins_border)-1]-1;y<=border_y[(*num_bins_border)-1]+1;y++)
-	{
-	  if(
-	     ((x>0 && x<num_bins_x-1 && border_map[((x)*num_bins_y)+y]!=1 && occ_map[((x)*num_bins_y)+y]!=-1&&y<num_bins_y) // valid pixel not already border
-	      &&
-	      (occ_map[((x-1)*num_bins_y)+y]==-1 || occ_map[((x+1)*num_bins_y)+y]==-1))
-	     || 
-	     ((y>0 && y<num_bins_y-1 && border_map[((x)*num_bins_y)+y]!=1 && occ_map[((x)*num_bins_y)+y]!=-1&&x<num_bins_x) 
-	      &&
-	      (occ_map[(x*num_bins_y)+y-1]==-1 || occ_map[(x*num_bins_y)+y+1]==-1)))
-	    {
-	      border_map[(x*num_bins_y)+y]=1;
-	      border_x[*num_bins_border]=x;
-	      border_y[*num_bins_border]=y;
-	      (*num_bins_border)++;
-	      find_an_adjacent_border_pixel(occ_map,num_bins_x,num_bins_y,border_map,border_x,border_y,num_bins_border);// recursive search
-	      return 1;
-	    }
-	}
+      if(
+        ((x>0 && // not in x==0, we need to see a -1.0 value on the left side
+          x<num_bins_x-1 && // not is x = length(x), we need to see a -1.0 value on the right side
+          border_map[((x)*num_bins_y)+y]!=1 &&  // not already considered a border pixel
+          occ_map[((x)*num_bins_y)+y]!=-1&&y<num_bins_y) && // bin was visited by animal and is not after y limit
+          (occ_map[((x-1)*num_bins_y)+y]==-1 || occ_map[((x+1)*num_bins_y)+y]==-1)) // should have an invalid bin on right or left side
+        || 
+          ((y>0 && 
+          y<num_bins_y-1 && 
+          border_map[((x)*num_bins_y)+y]!=1 && 
+          occ_map[((x)*num_bins_y)+y]!=-1&&x<num_bins_x) &&
+          (occ_map[(x*num_bins_y)+y-1]==-1 || occ_map[(x*num_bins_y)+y+1]==-1)))
+      {
+        border_map[(x*num_bins_y)+y]=1;
+        border_x[*num_bins_border]=x;
+        border_y[*num_bins_border]=y;
+     //   Rprintf("adding %d %d\n",x,y);
+        (*num_bins_border)++;
+        find_an_adjacent_border_pixel(occ_map,num_bins_x,num_bins_y,border_map,border_x,border_y,num_bins_border);// recursive search
+        return 1;
+      }
     }
+  }
   return 0;
 }
 
@@ -2847,141 +2901,183 @@ int assign_wall_to_border_pixels(int num_bins_x, int num_bins_y, int* border_x, 
   int num_bins_wall;
 
   for(int i = 0; i < num_bins_x; i++)
+  {
+    sum=0;
+    for(int j = 0; j < *num_bins_border; j++)
     {
-      sum=0;
-      for(int j = 0; j < *num_bins_border; j++)
-	{
-	  if(border_x[j]==i)
-	    sum++;
-	}
-      col_sum[i]=sum;
+      if(border_x[j]==i)
+        sum++;
     }
-
+    col_sum[i]=sum;
+  }
+  
   for(int i = 0; i < num_bins_y; i++)
+  {
+    sum=0;
+    for(int j = 0; j < *num_bins_border; j++)
     {
-      sum=0;
-      for(int j = 0; j < *num_bins_border; j++)
-	{
-	  if(border_y[j]==i)
-	    sum++;
-	}
-      row_sum[i]=sum;
+      if(border_y[j]==i)
+        sum++;
     }
+    row_sum[i]=sum;
+  }
   
   max=0;
   for(int i = 0; i < num_bins_x/2; i++)
+  {
+    if(col_sum[i]>max)
     {
-      if(col_sum[i]>max)
-	{
-	  max=col_sum[i];
-	  v1=i;
-	}
+      max=col_sum[i];
+      v1=i;
     }
+  }
   max=0;
   for(int i = num_bins_x/2; i < num_bins_x; i++)
+  {
+    if(col_sum[i]>max)
     {
-      if(col_sum[i]>max)
-	{
-	  max=col_sum[i];
-	  v2=i;
-	}
+      max=col_sum[i];
+      v2=i;
     }
+  }
   max=0;
   for(int i = 0; i < num_bins_y/2; i++)
+  {
+    if(row_sum[i]>max)
     {
-      if(row_sum[i]>max)
-	{
-	  max=row_sum[i];
-	  h1=i;
-	}
+      max=row_sum[i];
+      h1=i;
     }
+  }
   max=0;
   for(int i = num_bins_y/2; i < num_bins_y; i++)
+  {
+    if(row_sum[i]>max)
     {
-      if(row_sum[i]>max)
-	{
-	  max=row_sum[i];
-	  h2=i;
-	}
+      max=row_sum[i];
+      h2=i;
     }
-    
+  }
+  
   for(int i =0; i < *num_bins_border;i++)
     wall_id[i]=-1;
   
-  /*
-  cerr << " v1:" << v1 
-       << " v2:" << v2
-       << " h1:" << h1
-       << " h2:" << h2 << '\n';
-  */
-
   for(int i =0; i < *num_bins_border;i++)
-    {
-      dist_v1=sqrt((border_x[i]-v1)*(border_x[i]-v1));
-      dist_v2=sqrt((border_x[i]-v2)*(border_x[i]-v2));
-      dist_h1=sqrt((border_y[i]-h1)*(border_y[i]-h1));
-      dist_h2=sqrt((border_y[i]-h2)*(border_y[i]-h2));
-
-      if(dist_v1<2)
-	wall_id[i]=0;
-      if(dist_v2<2)
-	wall_id[i]=1;
-      if(dist_h1<2)
-	wall_id[i]=2;
-      if(dist_h2<2)
-	wall_id[i]=3;
-      /*
-      cerr << border_x[i] << " " << border_y[i] 
-	   << " dv1:" << dist_v1 
-	   << " dv2:" << dist_v2
-	   << " dh1:" << dist_h1
-	   << " dh1:" << dist_h2
-	   << " wall_id:" << wall_id[i] << '\n';
-      */	
-    }
+  {
+    dist_v1=sqrt((border_x[i]-v1)*(border_x[i]-v1));
+    dist_v2=sqrt((border_x[i]-v2)*(border_x[i]-v2));
+    dist_h1=sqrt((border_y[i]-h1)*(border_y[i]-h1));
+    dist_h2=sqrt((border_y[i]-h2)*(border_y[i]-h2));
+ 
+ 
+    // assign to the closest border
+    if(dist_v1<2&&dist_v1<=dist_v2&&dist_v1<=dist_h1&&dist_v1<=dist_h2)
+       wall_id[i]=0;
+    if(dist_v2<2&&dist_v2<=dist_v1&&dist_v2<=dist_h1&&dist_v2<=dist_h2)
+      wall_id[i]=1;
+    if(dist_h1<2&&dist_h1<=dist_h2&&dist_h1<=dist_v1&&dist_h1<=dist_v2)
+      wall_id[i]=2;
+    if(dist_h2<2&&dist_h2<=dist_h1&&dist_h2<=dist_v1&&dist_h2<=dist_v2)
+      wall_id[i]=3;
+  }
   
   // if a pixels is not associated to a wall, remove it from the border_map;
   for(int i =0; i < *num_bins_border;i++)
+  {
+    if(wall_id[i]==-1)
     {
-      if(wall_id[i]==-1)
-	{
-	  border_map[(border_x[i]*num_bins_y)+border_y[i]]=0;
-	}
+      border_map[(border_x[i]*num_bins_y)+border_y[i]]=0;
     }
-
-  
+  }
   // remove border pixels that are not close to a wall
   x = (int*)malloc((*num_bins_border)*sizeof(int));
   y = (int*)malloc((*num_bins_border)*sizeof(int));
   id =(int*)malloc((*num_bins_border)*sizeof(int));
   num_bins_wall=0;
   
-
   for(int i =0; i < *num_bins_border;i++)
+  {
+    if(wall_id[i]!=-1)
     {
-      if(wall_id[i]!=-1)
-	{
-	  x[num_bins_wall]=border_x[i];
-	  y[num_bins_wall]=border_y[i];
-	  id[num_bins_wall]=wall_id[i];
-	  num_bins_wall++;
-	}
+      x[num_bins_wall]=border_x[i];
+      y[num_bins_wall]=border_y[i];
+      id[num_bins_wall]=wall_id[i];
+      num_bins_wall++;
     }
+  }
   for(int i = 0; i < num_bins_wall; i++)
-    {
-      border_x[i]=x[i];
-      border_y[i]=y[i];
-      wall_id[i]=id[i];
-    }
+  {
+    border_x[i]=x[i];
+    border_y[i]=y[i];
+    wall_id[i]=id[i];
+  }
   
   (*num_bins_border)=num_bins_wall;
-
+  
   free(col_sum);
   free(row_sum);
   free(x);
   free(y);
   free(id);
   return 0;
+}
+
+
+
+
+SEXP border_detection_rectangular_environment_cwrap(SEXP num_bins_x_r,
+                                                SEXP num_bins_y_r,
+                                                SEXP occ_map_r)
+{
+  int num_bins_x = INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y = INTEGER_VALUE(num_bins_y_r);
+  double* occ_map = REAL(occ_map_r);
+  
+  int total_bins= num_bins_x*num_bins_y;
+  
+  double* tocc_map = (double*)malloc(total_bins*sizeof(double));
+  for(int x = 0; x < num_bins_x; x++) 
+    for(int y = 0; y < num_bins_y; y++)
+      tocc_map[x*num_bins_y+y]=occ_map[x+num_bins_x*y];
+  
+  // 1) identify the borders in the occupancy map
+  int num_bins_border=0;
+  SEXP out = PROTECT(allocMatrix(INTSXP,num_bins_x,num_bins_y));
+  int* border_map = INTEGER_POINTER(out);
+  int* border_x =  (int*) malloc(total_bins*sizeof(int)); // list of x index for border bins
+  int* border_y = (int*) malloc(total_bins*sizeof(int)); // list of y index for border bins
+  Rprintf("identify_border_pixels_in_occupancy_map() call\n");
+  identify_border_pixels_in_occupancy_map(tocc_map,num_bins_x,num_bins_y,border_map,border_x,border_y,&num_bins_border);
+  
+  // 2) identify the four walls, remove border pixels that are not next to one of the 4 walls
+  int* wall_id =  (int*) malloc(num_bins_border*sizeof(int));
+  Rprintf("assign_wall_to_border_pixel() call\n");
+  assign_wall_to_border_pixels(num_bins_x, num_bins_y, border_x, border_y, &num_bins_border, wall_id,border_map);
+  
+  int sum;
+  for(int j=0; j<4;j++){
+    sum=0;
+    for(int i = 0; i < num_bins_border;i++)
+    {
+      if(wall_id[i]==j)
+        sum++;      
+    }
+    Rprintf("wall id: %d, sum: %d\n",j,sum);
+  }
+  
+  for(int i = 0; i < num_bins_border;i++)
+  {
+    border_map[border_x[i]*num_bins_y+border_y[i]]=wall_id[i]+1;
+  }
+  
+  
+  
+  free(border_x);
+  free(border_y);
+  free(tocc_map);
+  UNPROTECT(1);
+  return (out);
+  
 }
 
 
@@ -3090,7 +3186,7 @@ void border_score_rectangular_environment(int* cells,
   // 2) identify the four walls, remove border pixels that are not next to one of the 4 walls
   int* wall_id =  (int*) malloc(num_bins_border*sizeof(int));
   assign_wall_to_border_pixels(num_bins_x, num_bins_y, border_x, border_y, &num_bins_border, wall_id,border_map);
-
+  
   double* one_map;
   // for each valid pixel in occ_map, find the closest distance to a border pixel, get the largest closest distance
   double min_distance_one_pixel=0;
@@ -3113,152 +3209,152 @@ void border_score_rectangular_environment(int* cells,
   double radius_field;
   int num_bins_field;
   double sum_firing_rate_in_fields;
-
+  
   one_field_map =  (double*)malloc(total_bins*sizeof(double));
   all_fields_map = (double*)malloc(total_bins*sizeof(double));
   detection_map = (double*)malloc(total_bins*sizeof(double));
-      
+  
   double max_possible_distance_to_border=0;
   for(int x = 0; x < num_bins_x; x++)
+  {
+    for(int y = 0; y < num_bins_y; y++)
+    {
+      if (occ_map[(x*num_bins_y) + y] != -1)
+      {
+        min_distance_one_pixel=num_bins_x+num_bins_y;
+        for (int i = 0; i < num_bins_border; i++)
+        {
+          dist=distance(x,y,border_x[i],border_y[i]);
+          if(dist<min_distance_one_pixel)
+          {
+            min_distance_one_pixel=dist;
+          }
+        }
+        if(min_distance_one_pixel>max_possible_distance_to_border)
+        {
+          max_possible_distance_to_border=min_distance_one_pixel;
+        }
+      }
+    }
+  }
+  
+  for(int i = 0; i < cell_lines; i++)
+  { // for each cell, 
+    
+    max_CM=0;
+    one_map = maps + (i*total_bins);	      
+    for(int j = 0; j < total_bins; j++)
+    {
+      one_field_map[j] =-1.0;
+      all_fields_map[j] =-1.0;
+      detection_map[j]=one_map[j];
+    }
+    
+    // calculate the maximum CM
+    max_fr=find_max_double(total_bins,detection_map);
+    max_fr_remaining=max_fr;
+    threshold_hz = max_fr*percent_threshold_field/100;
+    number_fields_detected=0;
+    //	      cerr << "max fr: " << max_fr << '\n';
+    while(max_fr_remaining>=threshold_hz)
+    {
+      //		  cerr << "detect field with peak rate " << max_fr << '\n';
+      detect_one_field_with_field(detection_map,
+                                  num_bins_x,
+                                  num_bins_y,
+                                  min_bins_in_field,
+                                  threshold_hz,
+                                  &mean_x_field,
+                                  &mean_y_field,
+                                  &radius_field,
+                                  &num_bins_field,
+                                  -1.0,
+                                  one_field_map);
+      if (mean_x_field != -1)
+      {// valid field detected
+        
+        number_fields_detected++;
+        // copy the field to the all field maps
+        for(int k=0; k < total_bins;k++)
+        {
+          if(one_field_map[k]!=-1.0)
+            all_fields_map[k]=one_field_map[k];
+        }
+        
+        // get the fraction of pixels along a wall that was occupied by the field.
+        for(int k =0; k < 4; k++) // for the 4 walls
+        {
+          num_pixels_one_wall=0;
+          pixels_covered_one_wall=0;
+          // number of pixels for this wall
+          for(int m =0; m < num_bins_border; m++)
+          {
+            if(wall_id[m]==k)
+              num_pixels_one_wall++;
+          }
+          // number of occupied wall pixels
+          for(int m =0; m < num_bins_border; m++)
+          {
+            if(wall_id[m]==k)
+              if(one_field_map[(border_x[m]*num_bins_y)+border_y[m]]!=-1.0)
+                pixels_covered_one_wall++;
+          }
+          
+          if(num_pixels_one_wall!=0)
+            CM=(double)pixels_covered_one_wall/(double)num_pixels_one_wall;
+          else
+            CM=0;
+          
+          if(CM>max_CM)
+            max_CM=CM;
+          //			  cerr << "wall " << k << " num_pix:" << num_pixels_one_wall << " cov_pix:" << pixels_covered_one_wall << " CM:" << CM << " fieldsize:" << num_bins_field << '\n'; 
+        }
+      }
+      max_fr_remaining=find_max_double(total_bins,detection_map);
+    }
+    CM=max_CM;
+    //cerr << "max_CM:" << max_CM << '\n';
+    
+    // calculate DM
+    sum_firing_rate_in_fields=sum_double(total_bins,all_fields_map,-1.0);
+    DM=0;
+    for(int x = 0; x < num_bins_x; x++)
     {
       for(int y = 0; y < num_bins_y; y++)
-	{
-	  if (occ_map[(x*num_bins_y) + y] != -1)
-	    {
-	      min_distance_one_pixel=num_bins_x+num_bins_y;
-	      for (int i = 0; i < num_bins_border; i++)
-		{
-		  dist=distance(x,y,border_x[i],border_y[i]);
-		  if(dist<min_distance_one_pixel)
-		    {
-		      min_distance_one_pixel=dist;
-		    }
-		}
-	      if(min_distance_one_pixel>max_possible_distance_to_border)
-		{
-		  max_possible_distance_to_border=min_distance_one_pixel;
-		}
-	    }
-	}
+      {
+        if (all_fields_map[(x*num_bins_y) + y] != -1.0)// field bin
+        {
+          // find the closest distance to a border
+          min_distance_one_pixel=num_bins_x+num_bins_y;
+          for (int j = 0; j < num_bins_border; j++)
+          {
+            dist=distance(x,y,border_x[j],border_y[j]);
+            if(dist<min_distance_one_pixel)
+            {
+              min_distance_one_pixel=dist;
+            }
+          }
+          //  cerr << min_distance_one_pixel << " " << max_possible_distance_to_border << " " << one_place_map[(x*num_bins_y)+y] << '\n';
+          DM+=(min_distance_one_pixel/max_possible_distance_to_border)*one_map[(x*num_bins_y) + y];
+        }
+      }
     }
-
-  for(int i = 0; i < cell_lines; i++)
-    { // for each cell, 
-      
-      max_CM=0;
-      one_map = maps + (i*total_bins);	      
-      for(int j = 0; j < total_bins; j++)
-	{
-	  one_field_map[j] =-1.0;
-	  all_fields_map[j] =-1.0;
-	  detection_map[j]=one_map[j];
-	}
-      
-      // calculate the maximum CM
-      max_fr=find_max_double(total_bins,detection_map);
-      max_fr_remaining=max_fr;
-      threshold_hz = max_fr*percent_threshold_field/100;
-      number_fields_detected=0;
-      //	      cerr << "max fr: " << max_fr << '\n';
-      while(max_fr_remaining>=threshold_hz)
-	{
-	  //		  cerr << "detect field with peak rate " << max_fr << '\n';
-	  detect_one_field_with_field(detection_map,
-				      num_bins_x,
-				      num_bins_y,
-				      min_bins_in_field,
-				      threshold_hz,
-				      &mean_x_field,
-				      &mean_y_field,
-				      &radius_field,
-				      &num_bins_field,
-				      -1.0,
-				      one_field_map);
-	  if (mean_x_field != -1)
-	    {// valid field detected
-	      
-	      number_fields_detected++;
-	      // copy the field to the all field maps
-	      for(int k=0; k < total_bins;k++)
-		{
-		  if(one_field_map[k]!=-1.0)
-		    all_fields_map[k]=one_field_map[k];
-		}
-	      
-	      // get the fraction of pixels along a wall that was occupied by the field.
-	      for(int k =0; k < 4; k++) // for the 4 walls
-		{
-		  num_pixels_one_wall=0;
-		  pixels_covered_one_wall=0;
-		  // number of pixels for this wall
-		  for(int m =0; m < num_bins_border; m++)
-		    {
-		      if(wall_id[m]==k)
-			num_pixels_one_wall++;
-		    }
-		  // number of occupied wall pixels
-		  for(int m =0; m < num_bins_border; m++)
-		    {
-		      if(wall_id[m]==k)
-			if(one_field_map[(border_x[m]*num_bins_y)+border_y[m]]!=-1.0)
-			  pixels_covered_one_wall++;
-		    }
-		  
-		  if(num_pixels_one_wall!=0)
-		    CM=(double)pixels_covered_one_wall/(double)num_pixels_one_wall;
-		  else
-		    CM=0;
-		  
-		  if(CM>max_CM)
-		    max_CM=CM;
-		  //			  cerr << "wall " << k << " num_pix:" << num_pixels_one_wall << " cov_pix:" << pixels_covered_one_wall << " CM:" << CM << " fieldsize:" << num_bins_field << '\n'; 
-		}
-	    }
-	  max_fr_remaining=find_max_double(total_bins,detection_map);
-	}
-      CM=max_CM;
-      //cerr << "max_CM:" << max_CM << '\n';
-      
-      // calculate DM
-      sum_firing_rate_in_fields=sum_double(total_bins,all_fields_map,-1.0);
-      DM=0;
-      for(int x = 0; x < num_bins_x; x++)
-	{
-	  for(int y = 0; y < num_bins_y; y++)
-	    {
-	      if (all_fields_map[(x*num_bins_y) + y] != -1.0)// field bin
-		{
-		  // find the closest distance to a border
-		  min_distance_one_pixel=num_bins_x+num_bins_y;
-		  for (int j = 0; j < num_bins_border; j++)
-		    {
-		      dist=distance(x,y,border_x[j],border_y[j]);
-		      if(dist<min_distance_one_pixel)
-			{
-			  min_distance_one_pixel=dist;
-			}
-		    }
-		  //  cerr << min_distance_one_pixel << " " << max_possible_distance_to_border << " " << one_place_map[(x*num_bins_y)+y] << '\n';
-		  DM+=(min_distance_one_pixel/max_possible_distance_to_border)*one_map[(x*num_bins_y) + y];
-		}
-	    }
-	}
-      DM=DM/sum_firing_rate_in_fields;
-      if(number_fields_detected>0)
-	{
-	  cm[i]= CM;
-	  dm[i]= DM;
-	  num_fields_detected[i]=number_fields_detected;
-	  border_score[i]=(CM-DM)/(CM+DM);
-	}
-      else
-	{
-	  cm[i]= CM;
-	  dm[i]= DM;
-	  num_fields_detected[i]=number_fields_detected;
-	  border_score[i]=(CM-DM)/(CM+DM);
-	}
+    DM=DM/sum_firing_rate_in_fields;
+    if(number_fields_detected>0)
+    {
+      cm[i]= CM;
+      dm[i]= DM;
+      num_fields_detected[i]=number_fields_detected;
+      border_score[i]=(CM-DM)/(CM+DM);
     }
+    else
+    {
+      cm[i]= CM;
+      dm[i]= DM;
+      num_fields_detected[i]=number_fields_detected;
+      border_score[i]=(CM-DM)/(CM+DM);
+    }
+  }
   free(bin_distance_to_nearest_border);
   free(one_field_map);
   free(all_fields_map);
