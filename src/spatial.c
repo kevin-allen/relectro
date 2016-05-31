@@ -2622,12 +2622,19 @@ SEXP grid_spacing_cwrap(SEXP cell_lines_r,
   int auto_num_bins_x = INTEGER_VALUE(auto_num_bins_x_r);
   int auto_num_bins_y = INTEGER_VALUE(auto_num_bins_y_r);
   int total_bins_auto= auto_num_bins_x*auto_num_bins_y;
-
-  // create a copy of autocorrelation otherwise it will remove the fields from autocorrelation
+  
+  // create a copy of autocorrelation to transpose and to avoid removing the fields from original autocorrelation
   double* all_autos_copy = (double*)malloc(total_bins_auto*cell_lines*sizeof(double));
-  for(int i =0; i <total_bins_auto*cell_lines;i++)
-    all_autos_copy[i]=all_autos[i];
-
+  double* one_auto_copy;
+  
+  for(int i = 0; i < cell_lines; i++){
+    one_auto = all_autos + (i*total_bins_auto);
+    one_auto_copy = all_autos_copy + (i*total_bins_auto);
+    for(int x =0; x < auto_num_bins_x;x++)
+      for(int y =0; y < auto_num_bins_y;y++)
+        one_auto_copy[x*auto_num_bins_y+y]=one_auto[x+auto_num_bins_x*y]; // needs to be transpose for c code
+  }
+  // vector of spacing to return to R
   SEXP out = PROTECT(allocVector(REALSXP,cell_lines));
   double* o = REAL(out);
   
@@ -2642,6 +2649,8 @@ SEXP grid_spacing_cwrap(SEXP cell_lines_r,
 		       REAL(field_threshold_r)[0], 
 		       REAL(invalid_r)[0]);
   }
+  
+ 
   free(all_autos_copy);
   UNPROTECT(1);
   return (out);

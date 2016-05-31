@@ -370,19 +370,6 @@ setMethod(f="spikeTriggeredFiringRateMap2d",
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 #' Calculate spatial statistics of the firing rate maps of neurons
 #'
 #' @param sp SpatialProperties2d object
@@ -390,6 +377,8 @@ setMethod(f="spikeTriggeredFiringRateMap2d",
 #' @param pt Positrack object
 #' @param border Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular. 
 #' Default value is "rectangular"
+#' @param triggered Logical indicating whether to calculate a spike-triggered firing rate map instead of conventional map
+#' Default value is FALSE
 #' @return SpatialProperties2d object with the stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
 #' 
 #' @docType methods
@@ -402,13 +391,16 @@ setGeneric(name="getMapStats",
 #' @aliases getMapStats,ANY,ANY-method
 setMethod(f="getMapStats",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt,border="rectangular")
+          definition=function(sp,st,pt,border="rectangular",triggered=FALSE)
           {
             if(border!="rectangular" & border!= "circular")
               stop(paste("getMapstats, value of border can be \"rectangular\" or \"circular\" but is", border))
             
             ## make the maps
-            sp<-firingRateMap2d(sp,st,pt)
+            if(triggered==FALSE)
+              sp<-firingRateMap2d(sp,st,pt)
+            else
+              sp<-spikeTriggeredFiringRateMap2d(sp,st,pt)
 
             ### get peak rates
             sp@peakRate<-apply(sp@maps,3,max)
@@ -475,6 +467,18 @@ setMethod(f="getMapStats",
                                 as.integer(sp@gridScoreMinNumBinsPerField),
                                 sp@gridScoreFieldThreshold,
                                 -2.0) #invalid
+            
+            sp@gridSpacing<- .Call("grid_spacing_cwrap",
+                                   length(sp@cellList),
+                                   sp@autos,
+                                   sp@nColAuto,
+                                   sp@nRowAuto,
+                                   sp@cmPerBin,
+                                   as.integer(sp@gridScoreNumberFieldsToDetect),
+                                   as.integer(sp@gridScoreMinNumBinsPerField),
+                                   sp@gridScoreFieldThreshold,
+                                   -2.0)
+            
           return(sp)
           }
 )
@@ -490,6 +494,9 @@ setMethod(f="getMapStats",
 #' @param st SpikeTrain object
 #' @param pt Positrack object
 #' @param border Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular.
+#' Default value is rectangular
+#' @param triggered Logical indicating whether to calculate a spike-triggered firing rate map instead of conventional map
+#' Default value is FALSE
 #' @return SpatialProperties2d object with the random stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
 #' 
 #' @docType methods
@@ -502,7 +509,7 @@ setGeneric(name="getMapStatsShuffle",
 #' @aliases getMapStatsShuffle,ANY,ANY-method
 setMethod(f="getMapStatsShuffle",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt,border="rectangular"){
+          definition=function(sp,st,pt,border="rectangular",triggered=FALSE){
         
             if(border!="rectangular" & border!= "circular")
               stop(paste("getMapstatsShuffle, value of border can be \"rectangular\" or \"circular\" but is", border))
@@ -521,7 +528,13 @@ setMethod(f="getMapStatsShuffle",
             print(paste("SpatialProperties2d shuffle",sp@nShufflings))
             for(i in 1:sp@nShufflings){
               pts<-shiftPositionRandom(pt)
-              sp<-firingRateMap2d(sp,st,pts)
+              
+              ## make the maps
+              if(triggered==FALSE)
+                sp<-firingRateMap2d(sp,st,pt)
+              else
+                sp<-spikeTriggeredFiringRateMap2d(sp,st,pt)
+              
               sp@peakRateShuffle <- c(sp@peakRateShuffle,apply(sp@maps,3,max))
               sp@infoScoreShuffle <- c(sp@infoScoreShuffle,
                                        .Call("information_score_cwrap",
@@ -781,6 +794,38 @@ setMethod(f="gridScore",
           }
 )
 
+#' Calculate the grid spacing from the spatial autocorrelations
+#' 
+#' @param sp SpatialProperties2d object
+#' @return SpatialProperties2d object with the grid spacing in the slot gridSpacing
+#' 
+#' @docType methods
+#' @rdname gridSpacing-methods
+setGeneric(name="gridSpacing",
+           def=function(sp)
+           {standardGeneric("gridSpacing")}
+)
+
+setMethod(f="gridSpacing",
+          signature="SpatialProperties2d",
+          definition=function(sp)
+          {
+            if(length(sp@autos)==0)
+              stop("Need to call mapSpatialAutocorrelation first to run gridSpacing()")
+            sp@gridSpacing<- .Call("grid_spacing_cwrap",
+                                        length(sp@cellList),
+                                        sp@autos,
+                                        sp@nColAuto,
+                                        sp@nRowAuto,
+                                        sp@cmPerBin,
+                                        as.integer(sp@gridScoreNumberFieldsToDetect),
+                                        as.integer(sp@gridScoreMinNumBinsPerField),
+                                        sp@gridScoreFieldThreshold,
+                                        -2.0)
+            return(sp)
+          }
+)
+
 # setGeneric(name="gridOrientation",
 #            def=function(sp)
 #            {standardGeneric("gridOrientation")}
@@ -804,31 +849,6 @@ setMethod(f="gridScore",
 # #                                  as.integer(sp@gridScoreMinNumBinsPerField),
 # #                                  sp@gridScoreFieldThreshold,
 # #                                  -2.0)
-#             return(sp)
-#           }
-# )
-# setGeneric(name="gridSpacing",
-#            def=function(sp)
-#            {standardGeneric("gridSpacing")}
-# )
-# setMethod(f="gridSpacing",
-#           signature="SpatialProperties2d",
-#           definition=function(sp)
-#           {
-#             if(length(sp@autos)==0)
-#               stop("Need to call mapSpatialAutocorrelation first to run gridSpacing()")
-#             
-# #             sp@gridSpacing<- .Call("grid_spacing_cwrap",
-# #                                         as.integer(sp@cellList),
-# #                                         length(sp@cellList),
-# #                                         sp@autos,
-# #                                         sp@nColAuto,
-# #                                         sp@nRowAuto,
-# #                                         sp@cmPerBin,
-# #                                         as.integer(sp@gridScoreNumberFieldsToDetect),
-# #                                         as.integer(sp@gridScoreMinNumBinsPerField),
-# #                                         sp@gridScoreFieldThreshold,
-# #                                         -1.0)
 #             return(sp)
 #           }
 # )

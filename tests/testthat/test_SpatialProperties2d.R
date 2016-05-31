@@ -320,6 +320,56 @@ test_that("spike triggered firing maps",
             expect_equal(m[nrow(m)/2+1,ncol(m)/2+1],0) ## this is the middle of the map, and should be at 0 Hz because
                                                        ## distance between spike is one entire bin of the map
             
-            expect_equal(m[nrow(m)/2+1,ncol(m)/2+1],0) 
-            
+            rm(maxx,minx,maxy,miny,x,y,hd,st,sp,pt,spikeTimes,m)
 })
+
+test_that("grid score",
+          {
+            ### animal is at all location only once, from 1 to 50 in a 2d matrix
+            pt<-new("Positrack")
+            maxx=50
+            minx=1
+            maxy=50
+            miny=1
+            x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),3)-0.5
+            y=rep(rep(seq(miny,maxy),each=maxx-minx+1),3)-0.5
+            hd<-(sin(cumsum(rnorm(mean=0, sd=0.3, n=length(x))))+1)/2*360
+            pt@defaultXYSmoothing=0
+            pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                             resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+            
+            ## get the coordinates of the fields of a grid cell
+            delta<-seq(0,300,60)/180*pi ## angles of fields relative to center
+            x_center<-(minx+(maxx-minx))/2
+            y_center<-(miny+(maxy-miny))/2
+            radius<-20
+            xcoor<-c(x_center+radius*cos(delta),x_center)
+            ycoor<-c(y_center+radius*sin(delta),y_center)
+            
+            ## find the index in the x and y position of the animal which were the closest to the xcoor and ycoor
+            coordinates<-matrix(data=c(xcoor,ycoor),ncol=2)
+            t<-apply(coordinates,1,function(v,x,y){which.min(sqrt((v[1]-x)^2+(v[2]-y)^2))},x,y)
+            
+            st<-new("SpikeTrain")
+            ## set the spike trains in the object
+            spikeTimes<- t*pt@resSamplesPerWhlSample
+            st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+            st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+            
+            sp<-new("SpatialProperties2d")
+            sp@cmPerBin=1
+            sp@smoothRateMapSd=3.5
+            sp@smoothOccupancySd=3.5
+            sp<-firingRateMap2d(sp,st,pt)   
+            firingRateMapPlot(m=sp@maps[,,1])
+            sp<-getMapStats(sp,st,pt)
+            firingRateMapAutoPlot(sp@autos[,,1]) 
+            expect_gt(sp@gridScore,1.0) # perfect grid should have a high grid score
+            
+            
+            expect_lt(abs(sp@gridSpacing-radius),expected=0.5) # radius is the spacing
+            
+            
+            rm(maxx,minx,maxy,miny,x,y,hd,st,sp,pt,spikeTimes,
+               delta,x_center,y_center,radius,xcoor,ycoor,coordinates,t)
+          })
