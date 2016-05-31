@@ -18,5 +18,5 @@ If you want to modify the code of relecto, I recommand using R studio together w
 
 If you just want to use the functions and objects of relectro, go in the terminal and 
 run the following
-* R CMD build relecto
+* R CMD build relectro
 * R CMD INSTALL relectro
