@@ -4650,3 +4650,501 @@ void spike_position_1d(double *x_whl,
   return;
 }
 
+
+SEXP spike_triggered_firing_rate_maps_cwrap(SEXP num_bins_x_r,
+                                            SEXP num_bins_y_r, 
+                                            SEXP pixels_per_bin_x_r,
+                                            SEXP pixels_per_bin_y_r,
+                                            SEXP total_bins_r,
+                                            SEXP cells_r,
+                                            SEXP num_cells_r,
+                                            SEXP x_whl_r,
+                                            SEXP y_whl_r,
+                                            SEXP whl_lines_r,
+                                            SEXP res_r,
+                                            SEXP clu_r,
+                                            SEXP res_lines_r,
+                                            SEXP start_interval_r,
+                                            SEXP end_interval_r,
+                                            SEXP interval_lines_r,
+                                            SEXP ms_per_sample_r,
+                                            SEXP res_samples_per_whl_sample_r,
+                                            SEXP smoothing_factor_occ_r,
+                                            SEXP smoothing_factor_rate_r,
+                                            SEXP min_isi_ms_r,
+                                            SEXP max_isi_ms_r,
+                                            SEXP res_sampling_rate_r)
+{
+  int total_bins = INTEGER_VALUE(total_bins_r);
+  int num_cells=INTEGER_VALUE(num_cells_r);
+  int res_lines=INTEGER_VALUE(res_lines_r);
+  int num_bins_x=INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y=INTEGER_VALUE(num_bins_y_r);
+  
+  double* x_spike = (double*)malloc(res_lines*sizeof(double));
+  double* y_spike = (double*)malloc(res_lines*sizeof(double));
+  double* all_occ_maps=(double*)malloc(total_bins*num_cells*sizeof(double));
+  double* all_place_maps=(double*)malloc(total_bins*num_cells*sizeof(double));
+  SEXP out = PROTECT(allocVector(REALSXP,total_bins*num_cells));
+  
+  
+  create_place_firing_maps_spike_triggered(INTEGER_VALUE(num_bins_x_r),
+                                           INTEGER_VALUE(num_bins_y_r),
+                                           REAL(pixels_per_bin_x_r)[0], REAL(pixels_per_bin_x_r)[0],
+                                           INTEGER_VALUE(total_bins_r),
+                                           INTEGER_POINTER(cells_r),
+                                           INTEGER_VALUE(num_cells_r),
+                                           REAL(x_whl_r),
+                                           REAL(y_whl_r),
+                                           INTEGER_VALUE(whl_lines_r),
+                                           INTEGER_POINTER(res_r),
+                                           INTEGER_POINTER(clu_r),
+                                           INTEGER_VALUE(res_lines_r),
+                                           x_spike,
+                                           y_spike,
+                                           INTEGER_POINTER(start_interval_r),
+                                           INTEGER_POINTER(end_interval_r),
+                                           INTEGER_VALUE(interval_lines_r),
+                                           all_occ_maps,
+                                           all_place_maps,
+                                           REAL(ms_per_sample_r)[0],
+                                           INTEGER_VALUE(res_samples_per_whl_sample_r),
+                                           REAL(smoothing_factor_occ_r)[0],
+                                           REAL(smoothing_factor_rate_r)[0],
+                                           REAL(min_isi_ms_r)[0],
+                                           REAL(max_isi_ms_r)[0],
+                                           INTEGER_VALUE(res_sampling_rate_r));
+  double* ans;
+  double* one_ans;
+  double* one_map;
+  ans=REAL(out);
+
+  //transpose the maps for R
+  for(int i = 0; i < num_cells;i++){
+    one_map = all_place_maps + (i*total_bins);
+    one_ans = ans + (i*total_bins);
+    for(int x =0; x < num_bins_x;x++)
+      for(int y =0; y < num_bins_y;y++)
+        one_ans[x+num_bins_x*y]=one_map[x*num_bins_y+y];
+  }
+  free(x_spike);
+  free(y_spike);
+  free(all_occ_maps);
+  free(all_place_maps);
+  UNPROTECT(1);
+  return out;
+}
+
+
+void create_place_firing_maps_spike_triggered(int num_bins_x,
+                                              int num_bins_y, 
+                                              double pixels_per_bin_x,
+                                              double pixels_per_bin_y,
+                                              int total_bins,
+                                              int* cells,
+                                              int num_cells,
+                                              double* x_whl,
+                                              double* y_whl,
+                                              int whl_lines,
+                                              int* res,
+                                              int* clu,
+                                              int res_lines,
+                                              double* x_spike,
+                                              double* y_spike,
+                                              int* start_interval,
+                                              int* end_interval,
+                                              int interval_lines,
+                                              double* all_occ_maps,
+                                              double* all_place_maps,
+                                              double ms_per_sample,
+                                              int res_samples_per_whl_sample,
+                                              double smoothing_factor_occ,
+                                              double smoothing_factor_rate,
+                                              double min_isi_ms,
+                                              double max_isi_ms,
+                                              int res_sampling_rate)
+{
+  int target_cell;
+  double* one_place_map; // pointer
+  double* one_occ_map; // pointer
+
+  /////////////////////////////////////////////////////////////////////////////////
+  ///          get the x and y position of every spikes  ///          
+  ////////////////////////////////////////////////////////////////////////////////
+  // outside intervals is set to -1 //
+  spike_position(x_whl,
+                 y_whl,
+                 whl_lines,
+                 res,
+                 res_lines,
+                 x_spike,
+                 y_spike,
+                 res_samples_per_whl_sample,
+                 start_interval,
+                 end_interval,
+                 interval_lines);
+  
+  ///////////////////////////////////////////////////////////////////////////
+  /// get spike_triggered_occupancy_map        ////
+  /// unique for each cell                                   ////
+  //////////////////////////////////////////////////////////////////////////
+  for(int i = 0; i < num_cells; i++)
+  {     
+    target_cell = cells[i];
+    // use a pointer to place give the address for each cell
+    one_occ_map = all_occ_maps + (i*total_bins);
+    spike_triggered_occupancy_map(num_bins_x,
+                                  num_bins_y, 
+                                  pixels_per_bin_x,
+                                  pixels_per_bin_y,
+                                  x_whl,
+                                  y_whl,
+                                  whl_lines,
+                                  one_occ_map,
+                                  ms_per_sample,
+                                  start_interval,
+                                  end_interval,
+                                  interval_lines,
+                                  res_samples_per_whl_sample,
+                                  res,
+                                  clu,
+                                  res_lines,
+                                  target_cell,
+                                  min_isi_ms,
+                                  max_isi_ms,
+                                  res_sampling_rate,
+                                  x_spike,
+                                  y_spike);
+    
+    // smooth the occupancy map
+    smooth_double_gaussian_2d(one_occ_map,num_bins_x, num_bins_y, smoothing_factor_occ,-1.0);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////
+  ///       get the spike triggered place field for every cell    ////
+  //////////////////////////////////////////////////////////////////////////////////////////////
+  
+  for(int i = 0; i < num_cells; i++)
+  {     
+    target_cell = cells[i];
+    // use a pointer to place give the address for each cell
+    one_place_map = all_place_maps + (i*total_bins);
+    one_occ_map = all_occ_maps + (i*total_bins);
+    
+    spike_triggered_place_map(num_bins_x,
+                              num_bins_y, 
+                              pixels_per_bin_x,
+                              pixels_per_bin_y,
+                              x_spike, 
+                              y_spike,
+                              res,
+                              clu,
+                              res_lines,
+                              target_cell,
+                              target_cell,
+                              one_occ_map,
+                              one_place_map,
+                              min_isi_ms,
+                              max_isi_ms,
+                              res_sampling_rate);
+    
+    /// smooth the place map
+    smooth_double_gaussian_2d(one_place_map,num_bins_x, num_bins_y, smoothing_factor_rate,-1.0);
+  }
+}
+
+
+
+void spike_triggered_occupancy_map(int x_bins, // num of bins x
+                                   int y_bins, // num of bins y
+                                   double pixels_per_bin_x,
+                                   double pixels_per_bin_y,
+                                   double *x_whl, 
+                                   double *y_whl,
+                                   int whl_lines, // num lines in whl data
+                                   double *map, // occupancy map
+                                   double ms_per_sample, // ms per sample for whl data
+                                   int *start_interval, // starts of the intervals in res value
+                                   int *end_interval, // ends of intervals in res value
+                                   int interval_lines, // number of intervals
+                                   int res_samples_per_whl_sample,
+                                   int* res,
+                                   int* clu,
+                                   int res_lines,
+                                   int target_cell,
+                                   double min_isi_ms,
+                                   double max_isi_ms,
+                                   int res_sampling_rate,
+                                   double* x_spike,
+                                   double* y_spike)
+{
+  /*****************************************************************************
+  Create the occupancy map for 2d firing map with spike triggered method
+  
+  This add  ms_per_sample for every valid whl value that is in 
+  the intervals given valid whl values outside the intervals 
+  will not be added to occupancy map.
+  If a valid whl value is for a period outside intervals,
+  the right proportion of time will be removed
+  
+  There is a minimum time that the animal has to 
+  spend in a bin for it to be valid; see variable min_occ
+  
+  Bins that are on there own in space are removed.
+  ********************************************************************************/
+  int min_occ = 500; // minimum time spent in a bin
+  // variable to deal with the intervals
+  int res_value_for_whl_sample; // time in res associated with a whl sample
+  int start_res_value; // starting time of a whl sample in res value
+  int end_res_value; // end time of a whl sample
+  int res_value_to_add; // number of res inside the interval
+  int interval_index=0;
+  double time_to_add;
+  int bin_x; // where to add the time in the map
+  int bin_y;
+  int res_start_window; // start of window around the spike
+  int res_end_window; // end of window around the spike
+  int whl_index_start_window; // index in whl array of the start of window around the spike
+  int whl_index_end_window; // index in whl array of the end of window around the spike
+  double relative_x_whl;
+  double relative_y_whl;
+  int min_isi_res=(int)(min_isi_ms*res_sampling_rate/1000);
+  int max_isi_res=(int)(max_isi_ms*res_sampling_rate/1000);
+  
+  
+  // set the map to 0
+  for(int x = 0; x < x_bins; x++)
+  {
+    for(int y = 0; y < y_bins; y++)
+    {
+      map[(x*y_bins) + y] = 0;
+    }
+  }
+  
+  // loop for each valid spike of the target cell (x_spike and y_spike != -1)
+  for (int i = 0; i < res_lines; i++)
+  {
+    if(clu[i]==target_cell&&res[i]!=-1&&x_spike[i]!=-1&&y_spike[i]!=-1)
+    {
+      // find start and end of window
+      res_start_window=res[i]+min_isi_res;
+      res_end_window=res[i]+max_isi_res;
+      
+      if(res_start_window<0) res_start_window=0; // make sure this is not set to negative value
+      
+      // get index of whl for the start and end of window
+      whl_index_start_window=(res_start_window/res_samples_per_whl_sample)-1;
+      whl_index_end_window=(res_end_window/res_samples_per_whl_sample)-1;
+      if (whl_index_start_window>= whl_lines) whl_index_start_window=whl_lines-1;
+      if (whl_index_start_window<0) whl_index_start_window=0;
+      if (whl_index_end_window>=whl_lines) whl_index_end_window=whl_lines-1;
+      if (whl_index_end_window<0) whl_index_end_window=0;
+      
+      // add the time of the window around this spike
+      for(int j = whl_index_start_window; j < whl_index_end_window; j++)
+      {
+        if (x_whl[j] != -1.0)
+        {
+          // get the begining of the period cover by this whl sample, in res value
+          res_value_for_whl_sample=(res_samples_per_whl_sample*j)+res_samples_per_whl_sample;
+          start_res_value=res_value_for_whl_sample-(res_samples_per_whl_sample/2); // start of whl sample
+          end_res_value=res_value_for_whl_sample+(res_samples_per_whl_sample/2); // end of whl sample
+          
+          // start with the assumption that time to add is  = 0; as if outside the valid intervals
+          res_value_to_add=0;
+          
+          // then add res_time if there are intervals around start_res_value and end_res_value
+          while(start_interval[interval_index]<end_res_value && interval_index<interval_lines)
+          {
+            if(end_interval[interval_index]>start_res_value) // need to add some time
+            {
+              // add the total interval time, and then remove what is not overlapping the whl sample
+              res_value_to_add=end_interval[interval_index]-start_interval[interval_index]; 
+              
+              if (start_interval[interval_index]<start_res_value)
+              {
+                res_value_to_add=res_value_to_add-(start_res_value-start_interval[interval_index]);
+              }
+              if (end_interval[interval_index]>end_res_value)
+              {
+                res_value_to_add=res_value_to_add-(end_interval[interval_index]-end_res_value);
+              }
+            }
+            interval_index++; // go to the next interval
+          }
+          interval_index--;
+          
+          if(res_value_to_add>0)
+          {
+            // calculate the time in ms, and add it to the right bin of the occ map
+            time_to_add=ms_per_sample*((double)res_value_to_add/res_samples_per_whl_sample);
+            
+            // get the relative position of whl for this sample
+            relative_x_whl=x_whl[j]-x_spike[i];
+            relative_y_whl=y_whl[j]-y_spike[i];
+            
+            
+            bin_x = (int)((x_bins/2)+(relative_x_whl/pixels_per_bin_x));
+            bin_y = (int)((y_bins/2)+(relative_y_whl/pixels_per_bin_y));
+            
+            // check if it falls in the map
+            if ((bin_x<x_bins)&&(bin_y<y_bins))
+            {
+              map[(bin_x * y_bins) + bin_y]=
+                map[(bin_x * y_bins) + bin_y] +
+                time_to_add;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // set the bins that have less then min_occ ms
+  for(int x = 0; x < x_bins; x++)
+  {
+    for(int y = 0; y < y_bins; y++)
+    {
+      if (map[(x*y_bins) + y] <= min_occ)
+      {
+        map[(x*y_bins) + y] = -1.0;
+      }
+    }
+  }
+  
+  // remove the bins that are isolated in space
+  int moving_x;
+  int moving_y;
+  int factor=1;
+  int smoothing_line = (factor*2)+1;
+  int moving_index;
+  int adjacent_pos;
+  int index;
+  for(int x = 0; x < x_bins; x++)
+  {
+    for(int y = 0; y < y_bins; y++)
+    {
+      index = (x*y_bins) + y;
+      if (map[index] != -1.0)
+      {
+        adjacent_pos=0;
+        // move to top left and then add valid bin to data
+        moving_x = x - factor;
+        for(int xx = 0; xx < smoothing_line; xx++)
+        {
+          moving_y = y - factor;
+          for(int yy = 0; yy < smoothing_line; yy++)
+          {
+            if((moving_x >= 0) && 
+               (moving_x < x_bins) &&
+               (moving_y >= 0) &&
+               (moving_y < y_bins))
+            {
+              moving_index = (moving_x * y_bins) + moving_y;
+              
+              if ( map[moving_index] > 0)
+              {adjacent_pos++;}
+            }
+            moving_y++;
+          }
+          moving_x++;
+        }
+        if (adjacent_pos < 2)
+        {
+          map[index] = -1.0;
+        }
+      }
+    }
+  }
+}
+void spike_triggered_place_map(int x_bins,
+                               int y_bins, 
+                               double pixels_per_bin_x, 
+                               double pixels_per_bin_y, 
+                               double *x_spike, 
+                               double *y_spike, 
+                               int* res, 
+                               int *clu, 
+                               int res_lines, 
+                               int target_cell1, 
+                               int target_cell2,
+                               double *occupancy_map, 
+                               double *place_map, 
+                               double min_isi_ms,
+                               double max_isi_ms,
+                               int res_sampling_rate)
+{
+  /*******************************************************
+  function to calculate the firing rate map of one cell
+  needs an occupancy map and the x and y position
+  of all the spikes
+  
+  the map is constructed relative to each spike.
+  *********************************************************/
+  int total_bins = x_bins * y_bins;
+  int bin_x;
+  int bin_y;
+  int j;
+  double relative_x, relative_y;
+  int res_start_window, res_end_window;
+  int min_isi_res=(int)(min_isi_ms*res_sampling_rate/1000);
+  int max_isi_res=(int)(max_isi_ms*res_sampling_rate/1000);
+  
+  
+  // set the place_field array to 0
+  for (int i = 0; i < total_bins ; i++)
+  {
+    place_map[i] = 0;
+  }
+  
+  // add the number of spikes in the place_field array
+  for(int i = 0; i < res_lines; i++)
+  {
+    if (clu[i]==target_cell1&& res[i]!=-1&&x_spike[i]!=-1.0)
+    {
+      
+      // add the spikes around this one that are within the time period
+      res_start_window=res[i]+min_isi_res;
+      res_end_window=res[i]+max_isi_res;
+      
+      
+      j=i+1;
+      while(res[j]<res_end_window&&j<res_lines)
+      {
+        // if spike of the same cell and res and position are valid
+        if(clu[j]==target_cell2&&res[j]>res_start_window&&res[j]!=-1.0&&x_spike[j]!=-1.0)
+        {
+          // get the relative position of the spike
+          relative_x=x_spike[j]-x_spike[i];
+          relative_y=y_spike[j]-y_spike[i];
+          // add spike, 0,0 is the middle of the map
+          bin_x = (int)((x_bins/2)+(relative_x/pixels_per_bin_x));
+          bin_y = (int)((y_bins/2)+(relative_y/pixels_per_bin_y));
+          
+          // check if it falls in the map
+          if ((bin_x<x_bins)&&(bin_y<y_bins))
+          {
+            place_map[(bin_x * y_bins) + bin_y]++;
+          }
+        }
+        j++;
+      }
+    }
+  }
+  ////////////// get the firing rate for every bin////////////////
+  for (int i = 0; i < total_bins; i++)
+  {
+    if (occupancy_map[i] == -1.0)
+    {
+      place_map[i] = -1.0;
+    }
+    
+    if (occupancy_map[i] != -1.0)
+    {
+      if (place_map[i] != 0) // 
+      {
+        place_map[i] = (double)place_map[i]/((double)occupancy_map[i]/1000);
+      }
+    }
+  }
+}

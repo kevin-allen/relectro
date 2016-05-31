@@ -276,6 +276,113 @@ setMethod(f="firingRateMap2d",
           }
 )
 
+#' Calculate the spike-triggered firing rate maps of neurons using a SpikeTrain and Positrack objects
+#'
+#' Each spike is treated as a reference spike in turn. The map is constructed from the data
+#' around each reference spike by shifting the x and y coordinate so that the position of the 
+#' agent at the time of the reference spike was 0,0.
+#' 
+#' The occupancy map and the firing rate maps are smoothed with a Gaussian kernel
+#' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp
+#' 
+#' 
+#' @param sp SpatialProperties1d object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @param minIsiMs Minimal interspike interval to consider in ms
+#' @param maxIsiMs Maximal interspike interval to consider in ms
+#' @return SpatialProperties2d object with the spike-triggered firing rate maps
+#' 
+#' @docType methods
+#' @rdname spikeTriggeredFiringRateMap2d-methods
+setGeneric(name="spikeTriggeredFiringRateMap2d",
+           def=function(sp,st,pt,minIsiMs,maxIsiMs)
+           {standardGeneric("spikeTriggeredFiringRateMap2d")}
+)
+#' @rdname spikeTriggeredFiringRateMap2d-methods
+#' @aliases spikeTriggeredFiringRateMap2d,ANY,ANY-method
+setMethod(f="spikeTriggeredFiringRateMap2d",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,minIsiMs,maxIsiMs)
+          {
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in firingRateMap2d",st@session))
+            if(st@nSpikes==0)
+              stop(paste("st@nSpikes==0 in firingRateMap2d",st@session))
+            if(minIsiMs<0)
+              stop(paste("minIsiMs should be 0 or larger than 0"))
+            if(maxIsiMs<0)
+              stop(paste("maxIsiMs should be 0 or larger than 0"))
+            if(maxIsiMs<=minIsiMs)
+              stop(paste("maxIsiMs should be larger than minIsiMs"))
+            
+            sp@cellList<-st@cellList
+            
+            ## reduce the size of maps and map autocorrelation
+            if(sp@reduceSize==T){
+              x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
+              y<-pt@y-min(pt@y,na.rm=T)+sp@cmPerBin
+            }else{
+              x<-pt@x
+              y<-pt@y
+            }
+            
+            ## use -1 as invalid values in c functions
+            x[is.na(x)]<- -1.0
+            y[is.na(y)]<- -1.0
+            
+            
+            ## get the dimension of the map
+            ## will have twice the x and y size than normal 2d maps
+            ## the idea is that 0,0 is in the middel of the array
+            ## at num_bins_x/2, num_bins_y/2
+            sp@nRowMap=as.integer(floor(((max(x)+1)/sp@cmPerBin+1))*2)
+            sp@nColMap=as.integer(floor(((max(y)+1)/sp@cmPerBin+1))*2)
+            
+            results<- .Call("spike_triggered_firing_rate_maps_cwrap",
+                  as.integer(sp@nRowMap),
+                  as.integer(sp@nColMap), 
+                  sp@cmPerBin,
+                  sp@cmPerBin,
+                  as.integer(sp@nRowMap*sp@nColMap),
+                  as.integer(sp@cellList),
+                  length(sp@cellList),
+                  x,
+                  y,
+                  length(x),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  sp@smoothOccupancySd,
+                  sp@smoothRateMapSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+            sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
+            return(sp)
+          }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Calculate spatial statistics of the firing rate maps of neurons
 #'
 #' @param sp SpatialProperties2d object
@@ -403,7 +510,6 @@ setMethod(f="getMapStatsShuffle",
             if(sp@nShufflings==0)            
               stop("sp@nShufflings==0")
 
-            
             sp@peakRateShuffle=numeric()
             sp@infoScoreShuffle=numeric()
             sp@sparsityShuffle=numeric()
@@ -811,6 +917,9 @@ setMethod(f="borderDetection",
             return(results)
           })
 
+
+
+
 #' Speed scores from spike train and positrack
 #' 
 #' 
@@ -869,8 +978,6 @@ setMethod(f="speedScore",
             return(sp)
           }
 )
-
-
 #' Random speed scores from spike train and positrack
 #' 
 #' 
@@ -964,8 +1071,6 @@ setMethod(f="firingRateMapCenterOfMass",
             return(cm)
           }
 )
-
-
 
 
 #' Calculate a Pearson correlation coefficients between the firing rate maps of two SpatialProperties2d objects

@@ -2,8 +2,6 @@ library(relectro)
 library(testthat)
 context("test firing rate map 2d")
 test_that("spike position",{
-  
-  
   ## get spike position
   resPerWhlSamples<-400
   nSpikes=4
@@ -19,7 +17,6 @@ test_that("spike position",{
                  as.integer(1)) # number intervals
   expect_equal(length(spikeTimes),length(results[1,]))
   expect_equal(sum(x[1:length(spikeTimes)]),sum(results[1,]))
-  
   
   resPerWhlSamples<-400
   nSpikes=4
@@ -37,8 +34,6 @@ test_that("spike position",{
   rm(x,y,resPerWhlSamples,nSpikes,results)
 })
 test_that("occupancy maps",{
-  
- 
   ### animal is at all location only once, from 1 to 50 in a 2d matrix
   pt<-new("Positrack")
   maxx=50
@@ -51,11 +46,9 @@ test_that("occupancy maps",{
   pt@defaultXYSmoothing=0
   pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
                    resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
-  
   sp<-new("SpatialProperties2d")
   sp@nRowMap=as.integer(((max(pt@x)+1)/sp@cmPerBin)+1) # x in R is a row
   sp@nColMap=as.integer(((max(pt@y)+1)/sp@cmPerBin)+1) # y in R is a col
-  
   results<-.Call("occupancy_map_cwrap",
           sp@nRowMap,
           sp@nColMap,
@@ -72,7 +65,6 @@ test_that("occupancy maps",{
   
   ## the animal was 3 times in each bin, resSamplesPerWhlSample/samplingRateDat*1000*3 = 60
   expect_false(any(results!=60))
-  
   rm(maxx,minx,maxy,miny,x,y,hd,pt,sp)
 })
 
@@ -116,7 +108,7 @@ test_that("firing rate maps",{
   sp@smoothRateMapSd=3
   sp@smoothOccupancySd=3
   sp<-firingRateMap2d(sp,st,pt)   
-  firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
+ # firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
   sumSmoothThree<-sum(sp@maps[which(sp@maps!=-1.0)])
   expect_equal(sumSmoothZero,sumSmoothThree)  
   
@@ -148,12 +140,12 @@ test_that("border score, CM and DM in rectangular environments",{
   sp@smoothRateMapSd=0
   sp@smoothOccupancySd=0
   sp<-firingRateMap2d(sp,st,pt)   
-  firingRateMapPlot(m=sp@maps[,,1])
+  #firingRateMapPlot(m=sp@maps[,,1])
   
   
   b<-borderDetection(sp,border="rectangular")
   
-  firingRateMapPlot(m=b)
+ # firingRateMapPlot(m=b)
   
   # returned matrix should be same size as occ map
   expect_equal(dim(b),dim(sp@occupancy))
@@ -187,14 +179,14 @@ test_that("border score, CM and DM in rectangular environments",{
   st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,nSpikes),samplingRate=20000)
   st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
   sp<-firingRateMap2d(sp,st,pt)   
-  firingRateMapPlot(m=sp@maps[,,1])
+ # firingRateMapPlot(m=sp@maps[,,1])
   sp<-getMapStats(sp,st,pt,border="rectangular")
   expect_equal(sp@borderCM,NaN) # because there is no field detected
   
   
   sp@smoothRateMapSd=1.5
   sp<-firingRateMap2d(sp,st,pt)   
-  firingRateMapPlot(m=sp@maps[,,1])
+  #firingRateMapPlot(m=sp@maps[,,1])
   sp<-getMapStats(sp,st,pt,border="rectangular")
   expect_equal(sp@borderCM,0)
   expect_gt(sp@borderDM,0.95) ## all firing rate are in the middle of the map
@@ -203,7 +195,8 @@ test_that("border score, CM and DM in rectangular environments",{
   rm(maxx,minx,maxy,miny,x,y,st,sp,pt,spikeTimes,expectedCM,l1,CM,m,b,hd)
 })
 
-test_that("border score, CM and DM in circular environments",{
+test_that("border score, CM and DM in circular environments",
+          {
   
           ### animal is at all location only once, from 1 to 50 in a 2d matrix
           pt<-new("Positrack")
@@ -229,11 +222,11 @@ test_that("border score, CM and DM in circular environments",{
           sp@smoothRateMapSd=0
           sp@smoothOccupancySd=0
           sp<-firingRateMap2d(sp,st,pt)   
-          firingRateMapPlot(m=sp@maps[,,1])
+     #     firingRateMapPlot(m=sp@maps[,,1])
           
           ## number of bins at the border
           b<-borderDetection(sp,border="circular")
-          firingRateMapPlot(m=b)
+     #     firingRateMapPlot(m=b)
           expect_equal(length(b[b!=0]),(maxx-minx)*2+(maxy-miny)*2)
           
           ## all bins at border so DM = 0
@@ -241,7 +234,7 @@ test_that("border score, CM and DM in circular environments",{
           expect_equal(sp@borderDM,0)
           
           ## firing rate now cover one x lenght.
-          firingRateMapPlot(m=sp@maps[,,1])
+     #     firingRateMapPlot(m=sp@maps[,,1])
           m<-sp@maps[,,1]
           expect_equal(length(m[which(m!=-1.0&m!=0)])/length(b[which(b==2)]),sp@borderCM)
           
@@ -253,8 +246,8 @@ test_that("border score, CM and DM in circular environments",{
           st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
           sp<-firingRateMap2d(sp,st,pt)   
           sp<-getMapStats(sp,st,pt,border="circular")
-          firingRateMapPlot(m=sp@maps[,,1])
-          firingRateMapPlot(m=b)
+       #   firingRateMapPlot(m=sp@maps[,,1])
+       #   firingRateMapPlot(m=b)
           expect_equal(sp@mapPolarity,1.0,tolerance=0.01)
           
           
@@ -278,17 +271,55 @@ test_that("border score, CM and DM in circular environments",{
           sp@cmPerBin=1
           sp@smoothRateMapSd=2
           sp<-firingRateMap2d(sp,st,pt)   
-          firingRateMapPlot(m=sp@maps[,,1])
+          #firingRateMapPlot(m=sp@maps[,,1])
           
           b<-borderDetection(sp,border="circular")
-          firingRateMapPlot(m=b)
+         # firingRateMapPlot(m=b)
           sp<-getMapStats(sp,st,pt,border="circular")
           
           ## predicted length of border
           expect_equal((length(r)-2)*2+(2*3),length(b[which(b==2)]))
           
-          rm(maxx,minx,maxy,miny,x,y,hd,st,sp,pt,spikeTimes)
-}
-)
+          rm(maxx,minx,maxy,miny,x,y,hd,st,sp,pt,spikeTimes,b,r,m)
+})
 
-
+test_that("spike triggered firing maps",
+          {
+            
+            ### animal is at all location only once, from 1 to 50 in a 2d matrix
+            pt<-new("Positrack")
+            maxx=50
+            minx=1
+            maxy=40
+            miny=1
+            x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),3)-0.5
+            y=rep(rep(seq(miny,maxy),each=maxx-minx+1),3)-0.5
+            hd<-(sin(cumsum(rnorm(mean=0, sd=0.3, n=length(x))))+1)/2*360
+            pt@defaultXYSmoothing=0
+            pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                             resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+            
+            st<-new("SpikeTrain")
+            ## set the spike trains in the object
+            spikeTimes<- (1:(maxx))*pt@resSamplesPerWhlSample
+            st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+            st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+            
+            sp<-new("SpatialProperties2d")
+            sp@cmPerBin=1
+            sp@smoothRateMapSd=0
+            sp@smoothOccupancySd=0
+            sp<-firingRateMap2d(sp,st,pt)   
+            firingRateMapPlot(m=sp@maps[,,1])
+            sp<-spikeTriggeredFiringRateMap2d(sp,st,pt,0,60)
+            firingRateMapPlot(m=sp@maps[,,1])
+            m<-sp@maps[,,1]
+            expect_equal(length(which(m!=-1.0)),3) # within 60 ms time window, given whl sampling is 20 ms per sample,
+                                                   # only 3 bins should have valid values.
+            
+            expect_equal(m[nrow(m)/2+1,ncol(m)/2+1],0) ## this is the middle of the map, and should be at 0 Hz because
+                                                       ## distance between spike is one entire bin of the map
+            
+            expect_equal(m[nrow(m)/2+1,ncol(m)/2+1],0) 
+            
+})

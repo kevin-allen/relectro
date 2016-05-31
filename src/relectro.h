@@ -176,6 +176,19 @@ SEXP end_interval_r, SEXP interval_lines_r);
 int direction_intervals_count(int* direction, int whl_lines, int res_samples_per_whl_sample, int target_direction);
 void direction_intervals(int* direction, int whl_lines, int res_samples_per_whl_sample,int target_direction,int* start,int* end);
 SEXP direction_intervals_cwrap(SEXP direction_r, SEXP whl_lines_r, SEXP res_samples_per_whl_sample_r, SEXP target_direction_r);
+SEXP spike_triggered_firing_rate_maps_cwrap(SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP pixels_per_bin_x_r, SEXP pixels_per_bin_y_r, SEXP total_bins_r,
+                                            SEXP cells_r, SEXP num_cells_r, SEXP x_whl_r, SEXP y_whl_r, SEXP whl_lines_r,SEXP res_r, SEXP clu_r, SEXP res_lines_r,
+                                            SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r, SEXP ms_per_sample_r, SEXP res_samples_per_whl_sample_r,
+                                            SEXP smoothing_factor_occ_r, SEXP smoothing_factor_rate_r, SEXP min_isi_ms_r, SEXP max_isi_ms_r, SEXP res_sampling_rate_r);
+void create_place_firing_maps_spike_triggered(int num_bins_x, int num_bins_y, double pixels_per_bin_x, double pixels_per_bin_y,int total_bins,int* cells,int num_cells, double* x_whl,double* y_whl,int whl_lines,
+                                              int* res, int* clu, int res_lines, double* x_spike, double* y_spike, int* start_interval, int* end_interval, int interval_lines, double* all_occ_maps,double* all_place_maps, double ms_per_sample,
+                                              int res_samples_per_whl_sample, double smoothing_factor_occ,double smoothing_factor_rate, double min_isi_ms, double max_isi_ms,int res_sampling_rate);
+void spike_triggered_occupancy_map(int x_bins, int y_bins, double pixels_per_bin_x, double pixels_per_bin_y, double *x_whl, double *y_whl, int whl_lines,
+                                   double *map, double ms_per_sample, int *start_interval, int *end_interval, int interval_lines,
+                                   int res_samples_per_whl_sample, int* res, int* clu, int res_lines, int target_cell,
+                                   double min_isi_ms, double max_isi_ms, int res_sampling_rate, double* x_spike, double* y_spike);
+void spike_triggered_place_map(int x_bins, int y_bins, double pixels_per_bin_x, double pixels_per_bin_y, double *x_spike, double *y_spike, int* res, int *clu, int res_lines, int target_cell1, 
+                               int target_cell2, double *occupancy_map, double *place_map, double min_isi_ms, double max_isi_ms,int res_sampling_rate);
 
 // interval.c
 int check_interval_chronology_between(int num_lines, 
