@@ -327,9 +327,9 @@ test_that("grid score",
           {
             ### animal is at all location only once, from 1 to 50 in a 2d matrix
             pt<-new("Positrack")
-            maxx=50
+            maxx=80
             minx=1
-            maxy=50
+            maxy=80
             miny=1
             x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),3)-0.5
             y=rep(rep(seq(miny,maxy),each=maxx-minx+1),3)-0.5
@@ -345,8 +345,6 @@ test_that("grid score",
             radius<-20
             xcoor<-c(x_center+radius*cos(delta),x_center)
             ycoor<-c(y_center+radius*sin(delta),y_center)
-            
-            ## find the index in the x and y position of the animal which were the closest to the xcoor and ycoor
             coordinates<-matrix(data=c(xcoor,ycoor),ncol=2)
             t<-apply(coordinates,1,function(v,x,y){which.min(sqrt((v[1]-x)^2+(v[2]-y)^2))},x,y)
             
@@ -361,14 +359,46 @@ test_that("grid score",
             sp@smoothRateMapSd=3.5
             sp@smoothOccupancySd=3.5
             sp<-firingRateMap2d(sp,st,pt)   
-            firingRateMapPlot(m=sp@maps[,,1])
             sp<-getMapStats(sp,st,pt)
-            firingRateMapAutoPlot(sp@autos[,,1]) 
             expect_gt(sp@gridScore,1.0) # perfect grid should have a high grid score
             
+            ##########################
+            ### test grid spacing ####
+            expect_lt(abs(sp@gridSpacing-radius),expected=1) # radius is the spacing
+            ### try a different radius
+            delta<-seq(0,300,60)/180*pi ## angles of fields relative to center
+            x_center<-(minx+(maxx-minx))/2
+            y_center<-(miny+(maxy-miny))/2
+            radius<-25
+            xcoor<-c(x_center+radius*cos(delta),x_center)
+            ycoor<-c(y_center+radius*sin(delta),y_center)
+            coordinates<-matrix(data=c(xcoor,ycoor),ncol=2)
+            t<-apply(coordinates,1,function(v,x,y){which.min(sqrt((v[1]-x)^2+(v[2]-y)^2))},x,y)
+            ## set the spike trains in the object
+            spikeTimes<- t*pt@resSamplesPerWhlSample
+            st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+            st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+            sp<-getMapStats(sp,st,pt)
+            expect_lt(abs(sp@gridSpacing-radius),expected=1) # radius is the spacing
             
-            expect_lt(abs(sp@gridSpacing-radius),expected=0.5) # radius is the spacing
+            ### try a different radius
+            delta<-seq(0,300,60)/180*pi ## angles of fields relative to center
+            x_center<-(minx+(maxx-minx))/2
+            y_center<-(miny+(maxy-miny))/2
+            radius<-40
+            xcoor<-c(x_center+radius*cos(delta),x_center)
+            ycoor<-c(y_center+radius*sin(delta),y_center)
+            coordinates<-matrix(data=c(xcoor,ycoor),ncol=2)
+            t<-apply(coordinates,1,function(v,x,y){which.min(sqrt((v[1]-x)^2+(v[2]-y)^2))},x,y)
+            ## set the spike trains in the object
+            spikeTimes<- t*pt@resSamplesPerWhlSample
+            st<-setSpikeTrain(st=st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=20000)
+            st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
+            sp<-getMapStats(sp,st,pt)
+            expect_lt(abs(sp@gridSpacing-radius),expected=1) # radius is the spacing
+
             
+            ### test grid orientation
             
             rm(maxx,minx,maxy,miny,x,y,hd,st,sp,pt,spikeTimes,
                delta,x_center,y_center,radius,xcoor,ycoor,coordinates,t)

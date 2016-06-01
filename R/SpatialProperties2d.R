@@ -397,10 +397,11 @@ setMethod(f="getMapStats",
               stop(paste("getMapstats, value of border can be \"rectangular\" or \"circular\" but is", border))
             
             ## make the maps
-            if(triggered==FALSE)
+            if(triggered==FALSE){
               sp<-firingRateMap2d(sp,st,pt)
-            else
+            } else{
               sp<-spikeTriggeredFiringRateMap2d(sp,st,pt)
+            }
 
             ### get peak rates
             sp@peakRate<-apply(sp@maps,3,max)

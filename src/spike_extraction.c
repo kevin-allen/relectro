@@ -268,7 +268,7 @@ SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res
 
 SEXP get_waveform_matrix(SEXP signal_r, SEXP signal_lines_r, SEXP res_r, SEXP res_lines_r, SEXP window_r){
   int * signal = INTEGER_POINTER(signal_r);
-  int signal_lines =INTEGER_VALUE(signal_lines_r);
+  //int signal_lines =INTEGER_VALUE(signal_lines_r);
   int* res=INTEGER_POINTER(res_r);
   int res_lines = INTEGER_VALUE(res_lines_r);
   int window = INTEGER_VALUE(window_r);
