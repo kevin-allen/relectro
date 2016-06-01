@@ -2165,102 +2165,102 @@ void map_rotate(double* map,
   double* new_map;
   
   if (deg < 0 || deg > 360)
-    {
-      Rprintf("deg needs to be between 0 and 360 in map_rotate\n");
-      return ;
-    }
+  {
+    Rprintf("deg needs to be between 0 and 360 in map_rotate\n");
+    return ;
+  }
   new_map = (double*)malloc(map_size*sizeof(double));
   // set the new map to invalid
   set_array_to_value_double(new_map,map_size,invalid);
-
+  
   // do the rotation
   for (int i = 0; i < map_size; i++)
+  {
+    get_x_and_y_bin_from_index(x_bins,
+                               y_bins,
+                               i,
+                               &x,
+                               &y);
+                               
+                               
+    // relative to center
+    x=x-mid_x;
+    y=y-mid_y;
+    hypo=sqrt(x*x+y*y);
+    old_angle=hux_heading(x,y);
+    new_angle=old_angle+deg;
+    if (new_angle >= 360)
     {
-      get_x_and_y_bin_from_index(x_bins,
-				 y_bins,
-				 i,
-				 &x,
-				 &y);
-
-      
-      // relative to center
-      x=x-mid_x;
-      y=y-mid_y;
-      hypo=sqrt(x*x+y*y);
-      old_angle=hux_heading(x,y);
-      new_angle=old_angle+deg;
-      if (new_angle >= 360)
-	{
-	  new_angle = new_angle -360;
-	}
-      new_angle_radian=degree_to_radian(new_angle);
-      
-      // now we need the angle from 0 to M_PI/2 (90 deg)
-      while (new_angle_radian > M_PI/2)
-	{
-	  new_angle_radian= new_angle_radian-M_PI/2;
-	}
-      
-      // set the new coordinates for the pixel
-      // add .5 and transform to int to round up to closest integer
-      if (new_angle == 0)
-	{
-	  x_adjacent=(int)(hypo+0.5);
-	  y_opposite=0;
-	}
-      if (new_angle > 0 && new_angle < 90)
-	{
-	  x_adjacent=(int)((cos(new_angle_radian)*hypo)+.5);
-	  y_opposite=(int)((sin(new_angle_radian)*hypo)+.5);
-	}
-      if (new_angle == 90)
-	{
-	  x_adjacent=0;
-	  y_opposite=(int)(hypo+.5);
-	}
-      if (new_angle > 90 && new_angle < 180)
-	{
-	  x_adjacent=0-(int)((cos(M_PI/2-new_angle_radian)*hypo)+.5);
-	  y_opposite=(int)((sin(M_PI/2-new_angle_radian)*hypo)+.5);
-	}
-      if (new_angle == 180)
-	{
-	  x_adjacent=0-(int)(hypo+.5);
-	  y_opposite=0;
-	}
-      if (new_angle > 180 && new_angle < 270)
-	{
-	  x_adjacent=0-(int)((cos(new_angle_radian)*hypo)+.5);
-	  y_opposite=0-(int)((sin(new_angle_radian)*hypo)+.5);
-	}
-      if (new_angle == 270)
-	{
-	  x_adjacent=0;
-	  y_opposite=0-(int)(hypo+.5);
-	}
-      if (new_angle > 270 && new_angle < 360)
-	{
-	  x_adjacent=(int)((cos(M_PI/2-new_angle_radian)*hypo)+.5);
-	  y_opposite=0-(int)((sin(M_PI/2-new_angle_radian)*hypo)+.5);
-	}
-
-      // add the value of the center to the rotated coordinates
-      x_adjacent=x_adjacent+mid_x;
-      y_opposite=y_opposite+mid_y;
-     
-      // get the index of the bin in the array
-      if (x_adjacent >= 0 && x_adjacent < x_bins && y_opposite>=0 && y_opposite < y_bins)
-	{
-	  new_index=get_index_from_x_and_y_bin(x_bins,
-					       y_bins,
-					       x_adjacent,
-					       y_opposite);
-	  new_map[new_index]=map[i];
-       	}
-      
+      new_angle = new_angle -360;
     }
+    new_angle_radian=degree_to_radian(new_angle);
+    
+    // now we need the angle from 0 to M_PI/2 (90 deg)
+    while (new_angle_radian > M_PI/2)
+    {
+      new_angle_radian= new_angle_radian-M_PI/2;
+    }
+    
+    // set the new coordinates for the pixel
+    // add .5 and transform to int to round up to closest integer
+    if (new_angle == 0)
+    {
+      x_adjacent=(int)(hypo+0.5);
+      y_opposite=0;
+    }
+    if (new_angle > 0 && new_angle < 90)
+    {
+      x_adjacent=(int)((cos(new_angle_radian)*hypo)+.5);
+      y_opposite=(int)((sin(new_angle_radian)*hypo)+.5);
+    }
+    if (new_angle == 90)
+    {
+      x_adjacent=0;
+      y_opposite=(int)(hypo+.5);
+    }
+    if (new_angle > 90 && new_angle < 180)
+    {
+      x_adjacent=0-(int)((cos(M_PI/2-new_angle_radian)*hypo)+.5);
+      y_opposite=(int)((sin(M_PI/2-new_angle_radian)*hypo)+.5);
+    }
+    if (new_angle == 180)
+    {
+      x_adjacent=0-(int)(hypo+.5);
+      y_opposite=0;
+    }
+    if (new_angle > 180 && new_angle < 270)
+    {
+      x_adjacent=0-(int)((cos(new_angle_radian)*hypo)+.5);
+      y_opposite=0-(int)((sin(new_angle_radian)*hypo)+.5);
+    }
+    if (new_angle == 270)
+    {
+      x_adjacent=0;
+      y_opposite=0-(int)(hypo+.5);
+    }
+    if (new_angle > 270 && new_angle < 360)
+    {
+      x_adjacent=(int)((cos(M_PI/2-new_angle_radian)*hypo)+.5);
+      y_opposite=0-(int)((sin(M_PI/2-new_angle_radian)*hypo)+.5);
+    }
+    
+    // add the value of the center to the rotated coordinates
+    x_adjacent=x_adjacent+mid_x;
+    y_opposite=y_opposite+mid_y;
+    
+    // get the index of the bin in the array
+    if (x_adjacent >= 0 && x_adjacent < x_bins && y_opposite>=0 && y_opposite < y_bins)
+    {
+      new_index=get_index_from_x_and_y_bin(x_bins,
+                                           y_bins,
+                                           x_adjacent,
+                                           y_opposite);
+      new_map[new_index]=map[i];
+    }
+    
+  }
   for (int i = 0; i < map_size; i++)
-    { map[i]=new_map[i];}
+  { map[i]=new_map[i];}
   free(new_map);
   return;
 }
@@ -5156,4 +5156,62 @@ void spike_triggered_place_map(int x_bins,
       }
     }
   }
+}
+
+
+
+SEXP maps_rotate_cwrap(SEXP maps_r,
+                       SEXP num_bins_x_r,
+                       SEXP num_bins_y_r, 
+                       SEXP num_cells_r,
+                       SEXP degree_r)
+{
+  
+  // transpose the maps
+  double* maps = REAL(maps_r);
+  int num_cells= INTEGER_VALUE(num_cells_r);
+  double degrees = REAL(degree_r)[0];
+  int num_bins_x = INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y = INTEGER_VALUE(num_bins_y_r);
+  int total_bins= num_bins_x*num_bins_y;
+  
+  
+  // create a copy with transposed maps
+  double* all_maps_copy = (double*)malloc(total_bins*num_cells*sizeof(double));
+  double* one_map;
+  double* one_map_copy;
+  
+  for(int i = 0; i < num_cells; i++){
+    one_map = maps + (i*total_bins);
+    one_map_copy = all_maps_copy + (i*total_bins);
+    for(int x =0; x < num_bins_x;x++)
+      for(int y =0; y < num_bins_y;y++)
+        one_map_copy[x*num_bins_y+y]=one_map[x+num_bins_x*y]; // needs to be transpose for c code
+  }
+  // rotate the maps
+  for(int i = 0; i < num_cells; i++){
+    one_map_copy = all_maps_copy + (i*total_bins);
+    map_rotate(one_map_copy,
+              num_bins_x,
+              num_bins_y,
+              degrees,
+              -1.0);
+  }
+  SEXP out = PROTECT(allocVector(REALSXP,total_bins*num_cells));
+  double* ans;
+  double* one_ans;
+  ans=REAL(out);
+
+  //transpose the maps for R
+  for(int i = 0; i < num_cells;i++){
+    one_map = all_maps_copy + (i*total_bins);
+    one_ans = ans + (i*total_bins);
+    for(int x =0; x < num_bins_x;x++)
+      for(int y =0; y < num_bins_y;y++)
+        one_ans[x+num_bins_x*y]=one_map[x*num_bins_y+y];
+  }
+  
+  // return the maps
+  UNPROTECT(1);
+  return out;
 }

@@ -1136,7 +1136,6 @@ setMethod(f="firingRateMapCorrelation",
 
 
 
-
 #' Return the firing rate maps in a data.frame
 #' 
 #' 
@@ -1217,4 +1216,88 @@ setMethod(f="statsAsDataFrame",
           }
 )
 
+
+
+#' Calculate a Pearson correlation coefficients between maps of two SpatialProperties2d object (sp1 and sp2) 
+#' after rotating the maps of the second object 
+#' 
+#' Used to estimate whether the spatial representation rotated between two conditions
+#' 
+#' 
+#' @param sp1 SpatialProperties2d object
+#' @param sp2 SpatialProperties2d object
+#' @param numRotations Number of rotation steps
+#' @param rotationDegrees Number of degrees for each rotation step
+#' @return Matrix containing the Pearson correlation coefficients after different rotations (cols), each map pair has its own row
+#' 
+#' @docType methods
+#' @rdname firingRateMapCorrelationRotation-methods
+setGeneric(name="firingRateMapCorrelationRotation",
+           def=function(sp1,sp2,...)
+           {standardGeneric("firingRateMapCorrelationRotation")}
+)
+#' @rdname firingRateMapCorrelationRotation-methods
+#' @aliases firingRateMapCorrelationRotation,ANY,ANY-method
+setMethod(f="firingRateMapCorrelationRotation",
+          signature="SpatialProperties2d",
+          definition=function(sp1,sp2,numRotations=36,rotationDegrees=10)
+          {
+            if(class(sp1)!="SpatialProperties2d")
+              stop("firingRateMapCorrelationRotation: sp1 is not a SpatialProperties2d object")
+            if(class(sp2)!="SpatialProperties2d")
+              stop("firingRateMapCorrelationRotation: sp2 is not a SpatialProperties2d object")
+            if(length(sp1@maps)==0)
+              stop("firingRateMapCorrelationRotation: length(sp1@maps)==0")
+            if(length(dim(sp1@maps))!=3)
+              stop("firingRateMapCorrelationRotation: length(dim(sp1@maps))!=3")
+            if(!identical(dim(sp1@maps),dim(sp2@maps)))
+              stop("firingRateMapCorrelationRotation: the dimensions of the maps arrays in sp1 and sp2 are not equal")
+            if(numRotations<1)
+              stop("firingRateMapCorrelationRotation: numRotations<1")
+            
+            rotations<-seq(from=0,by=rotationDegrees,length=numRotations)%%360
+            results<-matrix(ncol=length(rotations),nrow=length(sp1@cellList),dimnames=list(sp1@cellList,rotations))
+            for(i in 1:length(rotations)){
+              spr<-firingRateMapsRotation(sp2,rotations[i])
+              results[,i]<-firingRateMapCorrelation(sp1,spr)
+            }
+            return(results)
+          }
+)
+
+#' Rotate the firing rate maps of a SpatialProperties2d object 
+#' 
+#' 
+#' @param sp1 SpatialProperties2d object
+#' @param rotationDegrees Degrees of the rotation
+#' @return SpatialProperties2d object with the rotated maps
+#' 
+#' @docType methods
+#' @rdname firingRateMapsRotation-methods
+setGeneric(name="firingRateMapsRotation",
+           def=function(sp,rotationDegrees)
+           {standardGeneric("firingRateMapsRotation")}
+)
+#' @rdname firingRateMapsRotation-methods
+#' @aliases firingRateMapsRotation,ANY,ANY-method
+setMethod(f="firingRateMapsRotation",
+          signature="SpatialProperties2d",
+          definition=function(sp,rotationDegrees=10)
+          {
+            if(length(sp@maps)==0)
+              stop("firingRateMapsRotation: length(sp@maps)==0")
+            if(rotationDegrees<0)
+              stop("firingRateMapsRotation: rotationDegree<0")
+            if(rotationDegrees>360)
+              stop("firingRateMapsRotation: rotationDegree>360")
+            results<-.Call("maps_rotate_cwrap",
+                    as.numeric(sp@maps),
+                    sp@nRowMap,
+                    sp@nColMap,
+                    length(sp@cellList),
+                    rotationDegrees)
+            sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
+            return(sp)
+          }
+)
 

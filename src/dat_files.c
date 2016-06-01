@@ -315,7 +315,7 @@ int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,in
 
   // function to get the data from one channel, intervals can cover more than one file
   // we do one read operation per file until we get all we need
-  int* ptr;
+//  int* ptr;
   int file_index;
   long int num_samples_read, to_read, within_file_start_index,total_needed;
   // check that the index given make sense

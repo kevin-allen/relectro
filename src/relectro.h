@@ -189,6 +189,9 @@ void spike_triggered_occupancy_map(int x_bins, int y_bins, double pixels_per_bin
                                    double min_isi_ms, double max_isi_ms, int res_sampling_rate, double* x_spike, double* y_spike);
 void spike_triggered_place_map(int x_bins, int y_bins, double pixels_per_bin_x, double pixels_per_bin_y, double *x_spike, double *y_spike, int* res, int *clu, int res_lines, int target_cell1, 
                                int target_cell2, double *occupancy_map, double *place_map, double min_isi_ms, double max_isi_ms,int res_sampling_rate);
+SEXP maps_rotate_cwrap(SEXP maps, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP num_cells_r, SEXP degree_r);
+
+
 
 // interval.c
 int check_interval_chronology_between(int num_lines, 
