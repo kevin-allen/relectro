@@ -78,34 +78,46 @@ SpikeTrain <- setClass(
           refractoryRatio="numeric",
           crossRefractoryRatio="numeric"
           ),  
-  prototype = list(session="",ifrKernelSdMs=50,ifrWindowSizeMs=50,ifrSpikeBinMs=1))
+  prototype = list(session=""))
 
 
 
-#' Calculate the instantaneous firing rate from the spike trains
+#' Calculate the instantaneous firing rate from the spike trains.
 #'
+#' The ifr for the periods within the intervals set within the SpikeTrain object will be calculated.
+#' A vector with the spike count in each bin is calculated
+#' Then a gaussian kernel is applied to the spike count vector
+#' Finally, the firing probability is integrated over a set window size and transform to a firing rate.
+#' 
 #'
 #' @param st SpikeTrain object
+#' @param windowSizeMs The window size for each ifr value
+#' @param spikeBinMs The bin size for the spike count array
+#' @param kernelSdMs Standard deviation of the gaussian kernel used to smooth the spike count vector
 #' @return SpikeTrain object with the instantaneous firing rate
 #' 
 #' @docType methods
 #' @rdname ifr-methods
 setGeneric(name="ifr",
-           def=function(st)
+           def=function(st,windowSizeMs=100,spikeBinMs=1,kernelSdMs=100)
            {standardGeneric("ifr")})
 
 #' @rdname ifr-methods
 #' @aliases ifr,ANY,ANY-method
 setMethod(f="ifr",
           signature = "SpikeTrain",
-          definition=function(st)
+          definition=function(st,windowSizeMs=100,spikeBinMs=1,kernelSdMs=100)
           {
             if(st@nSpikes==0)
               stop(paste("ifr(): there are no spike in the SpikeTrain object",st@session))
 
-            if(st@ifrWindowSizeMs<st@ifrSpikeBinMs)
-              stop(paste("ifr(): ifrWindowSizeMs should not be smaller than ifrSpikeBinMs",
-                         st@ifrWindowSizeMs,st@ifrSpikeBinMs))
+            if(windowSizeMs<spikeBinMs)
+              stop(paste("ifr(): windowSizeMs should not be smaller than spikeBinMs",
+                         windowSizeMs,spikeBinMs))
+            
+            st@ifrWindowSizeMs<-windowSizeMs
+            st@ifrSpikeBinMs<-spikeBinMs
+            st@ifrKernelSdMs<-kernelSdMs
             
             results<-.Call("ifr_from_spike_density",
                   as.integer(st@res),as.integer(st@clu), as.integer(st@nSpikes), 

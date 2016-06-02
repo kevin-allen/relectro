@@ -279,11 +279,13 @@ setMethod(f="firingRateMap2d",
 #' Calculate the spike-triggered firing rate maps of neurons using a SpikeTrain and Positrack objects
 #'
 #' Each spike is treated as a reference spike in turn. The map is constructed from the data
-#' around each reference spike by shifting the x and y coordinate so that the position of the 
-#' agent at the time of the reference spike was 0,0.
+#' following the reference spikes by shifting the x and y coordinate so that the position of the 
+#' agent at the time of the reference spike is 0,0.
 #' 
 #' The occupancy map and the firing rate maps are smoothed with a Gaussian kernel
 #' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp
+#' 
+#' You can set the temporal limit for the data used to construct the map with minIsiMs and maxIsiMs
 #' 
 #' 
 #' @param sp SpatialProperties1d object
@@ -939,8 +941,6 @@ setMethod(f="borderDetection",
           })
 
 
-
-
 #' Speed scores from spike train and positrack
 #' 
 #' 
@@ -950,7 +950,8 @@ setMethod(f="borderDetection",
 #' @param minSpeed Minimal speed to be considered
 #' @param maxSpeed Maximal speed to be considered
 #' @param runLm Logical, if TRUE a linear model will be build and slope and intercept calculated
-#' @return SpatialProperties2d object with the speed scores in the slots SpeedScore
+#' @return SpatialProperties2d object with the speed scores in the slots SpeedScore. 
+#' If runLm argument was TRUE, then speedRateSlope and peedRateIntercept will also be filled
 #' 
 #' @docType methods
 #' @rdname speedScore-methods
@@ -962,12 +963,14 @@ setGeneric(name="speedScore",
 #' @aliases speedScore,ANY,ANY-method
 setMethod(f="speedScore",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt,minSpeed=3,maxSpeed=100,runLm=F)
+          definition=function(sp,st,pt,minSpeed=2,maxSpeed=100,runLm=F)
           {
             if(length(pt@speed)==0)
               stop("pt@speed has length of 0")
-            if(dim(st@ifr)[1]!=length(sp@cellList))
+            if(dim(st@ifr)[1]!=length(st@cellList))
               stop(paste("ifr dim",dim(st@ifr)[1], "is not equal to number of cells", length(sp@cellList)))
+            
+            sp@cellList<-st@cellList
             
             ## get the ifr and ifrTime inside st@interval
             resTime<-st@ifrTime*st@samplingRate
@@ -999,6 +1002,7 @@ setMethod(f="speedScore",
             return(sp)
           }
 )
+
 #' Random speed scores from spike train and positrack
 #' 
 #' 
@@ -1060,6 +1064,84 @@ setMethod(f="speedScoreShuffle",
             return(sp)
           }
 )
+
+#' Speed-rate tuning curve from spike train and positrack
+#' 
+#' Uses the ifr of cells to calculate the mean firing rate of neurons 
+#' for different speed bands.
+#' 
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object with ifr
+#' @param pt Positrack object
+#' @param minSpeed Minimal speed to be considered
+#' @param maxSpeed Maximal speed to be considered
+#' @return data.frame with the speed-rate tuning curves
+#' 
+#' @docType methods
+#' @rdname speedRateTuningCurve-methods
+setGeneric(name="speedRateTuningCurve",
+           def=function(sp,st,pt,minSpeed,maxSpeed)
+           {standardGeneric("speedRateTuningCurve")}
+)
+#' @rdname speedRateTuningCurve-methods
+#' @aliases speedRateTuningCurve,ANY,ANY-method
+setMethod(f="speedRateTuningCurve",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,minSpeed=2,maxSpeed=100)
+          {
+            if(length(pt@speed)==0)
+              stop("pt@speed has length of 0")
+            if(dim(st@ifr)[1]!=length(st@cellList))
+              stop(paste("ifr dim",dim(st@ifr)[1], "is not equal to number of cells", length(sp@cellList)))
+            
+            sp@cellList<-st@cellList
+            
+            ## get the ifr and ifrTime inside st@interval
+            resTime<-st@ifrTime*st@samplingRate
+            index<-as.logical(.Call("resWithinIntervals",
+                                    length(st@startInterval),
+                                    as.integer(st@startInterval),
+                                    as.integer(st@endInterval),
+                                    length(resTime),
+                                    as.integer(resTime)))
+            
+            ifrSel<-matrix(st@ifr[,index],nrow=length(st@cellList))
+            resTime<-resTime[index]
+            
+            ## get the speed for the res values
+            speed<-getSpeedAtResValues(pt,resTime)
+            
+            ## speed filter
+            index<-which(speed>minSpeed&speed<maxSpeed)
+            ifrSel<-matrix(ifrSel[,index],nrow=length(st@cellList))
+            speed<-speed[index]
+            
+            
+            ## speed bands
+            m<-matrix(ncol=2,c(seq(0,25,5),seq(5,30,5)))
+            
+            ## function to get the mean firing rate at different speed bands
+            fn<-function(ifr,speed,m){
+              v<-numeric(length=nrow(m))
+              for(i in 1:nrow(m)){
+                v[i]<-mean(ifr[which(speed>m[i,1]&speed<=m[i,2])],na.rm=T)
+              }
+              return(v)
+            }
+            ## apply to each neuron, 
+            rate<-as.numeric(apply(ifrSel,1,fn,speed,m))
+            ## create a data.frame
+            df<-data.frame(clu=rep(st@cellList,each=nrow(m)),
+                       min.speed=m[,1],
+                       max.speed=m[,2],
+                       mid=m[,1]+(m[,2]-m[,1])/2,
+                       rate=rate)
+            return(df)  
+          }
+)
+
+
+
 
 
 #' Calculate the center of mass of the firing rate maps in a SpatialProperties2d object
@@ -1196,7 +1278,8 @@ setMethod(f="statsAsDataFrame",
                          borderScore=sp@borderScore,
                          borderCM=sp@borderCM,
                          borderDM=sp@borderDM,
-                         gridScore=sp@gridScore)
+                         gridScore=sp@gridScore,
+                         gridSpacing=sp@gridSpacing)
             }
             if(shuffle==TRUE){
               if(length(sp@maps)==0)

@@ -1,5 +1,5 @@
 library(relectro)
-
+library(testthat)
 context("set intervals")
 test_that("set intervals",{
   st<-new("SpikeTrain")
@@ -77,16 +77,16 @@ test_that("Sum of ifr when know spikes",{
   st<-new("SpikeTrain")
   st<-setSpikeTrain(st,res=c(10000,20000),clu=c(1,1),samplingRate=20000)
   st<-setIntervals(st,s=c(0),e=c(30000))
-  st<-ifr(st) 
+  st<-ifr(st,windowSizeMs=50, spikeBinMs=1, kernelSdMs=50)
+  
   ## sum of ifr should give use 2 spikes.
   expect_equal(sum(st@ifr[1,]/(1000/st@ifrWindowSizeMs)),2,tolerance = .000001)
   st<-setSpikeTrain(st,res=c(10000,30000),clu=c(1,1),samplingRate=20000)
   st<-setIntervals(st,s=c(20000),e=c(40000))
-  st<-ifr(st) 
+  st<-ifr(st,windowSizeMs=50, spikeBinMs=1, kernelSdMs=50)
   expect_equal(sum(st@ifr[1,]/(1000/st@ifrWindowSizeMs)),1,tolerance = .000001)
-  st@ifrWindowSizeMs=1
   st<-setIntervals(st,s=c(0),e=c(10001))
-  st<-ifr(st)
+  st<-ifr(st,windowSizeMs=1, spikeBinMs=1, kernelSdMs=50)
   ## is the kernel centered on the spikes
   expect_equal(sum(st@ifr[1,]/(1000/st@ifrWindowSizeMs)),0.5,tolerance = 0.1)
   
@@ -94,7 +94,7 @@ test_that("Sum of ifr when know spikes",{
   st<-new("SpikeTrain")
   st<-setSpikeTrain(st,res=c(10000,20000),clu=c(1,1),samplingRate=20000)
   st<-setIntervals(st,s=c(30000),e=c(40001))
-  st<-ifr(st)
+  st<-ifr(st,windowSizeMs=50, spikeBinMs=1, kernelSdMs=50)
   expect_equal(sum(st@ifr[1,]),0)
   expect_equal(length(st@ifr[1,]),10)
   
@@ -102,7 +102,7 @@ test_that("Sum of ifr when know spikes",{
   st<-new("SpikeTrain")
   st<-setSpikeTrain(st,res=c(10000,20000),clu=c(1,1),samplingRate=20000)
   st<-setIntervals(st,s=c(0,40000),e=c(30001,50001))
-  st<-ifr(st)
+  st<-ifr(st,windowSizeMs=50, spikeBinMs=1, kernelSdMs=50)
   expect_equal(length(st@ifr[1,]),40)
   expect_equal(sum(st@ifr[1,]/(1000/st@ifrWindowSizeMs)),2,tolerance = .000001)
   rm(st)
