@@ -113,7 +113,7 @@ setMethod(f="loadSessionsInList",
             
             for (i in 1:length(ep@sessionNameList))
             {
-              ep@sessionList[i]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])
+              ep@sessionList[[i]]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])
             }
             ep@sessionList<-lapply(ep@sessionList,loadRecSession)     
             
@@ -290,3 +290,22 @@ setMethod("show", "ElectroProject",
               }
             }
           })
+
+
+#' Sort a list of RecSession objects according to the recording date of the sessions
+#' 
+#' Use the date in the name of the RecSession object
+#' 
+#' @param rsl List containing recording sessions
+#' @return List containing the recording sessions ordered according to their recording date.
+sortRecSessionListChronologically<-function(rsl){
+  if(class(rsl)!="list")
+    stop("sortRecSessionListChronologically: rsl is not a list")
+  if(length(rsl)==0)
+    stop("sortRecSessionListChronologically: rsl length is 0")
+  if(class(rsl[[1]])!="RecSession")
+    stop("sortRecSessionListChronologically: rsl[[1]] is not a RecSession object")
+  o<-order(sapply(rsl,recordingDate))
+  return(rsl[o])
+  
+}

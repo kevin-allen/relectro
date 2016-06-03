@@ -47,7 +47,6 @@ RecSession <- setClass(
           earlyProcessed="logical"),  # cell list to limit the analysis to these cells
   prototype = list(session="",path=""))
 
-
 #' Load the data regarding a recording session
 #'
 #' You need to set the session and  path slots of your object before calling this function
@@ -237,6 +236,33 @@ setMethod(f="containsEnvironment",
           {
             return(any(rs@env==environment))
           })
+
+#' Get the recording date of a recSession, taken from session name
+#'
+#' @param rs A RecSession object
+#' @return Date
+#' 
+#' @docType methods
+#' @rdname recordingDate-methods
+setGeneric(name="recordingDate",
+           def=function(rs)
+           {standardGeneric("recordingDate")}
+)
+#' @rdname recordingDate-methods
+#' @aliases recordingDate,ANY,ANY-method
+setMethod(f="recordingDate",
+          signature="RecSession",
+          definition=function(rs)
+          {
+            d<-unlist(strsplit(x=rs@session,split="-"))[2]
+            if(nchar(d)==8)
+            {
+              rDate<-as.Date(d, "%d%m%Y")
+            } else{
+              rDate<-NA
+            }
+            return(rDate)
+})
 
 
 #' Get the time intervals in sample values for trials in a given environment

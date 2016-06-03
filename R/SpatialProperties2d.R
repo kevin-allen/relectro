@@ -534,9 +534,9 @@ setMethod(f="getMapStatsShuffle",
               
               ## make the maps
               if(triggered==FALSE)
-                sp<-firingRateMap2d(sp,st,pt)
+                sp<-firingRateMap2d(sp,st,pts)
               else
-                sp<-spikeTriggeredFiringRateMap2d(sp,st,pt)
+                sp<-spikeTriggeredFiringRateMap2d(sp,st,pts)
               
               sp@peakRateShuffle <- c(sp@peakRateShuffle,apply(sp@maps,3,max))
               sp@infoScoreShuffle <- c(sp@infoScoreShuffle,

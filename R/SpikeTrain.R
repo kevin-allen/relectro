@@ -434,14 +434,14 @@ setMethod(f="spikeTimeCrosscorrelationEventsAsDataFrame",
 
 #' Calculate the spike-time crosscorrelation between the spike trains of cell pairs
 #' 
-#' Each spike of cell 1 are used in turn as a reference spike.
+#' The spikes of cell 1 are used in turn as a reference spike.
 #' The number of spikes or probability to observe a spike of cell 2 around the reference spikes is calculated.
 #' You can set the bins size in ms and and the time window for which you want to do the analysis on.
 #'
 #'
 #' @param st SpikeTrain object
 #' @param binSizeMs Default is 1
-#' @param windowSizeMs Default is 200
+#' @param windowSizeMs Default is 200. Will span from -windowSizeMs to windowSizeMs
 #' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
 #' @return SpikeTrain object with spike-time crosscorrelation of cell pairs in slot cross
 #' 
@@ -476,11 +476,6 @@ setMethod(f="spikeTimeCrosscorrelation",
                             as.integer(st@endResIndexc),
                             length(st@startResIndexc),
                             probability)
-            st@res
-            st@clu
-            length(st@startResIndexc)
-            results
-            
             
             st@cross=matrix(results,nrow=nBins,ncol=length(st@cellPairList[,1]))
             st@crossMsPerBin=binSizeMs
