@@ -222,11 +222,11 @@ test_that("border score, CM and DM in circular environments",
           sp@smoothRateMapSd=0
           sp@smoothOccupancySd=0
           sp<-firingRateMap2d(sp,st,pt)   
-     #     firingRateMapPlot(m=sp@maps[,,1])
+          firingRateMapPlot(m=sp@maps[,,1])
           
           ## number of bins at the border
           b<-borderDetection(sp,border="circular")
-     #     firingRateMapPlot(m=b)
+          #firingRateMapPlot(m=b)
           expect_equal(length(b[b!=0]),(maxx-minx)*2+(maxy-miny)*2)
           
           ## all bins at border so DM = 0
@@ -234,7 +234,7 @@ test_that("border score, CM and DM in circular environments",
           expect_equal(sp@borderDM,0)
           
           ## firing rate now cover one x lenght.
-     #     firingRateMapPlot(m=sp@maps[,,1])
+          #firingRateMapPlot(m=sp@maps[,,1])
           m<-sp@maps[,,1]
           expect_equal(length(m[which(m!=-1.0&m!=0)])/length(b[which(b==2)]),sp@borderCM)
           
@@ -246,8 +246,8 @@ test_that("border score, CM and DM in circular environments",
           st<-setIntervals(st,s=0,e=length(x)*pt@resSamplesPerWhlSample+pt@resSamplesPerWhlSample)
           sp<-firingRateMap2d(sp,st,pt)   
           sp<-getMapStats(sp,st,pt,border="circular")
-       #   firingRateMapPlot(m=sp@maps[,,1])
-       #   firingRateMapPlot(m=b)
+         #firingRateMapPlot(m=sp@maps[,,1])
+        #  firingRateMapPlot(m=b)
           expect_equal(sp@mapPolarity,1.0,tolerance=0.01)
           
           
@@ -274,7 +274,7 @@ test_that("border score, CM and DM in circular environments",
           #firingRateMapPlot(m=sp@maps[,,1])
           
           b<-borderDetection(sp,border="circular")
-         # firingRateMapPlot(m=b)
+          #firingRateMapPlot(m=b)
           sp<-getMapStats(sp,st,pt,border="circular")
           
           ## predicted length of border

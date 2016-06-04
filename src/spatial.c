@@ -3487,12 +3487,26 @@ SEXP border_score_circular_environment_cwrap(SEXP cells_r,
   
   for(int i = 0; i < cell_lines; i++)
   {
-    o[i*4+0]=border_score[i];
-    o[i*4+1]=cm[i];
-    o[i*4+2]=dm[i];
-    o[i*4+3]=(double)num_fields_detected[i];
-    o[i*4+4]=map_polarity[i];
-    
+    if(num_fields_detected[i]>0){
+      if(cm[i]<0||cm[i]>1){
+        Rprintf("cm[i] out of range:%lf\n",cm[i]);
+      }
+      if(dm[i]<0||dm[i]>1){
+        Rprintf("dm[i] out of range:%lf\n",dm[i]);
+      }
+      o[i*4+0]=border_score[i];
+      o[i*4+1]=cm[i];
+      o[i*4+2]=dm[i];
+      o[i*4+3]=(double)num_fields_detected[i];
+      o[i*4+4]=map_polarity[i];
+    }
+    else{
+      o[i*4+0]=NA_REAL;
+      o[i*4+1]=NA_REAL;
+      o[i*4+2]=NA_REAL;
+      o[i*4+3]=(double)num_fields_detected[i];
+      o[i*4+4]=map_polarity[i];
+    }
   }
   
   free(maps_copy);
@@ -3685,6 +3699,13 @@ void border_score_circular_environment(int* cells,
         
         if(number_fields_detected>0)
         {
+          if(CM>1){
+            Rprintf("CM is larger than 1, %lf\n",CM);
+          }
+          if(DM>1){
+            Rprintf("DM is larger than 1, %lf\n",DM);
+          }
+          
           cm[i]= CM;
           dm[i]= DM;
           num_fields_detected[i]=number_fields_detected;
