@@ -598,7 +598,8 @@ setMethod(f="getSpeedAtResValues",
 #' Shift the position of the animal of a random amount larger than the value of minShiftMs
 #' 
 #' This is used to do shuffling. The position values (x and y) are shifted in time. 
-#' Only valid values are shifted.
+#' Only valid values are shifted, so if you want to only shift the position only in 
+#' one environment or a specific part of the track, first call setInvalidOutsideInterval
 #' 
 #' @param pt Positrack object
 #' @return Positrack object with shifted x and y values

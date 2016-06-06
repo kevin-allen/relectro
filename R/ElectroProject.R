@@ -122,6 +122,36 @@ setMethod(f="loadSessionsInList",
 
 
 
+#' Return a RecSession object from the list in an ElectroProject objects
+#'
+#'
+#' @param ep ElectroProject object
+#' @param name Name of the RecSession, e.g. jp19841-01072015-0108
+#' @return RecSession
+#' 
+#' @docType methods
+#' @rdname getRecSession-methods
+setGeneric(name="getRecSession",
+           def=function(ep,name)
+           {standardGeneric("getRecSession")}
+)
+#' @rdname getRecSession-methods
+#' @aliases getRecSession,ANY,ANY-method
+setMethod(f="getRecSession",
+          signature="ElectroProject",
+          definition=function(ep,name="")
+          {
+            if(ep@directory=="")
+              stop("ep@directory not set")
+            return(ep@sessionList[sapply(ep@sessionList,function(x,name){x@session==name},name)][[1]])
+          })
+
+
+
+
+
+
+
 #' Return a list of clustered RecSession objects
 #'
 #'

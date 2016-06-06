@@ -500,7 +500,8 @@ setMethod(f="getMapStats",
 #' Default value is rectangular
 #' @param triggered Logical indicating whether to calculate a spike-triggered firing rate map instead of conventional map
 #' Default value is FALSE
-#' @return SpatialProperties2d object with the random stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
+#' @return SpatialProperties2d object with the random stats in the following slots: peakRateShuffle, infoScoreShuffle, 
+#' sparsityShuffle, borderScoreShuffle and gridScoreShuffle, etc.
 #' 
 #' @docType methods
 #' @rdname getMapStatsShuffle-methods

@@ -2716,6 +2716,102 @@ double grid_spacing(double *map,
   return mean_distance_to_mid/valid_fields;
 }
 
+void remove_internal_bins_from_border(int num_bins_x, int num_bins_y, int* border_map, int* border_x, int* border_y, int* num_bins_border)
+{
+  // takes care of the "border" bins that are in the middle of the map
+  
+  // is_border needs to be above 0 for a border pixel to be kept
+  int min;
+  int max;
+  int min_index;
+  int max_index;
+  int* is_border= (int*) malloc(sizeof(int)* (*num_bins_border));
+  for(int i = 0; i < (*num_bins_border); i++)
+    is_border[i]=0;
+
+  // find the outside bins for each row
+  for(int x = 0; x < num_bins_x; x++)
+  {
+    min=num_bins_x;
+    max=0;
+    min_index=-1;
+    max_index=-1;
+    for(int i = 0; i < (*num_bins_border);i++)
+    {
+      if(border_x[i]==x)
+      {
+        if(border_y[i]>max){
+          max=border_y[i];
+          max_index=i;
+        }
+        if(border_y[i]<min){
+          min=border_y[i];
+          min_index=i;
+        }
+      }
+    }
+    // for this row, keep only the extrem values
+    if(max_index!=-1)
+      is_border[max_index]=1;
+    if(min_index!=-1)
+      is_border[min_index]=1;
+  }
+  // find the outside bins for each column
+  for(int y = 0; y < num_bins_y; y++)
+  {
+    min=num_bins_y;
+    max=0;
+    min_index=-1;
+    max_index=-1;
+    for(int i = 0; i < (*num_bins_border);i++)
+    {
+      if(border_y[i]==y)
+      {
+        if(border_x[i]>max){
+          max=border_x[i];
+          max_index=i;
+        }
+        if(border_x[i]<min){
+          min=border_x[i];
+          min_index=i;
+        }
+      }
+    }
+     // for this row, keep only the extrem values
+     if(max_index!=-1)
+       is_border[max_index]=1;
+     if(min_index!=-1)
+       is_border[min_index]=1;
+    }
+
+    int new_num_bins=0;
+  for(int i = 0; i < (*num_bins_border);i++)
+  {
+    if(is_border[i]>0)
+      new_num_bins++;
+  }
+
+  
+  // remove the bins that is_border==0
+  int removed=0;
+  for(int i = 0; i < (*num_bins_border);i++)
+  {
+    if(is_border[i]==0)
+    {
+      // remove from the map
+      border_map[(border_x[i]*num_bins_y)+border_y[i]]=0;
+      removed++;
+    }
+    else
+    {
+      border_x[i-removed]=border_x[i];
+      border_y[i-removed]=border_y[i];
+    }
+  }
+  *num_bins_border=new_num_bins;
+  free(is_border);
+}
+
 
 int identify_border_pixels_in_occupancy_map(double* occ_map, int num_bins_x, int num_bins_y,int* border_map, int* border_x, int* border_y, int* num_bins_border)
 {
@@ -2727,6 +2823,9 @@ int identify_border_pixels_in_occupancy_map(double* occ_map, int num_bins_x, int
       //recursive algorhythm! Inspired by conversation with Jozsef and Catherine in Vienna
       find_an_adjacent_border_pixel(occ_map, num_bins_x, num_bins_y,border_map,border_x,border_y,num_bins_border);
     }
+  
+  // remove internal bins 
+  remove_internal_bins_from_border(num_bins_x, num_bins_y, border_map, border_x, border_y, num_bins_border);
   return 0;
 }
 int find_border_starting_point(double* occ_map, int num_bins_x, int num_bins_y,int*border_map,int*border_x,int* border_y,int* num_bins_border)
