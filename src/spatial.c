@@ -3586,25 +3586,20 @@ SEXP border_score_circular_environment_cwrap(SEXP cells_r,
   
   for(int i = 0; i < cell_lines; i++)
   {
+    
     if(num_fields_detected[i]>0){
-      if(cm[i]<0||cm[i]>1){
-        Rprintf("cm[i] out of range:%lf\n",cm[i]);
-      }
-      if(dm[i]<0||dm[i]>1){
-        Rprintf("dm[i] out of range:%lf\n",dm[i]);
-      }
-      o[i*4+0]=border_score[i];
-      o[i*4+1]=cm[i];
-      o[i*4+2]=dm[i];
-      o[i*4+3]=(double)num_fields_detected[i];
-      o[i*4+4]=map_polarity[i];
+      o[i*5+0]=border_score[i];
+      o[i*5+1]=cm[i];
+      o[i*5+2]=dm[i];
+      o[i*5+3]=(double)num_fields_detected[i];
+      o[i*5+4]=map_polarity[i];
     }
     else{
-      o[i*4+0]=NA_REAL;
-      o[i*4+1]=NA_REAL;
-      o[i*4+2]=NA_REAL;
-      o[i*4+3]=(double)num_fields_detected[i];
-      o[i*4+4]=map_polarity[i];
+      o[i*5+0]=NA_REAL;
+      o[i*5+1]=NA_REAL;
+      o[i*5+2]=NA_REAL;
+      o[i*5+3]=(double)num_fields_detected[i];
+      o[i*5+4]=map_polarity[i];
     }
   }
   
