@@ -3812,7 +3812,7 @@ void border_score_circular_environment(int* cells,
           dm[i]= NAN;
           num_fields_detected[i]=0;
           border_score[i]=NAN;
-          map_polarity[i]=WVL;
+          map_polarity[i]=NAN;
         }
   }
   free(bin_distance_to_nearest_border);

@@ -481,7 +481,6 @@ setMethod(f="getMapStats",
                                    as.integer(sp@gridScoreMinNumBinsPerField),
                                    sp@gridScoreFieldThreshold,
                                    -2.0)
-            
           return(sp)
           }
 )
