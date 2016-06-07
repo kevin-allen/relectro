@@ -6,13 +6,26 @@ firingRateMapPlot <- function(m,name="",
 {
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
-  image(m,zlim=c(0,max(m,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-  mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=0.6,side=3)
+  
+  if(class(m)=="matrix"){
+    image(m,zlim=c(0,max(m,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+    mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=0.6,side=3)
+    
+  }
+  if(class(m)=="data.frame"){
+    df<-m
+    xlen <- length(unique(df$x))
+    ylen <- length(unique(df$y))
+    zzz <- matrix(df$rate,nrow=ylen,ncol=xlen)
+    image(unique(df$y),unique(df$x),zzz,zlim=c(0,max(df$rate,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+    mtext(paste(peak.rate.prefix,round(max(df$rate,na.rm=T),digits=2),"Hz"),side=3,at=median(unique(df$x)),line=-0.1,cex=0.6)
+  }
   if(main.title!="")
   {
     mtext(main.title,side=3,line=0.3,cex=0.5)
   }
 }
+
 
 firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
   num.cols<-5

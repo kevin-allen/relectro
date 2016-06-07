@@ -113,10 +113,15 @@ setMethod(f="loadPositrack",
               stop(paste("max value of pt@hdWhd > 360:",max(pt@hdWhd)))
             if(min(pt@hdWhd< -1.0))
               stop(paste("min value of pt@hdWhd < -1.0:",min(pt@hdWhd)))
-            ## pt@xWhl will never be changed, 
-            pt@x<-pt@xWhl/pt@pxPerCm
-            pt@y<-pt@yWhl/pt@pxPerCm
+           
+            
+             ## pt@xWhl will never be changed, 
+            pt@x<-pt@xWhl
+            pt@y<-pt@yWhl
             pt@hd<-pt@hdWhd
+            
+            pt@x[which(pt@x!=-1.0)]<-pt@x[which(pt@x!=-1.0)]/pt@pxPerCm
+            pt@y[which(pt@y!=-1.0)]<-pt@y[which(pt@y!=-1.0)]/pt@pxPerCm
             
             ## set the res value associated with eack whl sample
             pt@res<-seq(from=pt@resSamplesPerWhlSample,by=pt@resSamplesPerWhlSample,length.out=length(pt@x))
