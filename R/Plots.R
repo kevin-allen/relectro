@@ -1,28 +1,28 @@
 firingRateMapPlot <- function(m,name="",
                                  outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
-                                 axis.x.mgp=c(0,0,0),axis.y.mgp=c(0,0,0),
-                                 cex.x.axis=0.6,cex.y.axis=0.6,cex.lab=0.6,
-                                 xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="")
+                                 cex.title=0.4,cex.name=0.4,
+                                 xlab="",ylab="",main.title="",peak.rate.prefix="")
 {
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
   
   if(class(m)=="matrix"){
     image(m,zlim=c(0,max(m,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-    mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=0.6,side=3)
+    mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=cex.name,side=3)
     
   }
   if(class(m)=="data.frame"){
     df<-m
     xlen <- length(unique(df$x))
     ylen <- length(unique(df$y))
-    zzz <- matrix(df$rate,nrow=ylen,ncol=xlen)
-    image(unique(df$y),unique(df$x),zzz,zlim=c(0,max(df$rate,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-    mtext(paste(peak.rate.prefix,round(max(df$rate,na.rm=T),digits=2),"Hz"),side=3,at=median(unique(df$x)),line=-0.1,cex=0.6)
+    #print(paste("size:",xlen,ylen))
+    zzz <- matrix(df$rate,nrow=xlen,ncol=ylen)
+    image(unique(df$x),unique(df$y),zzz,zlim=c(0,max(df$rate,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+    mtext(paste(peak.rate.prefix,name,round(max(df$rate,na.rm=T),digits=2),"Hz"),side=3,at=median(unique(df$x)),line=-0.1,cex=cex.name)
   }
   if(main.title!="")
   {
-    mtext(main.title,side=3,line=0.3,cex=0.5)
+    mtext(main.title,side=3,line=0.3,cex=cex.title)
   }
 }
 
