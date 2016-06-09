@@ -222,7 +222,6 @@ setMethod(f="headDirectionStatsShuffle",
               hd@vectorLengthShuffle=vector("numeric")
               hd@peakRatesShuffle=vector("numeric")
             }
-            print(paste("HeadDirection shuffle",hd@nShufflings))
             for(i in 1:hd@nShufflings){
 
               pts<-shiftHdRandom(pt)

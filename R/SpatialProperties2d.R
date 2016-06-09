@@ -463,7 +463,6 @@ setMethod(f="getMapStats",
               sp@borderNumFieldsDetected<-results[4,]
               sp@mapPolarity<-results[5,]
             }
-            ##oulala
             # make spatial autocorrelations
             sp<-mapSpatialAutocorrelation(sp)
             sp@gridScore<-.Call("grid_score_cwrap",
@@ -534,7 +533,6 @@ setMethod(f="getMapStatsShuffle",
             sp@borderDMShuffle=numeric()
             sp@gridScoreShuffle=numeric()
             
-            print(paste("SpatialProperties2d shuffle",sp@nShufflings))
             for(i in 1:sp@nShufflings){
               pts<-shiftPositionRandom(pt)
               
@@ -1052,7 +1050,6 @@ setMethod(f="speedScoreShuffle",
             resTime<-resTime[index]
             #clear from previous data
             sp@speedScoreShuffle<-numeric()
-            print(paste("speed shuffle",sp@nShufflings))
             for(i in 1:sp@nShufflings){
             
               ifrSels<-ifrSel
