@@ -836,10 +836,20 @@ void circular_stats_rate_histogram(double* histo,
   return;
 }
 double direction(double x1,double y1,double x2, double y2){
-  /* return the direction (radian) of the vector*/
+  /* return the direction (radian) of the vector
+  
+  */
   double dir;
   double dx=x2-x1;
   double dy=y2-y1;
+  
+  // if no mvt, return 0
+  if(dx==0&&dy==0){
+    Rprintf("direction(), no movment, returns 0\n");
+    return 0.0;
+  }
+    
+  
   dir = atan((dy)/(dx));
   
   // correct depending in which quardran we are
@@ -871,12 +881,12 @@ double mean_vector_length_weighted(double * array,double * w, int size)
   double mean_vector_length = -1;
   for (int i = 0 ; i < size; i++)
   {
-    if ((array[i] < 0 || array[i] > 2*M_PI) && array[i]!=-1)
+    if ((array[i] < 0 || array[i] > 2*M_PI) && array[i]!=-1.0)
     {
       Rprintf("mean_vector_length_weighted, array[i] is (array[i] < 0 || array[i] > 2*M_PI)&& array[i]!=-1)\n");
       return -1;
     }
-    if (array[i]!=-1&&w[i]!=-1)
+    if (array[i]!=-1.0&&w[i]!=-1.0)
     {
       S=S+sin(array[i])*w[i];
       C=C+cos(array[i])*w[i];
@@ -888,6 +898,7 @@ double mean_vector_length_weighted(double * array,double * w, int size)
     R=sqrt(C*C+S*S);
     // get sum of w
     wsum=sum_double(size, w,-1.0);
+   
     if(wsum>0)
     {
       mean_vector_length = R/wsum;

@@ -143,6 +143,9 @@ setMethod(f="getRecSession",
           {
             if(ep@directory=="")
               stop("ep@directory not set")
+            if(!name%in%ep@sessionNameList){
+              stop(paste(name,"is not in the session list"))
+            }
             return(ep@sessionList[sapply(ep@sessionList,function(x,name){x@session==name},name)][[1]])
           })
 

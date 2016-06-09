@@ -3430,7 +3430,6 @@ void border_score_rectangular_environment(int* cells,
       }
       max_fr_remaining=find_max_double(total_bins,detection_map);
     }
-    
     CM=max_CM;
     
     // calculate DM
@@ -3777,43 +3776,43 @@ void border_score_circular_environment(int* cells,
     // calculate the vector length of the all_fields_map relative to the center of the occupancy map
     // weighted with the firing rate of each pixel
     
-    for(int i = 0; i < num_bins_x*num_bins_y;i++)
+    for(int i = 0; i < total_bins;i++)
       rad_map[i]=-1.0;
     double x_center=num_bins_x/2.0;
     double y_center=num_bins_y/2.0;
     for(int x = 0; x < num_bins_x; x++)
       for(int y = 0; y < num_bins_y; y++)
-        if(one_map[(x*num_bins_y)+y]!=-1.0)
+        if(all_fields_map[(x*num_bins_y)+y]!=-1.0)
         {
-          rad_map[(x*num_bins_y)+y]=direction(x_center,y_center,x,y);
+          if(x_center-x!=0||y_center-y!=0)
+            rad_map[(x*num_bins_y)+y]=direction(x_center,y_center,x,y);
         }
-        
-        //2 call a function to get a weighted vector length
-        WVL=mean_vector_length_weighted(rad_map,all_fields_map,num_bins_x*num_bins_y);
-        
-        if(number_fields_detected>0)
-        {
-          if(CM>1){
-            Rprintf("CM is larger than 1, %lf\n",CM);
+    //2 call a function to get a weighted vector length
+    WVL=mean_vector_length_weighted(rad_map,all_fields_map,total_bins);
+  
+    if(number_fields_detected>0)
+    {
+      if(CM>1){
+        Rprintf("CM is larger than 1, %lf\n",CM);
           }
-          if(DM>1){
-            Rprintf("DM is larger than 1, %lf\n",DM);
-          }
+      if(DM>1){
+          Rprintf("DM is larger than 1, %lf\n",DM);
+      }
           
-          cm[i]= CM;
-          dm[i]= DM;
-          num_fields_detected[i]=number_fields_detected;
-          border_score[i]=(CM-DM)/(CM+DM);
-          map_polarity[i]=WVL;
-        }
-        else
-        {
-          cm[i]= NAN;
-          dm[i]= NAN;
-          num_fields_detected[i]=0;
-          border_score[i]=NAN;
-          map_polarity[i]=NAN;
-        }
+      cm[i]= CM;
+      dm[i]= DM;
+      num_fields_detected[i]=number_fields_detected;
+      border_score[i]=(CM-DM)/(CM+DM);
+      map_polarity[i]=WVL;
+    }
+    else
+    {
+      cm[i]= NAN;
+      dm[i]= NAN;
+      num_fields_detected[i]=0;
+      border_score[i]=NAN;
+      map_polarity[i]=NAN;
+    }
   }
   free(bin_distance_to_nearest_border);
   free(one_field_map);

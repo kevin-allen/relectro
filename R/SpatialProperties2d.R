@@ -54,6 +54,7 @@
 #' @slot borderScoreShuffle Border score form the shuffling analysis
 #' @slot borderCMShuffle Border CM from the shuffling analysis
 #' @slot borderDMShuffle Border DM from the shuffling analysis
+#' @slot borderNumFieldsDetectedShuffle Number of detected fields when calculating shufflings of the border score 
 #' @slot mapPolarityShuffle Map polarity from the shuffling analysis
 #' @slot gridScoreShuffle Grid score from the shuffling analysis
 #' @slot speedScoreShuffle Speed score from the shuffling analysis
@@ -112,6 +113,7 @@ SpatialProperties2d<- setClass(
             borderScoreShuffle="numeric",
             borderCMShuffle="numeric",
             borderDMShuffle="numeric",
+            borderNumFieldsDetectedShuffle="numeric",
             mapPolarityShuffle="numeric",
             gridScoreShuffle="numeric",
             speedScoreShuffle="numeric"
@@ -565,6 +567,7 @@ setMethod(f="getMapStatsShuffle",
                 sp@borderScoreShuffle <-c(sp@borderScoreShuffle,results[1,])
                 sp@borderCMShuffle<-c(sp@borderCMShuffle,results[2,])
                 sp@borderDMShuffle<-c(sp@borderDMShuffle,results[3,])
+                sp@borderNumFieldsDetectedShuffle<-c(sp@borderNumFieldsDetectedShuffle,results[4,])
               }
               
               if(border=="circular")
@@ -579,10 +582,11 @@ setMethod(f="getMapStatsShuffle",
                                sp@maps,
                                sp@borderPercentageThresholdField,
                                as.integer(sp@borderMinBinsInField))
-                sp@borderScoreShuffle<-results[1,]
-                sp@borderCMShuffle<-results[2,]
-                sp@borderDMShuffle<-results[3,]
-                sp@mapPolarityShuffle<-results[5,]
+                sp@borderScoreShuffle<-c(sp@borderScoreShuffle,results[1,])
+                sp@borderCMShuffle<-c(sp@borderCMShuffle,results[2,])
+                sp@borderDMShuffle<-c(sp@borderDMShuffle,results[3,])
+                sp@borderNumFieldsDetectedShuffle<-c(sp@borderNumFieldsDetectedShuffle,results[4,])
+                sp@mapPolarityShuffle<-c(sp@mapPolarityShuffle,results[5,])
               }
               
               

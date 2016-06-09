@@ -12,11 +12,19 @@ You will need to install the fftw3 C library to compute discrete Fourier transfo
 
 * Clone the relectro repository `git clone https://github.com/kevin-allen/relectro.git`
 
-If you want to modify the code of relecto, I recommand using R studio together with the book "R Packages" by Hadley Wickham. Most of the tools used to develop relectro are presented in this book.
+If you want to modify the code of relecto, I recommand using R studio together with the book "R Packages" by Hadley Wickham. Most of the tools used to develop relectro are presented in this book. You probably want to use the R package devtools for development.
 
 * From R studio, click File/Open project... and select relectro.Rproj
+
+
+
+
 
 If you just want to use the functions and objects of relectro, go in the terminal and 
 run the following
 * R CMD build relectro
 * R CMD INSTALL relectro
+
+You might need to add a few R packages to be able to build relectro. Here is a list of what was missing on a Fedora installation. In R, use install.packages().
+* rmarkdown
+* snow
