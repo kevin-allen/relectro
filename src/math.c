@@ -898,7 +898,7 @@ double mean_vector_length_weighted(double * array,double * w, int size)
     R=sqrt(C*C+S*S);
     // get sum of w
     wsum=sum_double(size, w,-1.0);
-   
+    
     if(wsum>0)
     {
       mean_vector_length = R/wsum;

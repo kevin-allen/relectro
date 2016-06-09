@@ -3560,8 +3560,8 @@ SEXP border_score_circular_environment_cwrap(SEXP cells_r,
     for(int y = 0; y < num_bins_y; y++)
       tocc_map[x*num_bins_y+y]=occ_map[x+num_bins_x*y];
   
-  
-  SEXP out = PROTECT(allocMatrix(REALSXP,5,cell_lines));
+  int row_out=5;
+  SEXP out = PROTECT(allocMatrix(REALSXP,row_out,cell_lines));
   double* o = REAL(out);
   
   double* cm = (double*) malloc(cell_lines*sizeof(double));
@@ -3585,30 +3585,27 @@ SEXP border_score_circular_environment_cwrap(SEXP cells_r,
   
   for(int i = 0; i < cell_lines; i++)
   {
-    
     if(num_fields_detected[i]>0){
-      o[i*5+0]=border_score[i];
-      o[i*5+1]=cm[i];
-      o[i*5+2]=dm[i];
-      o[i*5+3]=(double)num_fields_detected[i];
-      o[i*5+4]=map_polarity[i];
+      o[i*row_out+0]=border_score[i];
+      o[i*row_out+1]=cm[i];
+      o[i*row_out+2]=dm[i];
+      o[i*row_out+3]=(double)num_fields_detected[i];
+      o[i*row_out+4]=map_polarity[i];
     }
     else{
-      o[i*5+0]=NA_REAL;
-      o[i*5+1]=NA_REAL;
-      o[i*5+2]=NA_REAL;
-      o[i*5+3]=(double)num_fields_detected[i];
-      o[i*5+4]=map_polarity[i];
+      o[i*row_out+0]=NA_REAL;
+      o[i*row_out+1]=NA_REAL;
+      o[i*row_out+2]=NA_REAL;
+      o[i*row_out+3]=(double)num_fields_detected[i];
+      o[i*row_out+4]=map_polarity[i];
     }
   }
-  
   free(maps_copy);
   free(tocc_map);
   free(cm);
   free(dm);
   free(num_fields_detected);
   free(map_polarity);
-  
   UNPROTECT(1);
   return (out);
   
@@ -3788,7 +3785,8 @@ void border_score_circular_environment(int* cells,
             rad_map[(x*num_bins_y)+y]=direction(x_center,y_center,x,y);
         }
     //2 call a function to get a weighted vector length
-    WVL=mean_vector_length_weighted(rad_map,all_fields_map,total_bins);
+    if(number_fields_detected>0)
+      WVL=mean_vector_length_weighted(rad_map,all_fields_map,total_bins);
   
     if(number_fields_detected>0)
     {

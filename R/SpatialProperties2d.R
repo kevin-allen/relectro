@@ -153,6 +153,10 @@ setMethod("show", "SpatialProperties2d",
               print("gridScore:")
               print(paste(object@gridScore))
             }
+            if(length(object@mapPolarity)!=0){
+              print("mapPolarity:")
+              print(paste(object@mapPolarity))
+            }
             if(length(object@speedScore)!=0){
               print("speedScore:")
               print(paste(object@speedScore))
