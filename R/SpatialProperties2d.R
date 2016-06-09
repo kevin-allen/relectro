@@ -463,7 +463,7 @@ setMethod(f="getMapStats",
               sp@borderNumFieldsDetected<-results[4,]
               sp@mapPolarity<-results[5,]
             }
-
+            ##oulala
             # make spatial autocorrelations
             sp<-mapSpatialAutocorrelation(sp)
             sp@gridScore<-.Call("grid_score_cwrap",

@@ -4,7 +4,7 @@ Version: 0.0.0.9002
 Authors@R: person("Kevin","Allen",email="allen@uni-heidelberg.de",role=c("aut","cre"))
 Description: relectro contains S4 objects, methods and functions to analyse data
     from electrophysiological experiments. This will contain the code that we use to
-    do most common analysis. Many functions are written in C to speed up things.
+    do most common analysis. Many functions are written in C for speed.
 License: GPL-2
 Imports:
     snow
