@@ -3,3 +3,6 @@
 *~
 inst/doc
 .Rproj.user
+.RData
+.Rhistory
+man
