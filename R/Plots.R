@@ -1,3 +1,17 @@
+#' Plot a single firing rate map
+#' 
+#' Plot a 2-dimensional representation of firing rate using the image function included in the graphics package
+#' 
+#' @param m A data.frame or matrix containing the data of the firing rate map. If a data.frame is given as argument, it should have the column names x, y and rate
+#' @param name Character vector giving the name of the firing rate map which is displayed before the max firing rate
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param cex.title Size of the font use for the title
+#' @param cex.name Size of the font use for the name of the map
+#' @param xlab Name to display under the x axis
+#' @param ylab Name to display at the left of the y axis
+#' @param main.title A title for the figure
+#' @param peak.rate.prefix Additional information to display before the peak firing rate.
 firingRateMapPlot <- function(m,name="",
                                  outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
                                  cex.title=0.4,cex.name=0.4,
@@ -9,13 +23,11 @@ firingRateMapPlot <- function(m,name="",
   if(class(m)=="matrix"){
     image(m,zlim=c(0,max(m,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
     mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=cex.name,side=3)
-    
   }
   if(class(m)=="data.frame"){
     df<-m
     xlen <- length(unique(df$x))
     ylen <- length(unique(df$y))
-    #print(paste("size:",xlen,ylen))
     zzz <- matrix(df$rate,nrow=xlen,ncol=ylen)
     image(unique(df$x),unique(df$y),zzz,zlim=c(0,max(df$rate,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
     mtext(paste(peak.rate.prefix,name,round(max(df$rate,na.rm=T),digits=2),"Hz"),side=3,at=median(unique(df$x)),line=-0.1,cex=cex.name)
@@ -56,6 +68,7 @@ firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
   close.screen(all.screens = TRUE)
 #  dev.off()
 }
+
 firingRateMapAutoPlot <- function(m,name="",
                               outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
                               axis.x.mgp=c(0,0,0),axis.y.mgp=c(0,0,0),
