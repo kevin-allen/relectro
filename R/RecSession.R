@@ -365,3 +365,15 @@ setMethod("show", "RecSession",
             print(paste("clustered:",object@clustered))
             print(paste("earlyProcessed:",object@earlyProcessed))
           })
+
+
+#' Get animal name from session name
+#' 
+#' Assumes the session name is in the format name-date-rest
+#' 
+#' @param sessionName Character vector with the session name
+#' @return Character vector with animal name
+animalNameFromSessionName<-function(sessionName=NULL){
+    return(unlist(lapply(strsplit(as.character(sessionName),split="-"),function(x){return(x[[1]])})))
+}
+
