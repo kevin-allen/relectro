@@ -377,3 +377,15 @@ animalNameFromSessionName<-function(sessionName=NULL){
     return(unlist(lapply(strsplit(as.character(sessionName),split="-"),function(x){return(x[[1]])})))
 }
 
+
+
+#' Get session name from cluId
+#' 
+#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluId
+#' 
+#' @param cluId Character vector with the session name
+#' @return Character vector with session name
+sessionNameFromCluId<-function(cluId=NULL){
+  return(unlist(lapply(strsplit(as.character(cluId),split="_"),function(x){return(x[[1]])})))
+}
+

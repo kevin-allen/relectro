@@ -1,3 +1,11 @@
+#' Get the standard error of the mean
+#' 
+#' The standard deviation divided by the square root of n
+#' 
+#' @param x Numeric vector
+#' @return Numeric, standard error of the mean
+sem<-function(x){sd(x,na.rm=T)/sqrt(length(x))}
+
 #' Returns possible pairs from one or two vectors of values
 #' 
 #' If only on vector of values is given, all possible pairs within these values are returned.

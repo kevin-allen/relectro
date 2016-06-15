@@ -140,7 +140,8 @@ setMethod(f="loadPositrack",
                             1.0, # already in cm
                             pt@samplingRateDat, 
                             pt@resSamplesPerWhlSample)
-         
+            
+            
             ## get the angular speed from position
             pt@angularSpeed<- .Call("angular_speed_from_hd_cwrap",
                                      pt@hd,
@@ -154,6 +155,8 @@ setMethod(f="loadPositrack",
             pt@x[which(pt@x==-1.0)]<-NA
             pt@y[which(pt@y==-1.0)]<-NA
             pt@hd[which(pt@hd==-1.0)]<-NA
+            pt@speed[which(pt@speed==-1.0)]<-NA
+            pt@angularSpeed[which(pt@angularSpeed==-1.0)]<-NA
             return(pt)
           }
 )
@@ -251,7 +254,8 @@ setMethod(f="setPositrack",
             pt@x[which(pt@x==-1.0)]<-NA
             pt@y[which(pt@y==-1.0)]<-NA
             pt@hd[which(pt@hd==-1.0)]<-NA
-            
+            pt@speed[which(pt@speed==-1.0)]<-NA
+            pt@angularSpeed[which(pt@angularSpeed==-1.0)]<-NA
             return(pt)
           }
 )
@@ -472,6 +476,7 @@ setMethod(f="setInvalidOutsideInterval",
             pt@y[which(!isin)]<-NA
             pt@hd[which(!isin)]<-NA
             pt@speed[which(!isin)]<-NA
+            pt@angularSpeed[which(!isin)]<-NA
             if(length(pt@lin)!=0) pt@lin[which(!isin)]<-NA
             if(length(pt@dir)!=0) pt@dir[which(!isin)]<-NA
             return(pt)
