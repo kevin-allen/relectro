@@ -241,3 +241,30 @@ setMethod(f="headDirectionStatsShuffle",
             }       
             return(hd)
           })
+
+#' Return the hd histos as a data.frame
+#' 
+#' 
+#' @param hd HeadDirection object
+#' @return data.frame with the rate-head direction histograms. Column names are clu.id, deg, rate
+#' 
+#' @docType methods
+#' @rdname hdHistoAsDataFrame-methods
+setGeneric(name="hdHistoAsDataFrame",
+           def=function(hd)
+           {standardGeneric("hdHistoAsDataFrame")}
+)
+#' @rdname hdHistoAsDataFrame-methods
+#' @aliases hdHistoAsDataFrame,ANY,ANY-method
+setMethod(f="hdHistoAsDataFrame",
+          signature="HeadDirection",
+          definition=function(hd)
+          {
+            if(length(hd@histo)==0)
+              stop("Need to call headDirectionHisto first to run hdHistoAsDataFrame()")
+         
+            data.frame(clu.id=rep(paste(hd@session,hd@cellList,sep="_"),each=hd@nBinHisto),
+                       deg=rep(seq(hd@degPerBin/2,360*(hd@histoRepetitions+1),hd@degPerBin),hd@nBinHisto),
+                       rate=as.numeric(hd@histo))
+          }
+)
