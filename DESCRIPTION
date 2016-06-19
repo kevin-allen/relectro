@@ -7,7 +7,8 @@ Description: relectro contains S4 objects, methods and functions to analyse data
     do most common analysis. Many functions are written in C for speed.
 License: GPL-2
 Imports:
-    snow
+    snow,
+    plotrix
 Depends:
     methods
 Suggests:

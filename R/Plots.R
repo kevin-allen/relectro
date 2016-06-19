@@ -38,7 +38,6 @@ firingRateMapPlot <- function(m,name="",
   }
 }
 
-
 firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
   num.cols<-5
   num.rows<-6
@@ -114,6 +113,58 @@ firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
   close.screen(all.screens = TRUE)
   #  dev.off()
 }
+
+
+#' Polar plot of firing rate as a function of head direction
+#' 
+#' Polar representation of firing rate using the polar.plot function of the plotrix package
+#' 
+#' @param df A data.frame with columns deg and rate
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param axis.x.mgp
+#' @param axis.y.mgp
+#' @param cex.x.axis
+#' @param cex.y.axis
+#' @param cex.lab
+#' @param xlab Name to display under the x axis
+#' @param ylab Name to display at the left of the y axis
+#' @param show.xlab
+#' @param main.title A title for the figure
+#' @param peak.rate.prefix Additional information to display before the peak firing rate.
+headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),
+                                   axis.y.mgp=c(2.2,0.6,0),cex.x.axis=0.5,cex.y.axis=0.5,cex.lab=0.5,
+                                   xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="")
+{
+  radlim=max(df$rate)   
+  par(oma=outma,cex.lab=cex.lab,cex.axis=cex.x.axis)
+  oldpar <- polar.plot(df$rate,
+                       polar.pos=df$deg,
+                       labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
+                       #                       labels="",
+                       clockwise=F,
+                       rp.type="p",
+                       show.grid=T,show.radial.grid=T,
+                       radial.lim=c(0,radlim),show.grid.labels=0,
+                       xlab="",ylab="",line.col=4,mar=margin)
+  mtext(paste(peak.rate.prefix,round(radlim,digits=2),"Hz"),side=3,at=0,line=-0.1,cex=0.5)
+  if(main.title!="")
+  {
+    mtext(main.title,side=3,at=0,line=0.3,cex=0.5)
+  }
+  par(oldpar)
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 linearRatePlot<-function(sp1,n=1,axis.y.pos=0,axis.x.pos=0,axis.y.las=2,
