@@ -122,14 +122,14 @@ firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
 #' @param df A data.frame with columns deg and rate
 #' @param outma Outer margins of the figure
 #' @param margin Inner margins of the figure
-#' @param axis.x.mgp
-#' @param axis.y.mgp
-#' @param cex.x.axis
-#' @param cex.y.axis
-#' @param cex.lab
+#' @param axis.x.mgp mgp for x axis
+#' @param axis.y.mgp mgp for y axis
+#' @param cex.x.axis cex for x axis
+#' @param cex.y.axis cex for y axis
+#' @param cex.lab cex for labels
 #' @param xlab Name to display under the x axis
 #' @param ylab Name to display at the left of the y axis
-#' @param show.xlab
+#' @param show.xlab Wether of not the xlabel is shown
 #' @param main.title A title for the figure
 #' @param peak.rate.prefix Additional information to display before the peak firing rate.
 headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),

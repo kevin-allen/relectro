@@ -255,24 +255,24 @@ SEXP resWithinIntervals(SEXP interval_lines_r,
   int* end = INTEGER_POINTER(end_r);
   int* res = INTEGER_POINTER(res_r);
   SEXP results;
-
+  
   //  Rprintf("res_lines: %d, interval_lines: %d\n",res_lines,interval_lines);
   PROTECT(results = allocVector(INTSXP,res_lines));
   
   for(int i = 0; i < res_lines; i++){
     INTEGER(results)[i]=0; // out by default
   }
-
+  
   for(int i = 0; i < res_lines; i++)
     for(int j = 0; j < interval_lines;j++){
       //    Rprintf("res index: %d, interval index: %d\n",i,j);
-      if(res[i]>=start[j]&&res[i]<=end[j])
-	{
-	  INTEGER(results)[i]=1;
-	  j=interval_lines;
-	}
+      if(res[i]>start[j]&&res[i]<end[j])
+      {
+        INTEGER(results)[i]=1;
+        j=interval_lines;
+      }
     }
-  UNPROTECT(1);
+    UNPROTECT(1);
   return(results);
 }
 

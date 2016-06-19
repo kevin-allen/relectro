@@ -134,6 +134,65 @@ setMethod(f="ifr",
 )
 
 
+#' Calculate the correlation coefficient between the instantaneous firing rate of the neurons.
+#'
+#' Call ifr(st) method before calling this function.
+#' Only the ifr falling withing the intervals set in the SpikeTime object will be considered.
+#'
+#' @param st SpikeTrain object with ifr already calculated
+#' @return data.frame with the clu.ids of pairs and correlation coefficient between the instantaneous firing rate.
+#' 
+#' @docType methods
+#' @rdname ifrAssociation-methods
+setGeneric(name="ifrAssociation",
+           def=function(st)
+           {standardGeneric("ifrAssociation")})
+
+#' @rdname ifrAssociation-methods
+#' @aliases ifrAssociation,ANY,ANY-method
+setMethod(f="ifrAssociation",
+          signature = "SpikeTrain",
+          definition=function(st)
+          {
+            if(st@nSpikes==0)
+              stop(paste("ifrAssociation(): there are no spike in the SpikeTrain object",st@session))
+            if(length(st@ifr)==0)
+              stop(paste("ifrAssociation(): st@ifr has a size of 0",st@session))
+            
+            ## get the ifr and ifrTime inside st@intervals
+            resTime<-st@ifrTime*st@samplingRate
+            index<-as.logical(.Call("resWithinIntervals",
+                                    length(st@startInterval),
+                                    as.integer(st@startInterval),
+                                    as.integer(st@endInterval),
+                                    length(resTime),
+                                    as.integer(resTime)))
+            
+            ifrSel<-matrix(st@ifr[,index],nrow=length(st@cellList))
+            m<-cor(t(ifrSel))
+            r<-m[which(lower.tri(m,diag=FALSE))]
+            if(length(r)!=length(st@cellPairList[,1]))
+              stop(paste("ifrAssociation(): length of r is not equal to the number of cell pair list"))
+            return(data.frame(clu.id1=st@cellPairList[,1],
+                       clu.id2=st@cellPairList[,2],
+                       r=r))
+          }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Load the spike train from the .clu and .res files
 #'
 #'
@@ -630,6 +689,7 @@ setMethod(f="setIntervals",
             st@endResIndexc<-results[2,]
             st@startInterval<-st@startInterval[1:length(st@startResIndexc)]
             st@endInterval<-st@endInterval[1:length(st@endResIndexc)]
+            
             return(st)
           }
 )

@@ -34,3 +34,28 @@ joinIntervalsAND<-function(s1,e1,s2,e2){
   if(!is.null(res)) colnames(res)<-c("start","end")
   return(res)
 }
+
+
+#' Get a logical vector to know if time points are within a series of intervals
+#' 
+#' Only time points that are within the limit of the interval will return TRUE.
+#' For example time point 2 is not in the interval 2 4.
+#' Only 3 would return TRUE in this case.
+#' 
+#' @param x Integer vector representing time points
+#' @param s Integer vector representing the start of intervals
+#' @param e Integer vector representing the end of intervals
+#' @return Logical, whether the time points are within the intervals
+timeWithinIntervals<-function(x,s,e){
+  if(length(s)!=length(e))
+    stop("unequal length of s and e")
+  if(length(x)==0)
+    stop("length of x is 0")
+  index<-as.logical(.Call("resWithinIntervals",
+                          length(s),
+                          as.integer(s),
+                          as.integer(e),
+                          length(x),
+                          as.integer(x)))
+  return(index)
+}
