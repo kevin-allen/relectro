@@ -264,7 +264,7 @@ setMethod(f="hdHistoAsDataFrame",
               stop("Need to call headDirectionHisto first to run hdHistoAsDataFrame()")
          
             data.frame(clu.id=rep(paste(hd@session,hd@cellList,sep="_"),each=hd@nBinHisto),
-                       deg=rep(seq(hd@degPerBin/2,360*(hd@histoRepetitions+1),hd@degPerBin),hd@nBinHisto),
+                       deg=rep(seq(hd@degPerBin/2,360*(hd@histoRepetitions+1),hd@degPerBin),length(hd@cellList)),
                        rate=as.numeric(hd@histo))
           }
 )
