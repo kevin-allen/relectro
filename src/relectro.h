@@ -140,7 +140,7 @@ SEXP map_autocorrelation_cwrap(SEXP cell_lines_r,SEXP maps_r, SEXP num_bins_x_r,
 void map_autocorrelation(double *one_place, double *one_auto, int x_bins_place_map, int y_bins_place_map, int x_bins_auto_map, int y_bins_auto_map, int min_for_correlation);
 void map_rotate(double* map,int x_bins,int y_bins,double deg,double invalid);
 void detect_one_field_with_field( double* map, int x_bins, int y_bins, int min_num_bins_fields,double threshold, double* mean_x_field, double* mean_y_field, double* max_radius_field, int* num_bins_field,  double invalid,  double* field);
-void detect_one_field( double* map, int x_bins, int y_bins, int min_num_bins_fields, double threshold, double* mean_x_field, double* mean_y_field, double* max_radius_field, int* num_bins_field, double invalid);
+void detect_one_field( double* map, int x_bins, int y_bins, int min_num_bins_fields, double threshold, double* com_x_field, double* com_y_field, double* max_radius_field, int* num_bins_field, double invalid);
 double hux_heading(double delta_x, double delta_y);
 double degree_to_radian(double degree);
 SEXP grid_score_cwrap(SEXP cell_lines_r, SEXP auto_maps_r, SEXP auto_num_bins_x_r, SEXP auto_num_bins_y_r, SEXP pixels_per_bin_r, SEXP number_fields_to_detect_r, SEXP min_num_bins_per_field_r, SEXP field_threshold_r, SEXP invalid_r);
@@ -191,7 +191,8 @@ void spike_triggered_occupancy_map(int x_bins, int y_bins, double pixels_per_bin
 void spike_triggered_place_map(int x_bins, int y_bins, double pixels_per_bin_x, double pixels_per_bin_y, double *x_spike, double *y_spike, int* res, int *clu, int res_lines, int target_cell1, 
                                int target_cell2, double *occupancy_map, double *place_map, double min_isi_ms, double max_isi_ms,int res_sampling_rate);
 SEXP maps_rotate_cwrap(SEXP maps, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP num_cells_r, SEXP degree_r);
-
+SEXP detect_firing_fields_cwrap(SEXP maps_r,SEXP num_bins_x_r,SEXP num_bins_y_r, SEXP num_cells_r,SEXP cell_list_r,SEXP min_bins_r,SEXP rate_thresholds_r);
+  
 
 
 // interval.c

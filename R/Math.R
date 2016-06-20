@@ -153,3 +153,24 @@ centerOfMass<-function(x){
   return(c(sr/s,sc/s))
 }
 
+
+#' Perform r-to-Z transform to get significance of difference between two correlation coefficients
+#' 
+#' @param r1 correlation coefficient of the first correlation
+#' @param n1 number of observations in the first correlation
+#' @param r2 correlation coefficient of the second correlation
+#' @param n2 number of observations in the second correlation
+cor.diff <- function(r1,n1,r2,n2 ){
+  if(r1<-1.0|r1>1.0)
+    stop("r1 is out of range")
+  if(r2<-1.0|r2>1.0)
+    stop("r2 is out of range")
+  Z1 <- 0.5 * log( (1+r1)/(1-r1) )
+  Z2 <- 0.5 * log( (1+r2)/(1-r2) )
+  diff   <- Z1 - Z2
+  SEdiff <- sqrt( 1/(n1 - 3) + 1/(n2 - 3) )
+  diff.Z  <- diff/SEdiff
+  p <- 2*pnorm( abs(diff.Z), lower=F)
+  cat( "Difference between ",r1,"(",n1,") and ",r2,"(",n2,")", "two-tailed p value:", p , "\n" )
+} 
+

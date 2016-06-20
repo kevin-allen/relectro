@@ -13,9 +13,10 @@
 #' @param main.title A title for the figure
 #' @param peak.rate.prefix Additional information to display before the peak firing rate.
 firingRateMapPlot <- function(m,name="",
-                                 outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
-                                 cex.title=0.4,cex.name=0.4,
-                                 xlab="",ylab="",main.title="",peak.rate.prefix="")
+                              outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
+                              cex.title=0.4,cex.name=0.4,
+                              xlab="",ylab="",main.title="",peak.rate.prefix="",
+                              points="")
 {
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)

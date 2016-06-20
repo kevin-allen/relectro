@@ -1426,7 +1426,7 @@ void detect_one_field_with_field( double* map,
 		      double invalid,
 		      double* field)
 {
-  // function to detect on field starting from the peak value
+  // function to detect one field starting from the peak value
   // the pixels for which the function tries to cumulate to form a field are set to invalid
   // so that the function do not always work with the same pixels if called many times
   // should be a recursive function but have no time to re-write
@@ -1722,8 +1722,8 @@ void detect_one_field( double* map,
 		      int y_bins,
 		      int min_num_bins_fields,
 		      double threshold,
-		      double* mean_x_field,
-		      double* mean_y_field,
+		      double* com_x_field,
+		      double* com_y_field,
 		      double* max_radius_field,
 		      int* num_bins_field,
 		      double invalid)
@@ -1732,9 +1732,11 @@ void detect_one_field( double* map,
   // the pixels for which the function tries to cumulate to form a field are set to invalid
   // so that the function do not always work with the same pixels if called many times
   // should be a recursive function but have no time to re-write
+  // does not return the detected field as a map
   int index;
   int* x_positive_pixels; // x value of the positive pixels
   int* y_positive_pixels; // y value of the positive pixels
+  double* rate_positive_pixels;
   int num_positive_pixels=0; 
   int num_bins= x_bins*y_bins; // in the map
   int max_index; // index of the peak in the map
@@ -1752,6 +1754,7 @@ void detect_one_field( double* map,
   map_positive = (int*)malloc(num_bins*sizeof(int));
   x_positive_pixels = (int*)malloc(num_bins*sizeof(int));
   y_positive_pixels = (int*)malloc(num_bins*sizeof(int));
+  rate_positive_pixels = (double*)malloc(num_bins*sizeof(double));
   for (int i = 0 ; i < num_bins; i++)
     {
       map_positive[i]=0;
@@ -1761,8 +1764,8 @@ void detect_one_field( double* map,
   max=find_max_double_index(num_bins,map,&max_index);
   if(max<threshold)
     {  
-      *mean_x_field=-1;
-      *mean_y_field=-1;
+      *com_x_field=-1;
+      *com_y_field=-1;
       *max_radius_field=-1;
     }
   else
@@ -1775,6 +1778,7 @@ void detect_one_field( double* map,
 				 &y_max);
       x_positive_pixels[num_positive_pixels]= x_max;
       y_positive_pixels[num_positive_pixels]= y_max;
+      rate_positive_pixels[num_positive_pixels]=max;
       map[max_index]= invalid;
       map_positive[max_index]=1;
       margin=0;
@@ -1819,6 +1823,7 @@ void detect_one_field( double* map,
 									     y_bins,
 									     x_positive_pixels[num_positive_pixels],
 									     y_positive_pixels[num_positive_pixels]);
+					    rate_positive_pixels[num_positive_pixels]=map[index];
 					    map[index]= invalid;
 					    // two for loops because the pixel was already added ////
 					    y_adj=y_check+1;
@@ -1866,6 +1871,7 @@ void detect_one_field( double* map,
 									     y_bins,
 									     x_positive_pixels[num_positive_pixels],
 									     y_positive_pixels[num_positive_pixels]);
+					    rate_positive_pixels[num_positive_pixels]=map[index];
 					    map[index]= invalid;
 					    // should find a way to exit the two for loop to save time ////
 					    y_adj=y_check+1;
@@ -1912,6 +1918,7 @@ void detect_one_field( double* map,
 									     y_bins,
 									     x_positive_pixels[num_positive_pixels],
 									     y_positive_pixels[num_positive_pixels]);
+					    rate_positive_pixels[num_positive_pixels]=map[index];
 					    map[index]= invalid;
 					    // should find a way to exit the two for loop to save time ////
 					    y_adj=y_check+1;
@@ -1959,6 +1966,7 @@ void detect_one_field( double* map,
 									     y_bins,
 									     x_positive_pixels[num_positive_pixels],
 									     y_positive_pixels[num_positive_pixels]);
+					    rate_positive_pixels[num_positive_pixels]=map[index];
 					    map[index]= invalid;
 					    // should find a way to exit the two for loop to save time ////
 					    y_adj=y_check+1;
@@ -1976,38 +1984,47 @@ void detect_one_field( double* map,
       // if enough pixels were detected to form a field, get the mean x and y 
       // and set the value to invalid in map
       if (num_positive_pixels >= min_num_bins_fields)
-	{
-	  *num_bins_field=num_positive_pixels+1;// because it is not the index now
-	  *mean_x_field=0;
-	  *mean_y_field=0;
-	  *max_radius_field=0;
-	  for (int i = 0; i < num_positive_pixels; i++)
-	    {
-	      *mean_x_field=(*mean_x_field)+x_positive_pixels[i];
-	      *mean_y_field=(*mean_y_field)+y_positive_pixels[i];
-	    }
-	  *mean_x_field=(*mean_x_field)/num_positive_pixels;
-	  *mean_y_field=(*mean_y_field)/num_positive_pixels;
-	  for (int i = 0; i < num_positive_pixels; i++)
-	    {
-	      possible_radius=distance(*mean_x_field,*mean_y_field,x_positive_pixels[i],y_positive_pixels[i]);
-	      if (possible_radius > (*max_radius_field))
-		{
-		  *max_radius_field=possible_radius;
-		}
-	    }
-	}
+      {
+        *num_bins_field=num_positive_pixels+1;// because it is not the index now
+        *com_x_field=0;
+        *com_y_field=0;
+        double sum_rate=0;
+        
+        *max_radius_field=0;
+        
+        for (int i = 0; i < num_positive_pixels; i++)
+        {
+          sum_rate=sum_rate+rate_positive_pixels[i];
+        }
+        
+        
+        for (int i = 0; i < num_positive_pixels; i++)
+        {
+          *com_x_field=(*com_x_field)+x_positive_pixels[i]*rate_positive_pixels[i];
+          *com_y_field=(*com_y_field)+y_positive_pixels[i]*rate_positive_pixels[i];
+        }
+        *com_x_field=(*com_x_field)/sum_rate;
+        *com_y_field=(*com_y_field)/sum_rate;
+        for (int i = 0; i < num_positive_pixels; i++)
+        {
+          possible_radius=distance(*com_x_field,*com_y_field,x_positive_pixels[i],y_positive_pixels[i]);
+          if (possible_radius > (*max_radius_field))
+          {
+            *max_radius_field=possible_radius;
+          }
+        }
+      }
       else
-	{
-
-	  *mean_x_field=-1;
-	  *mean_y_field=-1;
-	  *max_radius_field=-1;
-	  *num_bins_field=-1;
-	}
+      {
+        *com_x_field=-1;
+        *com_y_field=-1;
+        *max_radius_field=-1;
+        *num_bins_field=-1;
+      }
     }
   free(y_positive_pixels);
   free(x_positive_pixels);
+  free(rate_positive_pixels);
   free(map_positive);
   return;
 }
@@ -5327,3 +5344,89 @@ SEXP maps_rotate_cwrap(SEXP maps_r,
   UNPROTECT(1);
   return out;
 }
+
+SEXP detect_firing_fields_cwrap(SEXP maps_r,
+                       SEXP num_bins_x_r,
+                       SEXP num_bins_y_r, 
+                       SEXP num_cells_r,
+                       SEXP cell_list_r,
+                       SEXP min_bins_r,
+                       SEXP rate_thresholds_r){
+  
+  int num_cells=INTEGER_VALUE(num_cells_r);
+  int num_bins_x=INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y=INTEGER_VALUE(num_bins_y_r);
+  int min_bins=INTEGER_VALUE(min_bins_r);
+  int total_bins=num_bins_x*num_bins_y;
+  int* cell_list=INTEGER_POINTER(cell_list_r);
+  double* rate_thresholds = REAL(rate_thresholds_r);
+  double* maps = REAL(maps_r);
+  double invalid=-1.0;
+  int num_valid_fields=0;
+  int max_fields_per_cell=50; // arbitrary number higher than maximum, use to allocate enough memory
+  
+  // create a copy with transposed maps
+  double* all_maps_copy = (double*)malloc(total_bins*num_cells*sizeof(double));
+  double* one_map;
+  double* one_map_copy;
+  for(int i = 0; i < num_cells; i++){
+    one_map = maps + (i*total_bins);
+    one_map_copy = all_maps_copy + (i*total_bins);
+    for(int x =0; x < num_bins_x;x++)
+      for(int y =0; y < num_bins_y;y++)
+        one_map_copy[x*num_bins_y+y]=one_map[x+num_bins_x*y]; // needs to be transposed for c code
+  }
+  
+  int* area = (int*)malloc(num_cells*max_fields_per_cell*sizeof(int));
+  double* comx = (double*)malloc(num_cells*max_fields_per_cell*sizeof(double));
+  double* comy = (double*)malloc(num_cells*max_fields_per_cell*sizeof(double));
+  double* peak_rate = (double*)malloc(num_cells*max_fields_per_cell*sizeof(double));
+  int* cellid = (int*)malloc(num_cells*max_fields_per_cell*sizeof(int));
+  double radius;
+  
+  for(int i = 0; i < num_cells; i++){
+    // get the map of the cell
+    one_map=all_maps_copy + (i*total_bins);
+    for(int j = 0; j < max_fields_per_cell ; j++)
+    { 
+      peak_rate[num_valid_fields]=find_max_double(total_bins,one_map);
+      detect_one_field(one_map,
+                       num_bins_x,
+                       num_bins_y,
+                       min_bins,
+                       rate_thresholds[i],
+                       &comx[num_valid_fields],
+                       &comy[num_valid_fields],
+                       &radius,
+                       &area[num_valid_fields],
+                       invalid);
+      if(comx[num_valid_fields]!=invalid){
+        cellid[num_valid_fields]=cell_list[i];
+        num_valid_fields++;
+      }
+    }
+  }
+  
+  int row_out=5;
+  SEXP out = PROTECT(allocMatrix(REALSXP,row_out,
+                                 num_valid_fields));
+  double* o = REAL(out);
+  
+  for(int i = 0; i < num_valid_fields; i++){
+      o[i*row_out+0]=cellid[i];
+      o[i*row_out+1]=comx[i];
+      o[i*row_out+2]=comy[i];
+      o[i*row_out+3]=peak_rate[i];
+      o[i*row_out+4]=area[i];
+  }
+  
+  free(cellid);
+  free(area);
+  free(comx);
+  free(comy);
+  free(peak_rate);
+  free(all_maps_copy);
+  UNPROTECT(1);
+  return(out);
+}
+  

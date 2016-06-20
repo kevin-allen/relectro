@@ -1389,3 +1389,74 @@ setMethod(f="firingRateMapsRotation",
           }
 )
 
+
+
+
+#' Get a given percentile from the firing rate maps of a SpatialProperties2d object 
+#' 
+#' @param sp SpatialProperties2d object
+#' @param percentile
+#' @return Numeric vector with the xth percentile of the firing rate maps
+#' 
+#' @docType methods
+#' @rdname percentileFiringRateMaps-methods
+setGeneric(name="percentileFiringRateMaps",
+           def=function(sp,percentile)
+           {standardGeneric("percentileFiringRateMaps")}
+)
+#' @rdname percentileFiringRateMaps-methods
+#' @aliases percentileFiringRateMaps,ANY,ANY-method
+setMethod(f="percentileFiringRateMaps",
+          signature="SpatialProperties2d",
+          definition=function(sp,percentile=75)
+          {
+            if(length(sp@maps)==0)
+              stop("percentileFiringRateMaps: length(sp@map)==0")
+            if(percentile<0|percentile>100)
+              stop("percentileFiringRateMaps: percentile is out of 0-100 range")
+            
+            sp@maps[which(sp@maps==-1.0)]<-NA
+            return(apply(sp@maps,3,quantile,na.rm=T,probs=percentile/100))
+          })
+
+
+#' Detect firing fields in the firing rate maps of a SpatialProperties2d object 
+#' 
+#' @param sp SpatialProperties2d object
+#' @param minAreaCm2 Minimal area of the field in cm squared
+#' @param rateThresholds Numeric vector containing the firing rate threshold to be part of a firing field.
+#' Should have the same length than the number of cells in the SpatialProperties2d object
+#' @return matrix with the field information (clu, xcom, ycom, peak.rate, area in cm^2)
+#' 
+#' @docType methods
+#' @rdname detectFiringFields-methods
+setGeneric(name="detectFiringFields",
+           def=function(sp,minAreaCm2,rateThresholds)
+           {standardGeneric("detectFiringFields")}
+)
+#' @rdname detectFiringFields-methods
+#' @aliases detectFiringFields,ANY,ANY-method
+setMethod(f="detectFiringFields",
+          signature="SpatialProperties2d",
+          definition=function(sp,minAreaCm2=20,rateThresholds)
+          {
+            if(length(sp@maps)==0)
+              stop("detectFiringFields: length(sp@map)==0")
+            if(minAreaCm2<0)
+              stop("detectFiringFields: minAreaCm2<0")
+            if(length(rateThresholds)!=length(sp@cellList))
+              stop("detectFiringFields: length(rateThresholds)!=length(sp@cellList)")
+            results<-t(.Call("detect_firing_fields_cwrap",
+                  as.numeric(sp@maps),
+                  sp@nRowMap,
+                  sp@nColMap,
+                  length(sp@cellList),
+                  as.integer(sp@cellList),
+                  as.integer(minAreaCm2/(sp@cmPerBin^2)),
+                  rateThresholds))
+            
+            colnames(results)<-c("clu","xcom","ycom","peak.rate","area")
+            results[,"area"]<-results[,"area"]*sp@cmPerBin*sp@cmPerBin
+            results                
+            
+})
