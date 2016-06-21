@@ -150,9 +150,30 @@ setMethod(f="getRecSession",
           })
 
 
-
-
-
+#' Return a list of RecSession objects from a character vectors containing session names
+#' 
+#' @param ep ElectroProject object
+#' @param sessionNames Character vector containing session names
+#' @return list of RecSession objects
+#' 
+#' @docType methods
+#' @rdname getSessionListFromSessionNames-methods
+setGeneric(name="getSessionListFromSessionNames",
+           def=function(ep,sessionNames)
+           {standardGeneric("getSessionListFromSessionNames")}
+)
+#' @rdname getSessionListFromSessionNames-methods
+#' @aliases getSessionListFromSessionNames,ANY,ANY-method
+setMethod(f="getSessionListFromSessionNames",
+          signature="ElectroProject",
+          definition=function(ep,sessionNames)
+          {
+            if(ep@directory=="")
+              stop("ep@directory not set")
+            if(class(sessionNames)!="character")
+              stop("sessionNames should be a character vector")
+            return(ep@sessionList[which(ep@sessionNameList %in% sessionNames)])
+          })
 
 
 #' Return a list of clustered RecSession objects
@@ -238,12 +259,13 @@ setMethod(f="getSessionList",
 #' @param overwrite Whether you want to overwrite the previous data when saving the results
 #' @param parallel Whether you want to run the function in parallel
 #' @param cluster A cluster generated from the makeCluster function of the snow package
+#' @param ... optional arguments to fnct
 #' @return list of list returned by the lapply function 
 #' 
 #' @docType methods
 #' @rdname runOnSessionList-methods
 setGeneric(name="runOnSessionList",
-            def=function(ep,sessionList,fnct=function(x){NA},save=T,overwrite=T,parallel=F,cluster="")
+            def=function(ep,sessionList,fnct=function(x){NA},save=T,overwrite=T,parallel=F,cluster="",...)
             {standardGeneric("runOnSessionList")}
           )
 
@@ -251,7 +273,7 @@ setGeneric(name="runOnSessionList",
 #' @aliases runOnSessionList,ANY,ANY-method
 setMethod(f="runOnSessionList",
          signature="ElectroProject",
-         definition=function(ep,sessionList,fnct=function(x){NA},save=T,overwrite=T,parallel=F,cluster="")
+         definition=function(ep,sessionList,fnct=function(x){NA},save=T,overwrite=T,parallel=F,cluster="",...)
          {
            if(class(ep)!="ElectroProject")
              stop("runOnSessionList, ep should be a ElectroProject object")
@@ -274,10 +296,13 @@ setMethod(f="runOnSessionList",
            }
              
            if(parallel==T){
-             list.res<-snow::parLapply(cluster,sessionList,fnct)   
+             list.res<-snow::parLapply(cluster,sessionList,fnct,...)   
            } else {
-             list.res<-lapply(sessionList,fnct)
+             list.res<-lapply(sessionList,fnct,...)
            }
+           
+           ?lapply
+           
            if(save==T){
              ## check that list.res is a list of list
              if(!is.list(list.res))
@@ -308,7 +333,9 @@ setMethod(f="runOnSessionList",
 setMethod("show", "ElectroProject",
           function(object){
             print(paste("directory:",object@directory))
+            print(paste("result directory:",object@resultsDirectory))
             print(paste("nSessions:",object@nSessions))
+            
             if(length(object@sessionNameList)!=0){
               print(paste("sessionNameList:"))
               print(object@sessionNameList)
