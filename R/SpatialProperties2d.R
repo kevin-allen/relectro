@@ -172,6 +172,7 @@ setMethod("show", "SpatialProperties2d",
               
           })
 
+
 #' Calculate the firing rate maps of neurons using a SpikeTrain and Positrack objects
 #'
 #' The occupancy map and the firing rate maps are smoothed with a Gaussian kernel
@@ -1389,9 +1390,6 @@ setMethod(f="firingRateMapsRotation",
           }
 )
 
-
-
-
 #' Get a given percentile from the firing rate maps of a SpatialProperties2d object 
 #' 
 #' @param sp SpatialProperties2d object
@@ -1457,6 +1455,118 @@ setMethod(f="detectFiringFields",
             
             colnames(results)<-c("clu","xcom","ycom","peak.rate","area")
             results[,"area"]<-results[,"area"]*sp@cmPerBin*sp@cmPerBin
-            results                
+            results[,"xcom"]<-results[,"xcom"]*sp@cmPerBin
+            results[,"ycom"]<-results[,"ycom"]*sp@cmPerBin
+            return(results)
             
 })
+
+
+#' Get the spike distance metric of the spikes
+#' 
+#' Score based on Hardcastle et al. 2015 Neuron
+#'  
+#'      
+#' @param sp SpatialProperties2d object with valid firing rate maps
+#' @param st SpikeTime object
+#' @param pt Positrack object
+#' @param startIntervals Numeric with time in sample values for time 0 
+#' @param endIntervals Numeric with time in sample values for end of intervals
+#' @param percentileField Numeric with the percentile of bins in the maps to act as a threshold to be part of a field
+#' @return Matrix with clu.id, interval.no, time.sec, distance.from.field.center
+#' 
+#' @docType methods
+#' @rdname spikeDistanceMetric-methods
+setGeneric(name="spikeDistanceMetric",
+           def=function(sp,st,pt,startIntervals,endIntervals,percentileField=75)
+           {standardGeneric("spikeDistanceMetric")}
+)
+#' @rdname spikeDistanceMetric-methods
+#' @aliases spikeDistanceMetric,ANY,ANY-method
+setMethod(f="spikeDistanceMetric",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,startIntervals,endIntervals,percentileField=75)
+          {
+            if(length(sp@maps)==0)
+              stop("spikeDistanceMetric: length(sp@map)==0")
+            
+            if(length(startIntervals)!=length(endIntervals))
+              stop("spikeDistanceMetric: length(startIntervals)!=length(endIntervals)")
+            
+            if(any(startIntervals>=endIntervals))
+              stop("spikeDistanceMetric: startIntervals>=endIntervals")
+            
+            ## get the threshold for fields
+            fieldThresholds<-percentileFiringRateMaps(sp,percentileField)
+            
+            ## get the firing fields and their xcom and ycom
+            fields<-detectFiringFields(sp,minAreaCm2 = 20,rateThresholds = fieldThresholds)  
+
+            if(any(!st@cellList %in% unique(fields[,"clu"])))
+              stop("spikeDistanceMetric, a cell has no field")
+            
+         
+            ## reduce the size of maps and map autocorrelation
+            if(sp@reduceSize==T){
+              x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
+              y<-pt@y-min(pt@y,na.rm=T)+sp@cmPerBin
+            }else{
+              x<-pt@x
+              y<-pt@y
+            }
+            
+            ## use -1 as invalid values in c functions
+            x[is.na(x)]<- -1.0
+            y[is.na(y)]<- -1.0
+            ## get spike position
+            results<-.Call("spike_position_cwrap",
+                           x,
+                           y,
+                           length(x),
+                           as.integer(st@res),
+                           as.integer(st@nSpikes),
+                           as.integer(pt@resSamplesPerWhlSample),
+                           as.integer(startIntervals),
+                           as.integer(endIntervals),
+                           length(startIntervals))
+            sp@xSpikes<-results[1,]
+            sp@ySpikes<-results[2,]
+            
+            
+            if(length(sp@xSpikes)!=length(st@res))
+              stop("spikeDistanceMetric, length(xSpikes)!=length(st@res)")
+            
+            
+            results<-t(.Call("spike_distance_metric_cwrap",
+                  xSpikes,
+                  ySpikes,
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  as.integer(st@nSpikes),
+                  as.integer(fields[,"clu"]),
+                  fields[,"xcom"],
+                  fields[,"ycom"],
+                  length(fields[,1]),
+                  as.integer(startIntervals),
+                  as.integer(endIntervals),
+                  length(startIntervals),
+                  as.integer(st@cellList),
+                  length(st@cellList)))
+
+            r<-data.frame(clu=results[,1],
+                       trial=results[,2],
+                       time=results[,3]/st@samplingRate, # in sec
+                       distance=results[,4])
+            
+            meanFieldArea<-as.numeric(by(fields[,5],list(fields[,1]),mean))
+            meanRadius<-sqrt(meanFieldArea/pi) ## the radius of a circle with same area
+            
+            ## divide distance from com by mean radius of the fields
+            x<-data.frame(clu=st@cellList,radius=meanRadius)
+            r<-merge(r,x)
+            r$sdm<-r$distance/r$radius
+            
+            return(r)
+            
+          })
+

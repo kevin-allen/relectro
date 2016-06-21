@@ -695,6 +695,65 @@ setMethod(f="setIntervals",
 )
 
 
+#' Set the list of cells to limit the analysis to these cells
+#' 
+#' Only these cells will be considered for analysis.
+#'
+#' @param st SpikeTrain object
+#' @param cellList Numiric vector containing the clu id of the neurons
+#' @return a SpikeTrain object with a new cellList.
+#' 
+#' @docType methods
+#' @rdname setCellList-methods
+setGeneric(name="setCellList",
+           def=function(st,cellList)
+           {standardGeneric("setCellList")})
+
+#' @rdname setCellList-methods
+#' @aliases setCellList,ANY,ANY-method
+setMethod(f="setCellList",
+          signature = "SpikeTrain",
+          definition=function(st,cellList)
+          {
+            if(class(cellList)!="numeric")
+              stop("setCellList: cellList is not a numeric")
+            if(length(cellList)==0)
+              stop("setCellList: length(cellList==0)")
+            st@cellList<-cellList
+            st@nCells<-length(cellList)
+            
+            ## spikes per cell
+            st@nSpikesPerCell<-as.numeric(table(st@clu)[as.character(cellList)])
+            
+            if(any(is.na(st@nSpikesPerCell)))
+              stop("setCellList: a cell has no spike")
+            
+            # all the possible pairs
+            if(length(st@cellList>1))
+              st@cellPairList<-makePairs(st@cellList)
+            
+            return(st)
+          }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Set some events for spike-time crosscorrelation to the events. 
 #' 
 #' These events could be laser stimulation or some behavioural events

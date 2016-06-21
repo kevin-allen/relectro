@@ -192,7 +192,8 @@ void spike_triggered_place_map(int x_bins, int y_bins, double pixels_per_bin_x, 
                                int target_cell2, double *occupancy_map, double *place_map, double min_isi_ms, double max_isi_ms,int res_sampling_rate);
 SEXP maps_rotate_cwrap(SEXP maps, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP num_cells_r, SEXP degree_r);
 SEXP detect_firing_fields_cwrap(SEXP maps_r,SEXP num_bins_x_r,SEXP num_bins_y_r, SEXP num_cells_r,SEXP cell_list_r,SEXP min_bins_r,SEXP rate_thresholds_r);
-  
+SEXP spike_distance_metric_cwrap(SEXP x_spikes_r, SEXP y_spikes_r, SEXP res_r,SEXP clu_r, SEXP res_lines_r, SEXP clu_fields_r, SEXP x_com_r, SEXP y_com_r,
+                            SEXP field_lines_r, SEXP start_intervals_r, SEXP end_intervals_r, SEXP interval_lines_r, SEXP cells_r,SEXP cells_lines_r);
 
 
 // interval.c

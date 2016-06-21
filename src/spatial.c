@@ -5429,4 +5429,108 @@ SEXP detect_firing_fields_cwrap(SEXP maps_r,
   UNPROTECT(1);
   return(out);
 }
+
+SEXP spike_distance_metric_cwrap(SEXP x_spikes_r,
+                            SEXP y_spikes_r,
+                            SEXP res_r,
+                            SEXP clu_r,
+                            SEXP res_lines_r,
+                            SEXP clu_fields_r,
+                            SEXP x_com_r,
+                            SEXP y_com_r,
+                            SEXP field_lines_r,
+                            SEXP start_intervals_r,
+                            SEXP end_intervals_r,
+                            SEXP interval_lines_r,
+                            SEXP cells_r,
+                            SEXP cells_lines_r)
+{
+  double* x = REAL(x_spikes_r);
+  double* y = REAL(y_spikes_r);
+  int* res = INTEGER_POINTER(res_r);
+  int* clu = INTEGER_POINTER(clu_r);
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  int* clu_fields = INTEGER_POINTER(clu_fields_r);
+  double* xcom = REAL(x_com_r);
+  double* ycom = REAL(y_com_r);
+  int field_lines = INTEGER_VALUE(field_lines_r);
+  int* start_intervals = INTEGER_POINTER(start_intervals_r);
+  int* end_intervals = INTEGER_POINTER(end_intervals_r);
+  int interval_lines = INTEGER_VALUE(interval_lines_r);
+  int* cells = INTEGER_POINTER(cells_r);
+  int cells_lines = INTEGER_VALUE(cells_lines_r);
   
+  int valid_spikes = 0;
+  for(int i = 0; i < cells_lines; i++){
+    for(int j = 0; j < res_lines; j++){
+      if(clu[j]==cells[i]&&x[j]!=-1.0&&y[j]!=-1.0){
+        for(int k = 0; k < interval_lines; k++){
+          if(res[j]>start_intervals[k]&&res[j]<end_intervals[k]){
+            valid_spikes++;
+        }
+        }
+      }
+    }
+  }
+  
+  if(valid_spikes==0){
+    Rprintf("spike_distance_metric_cwrap(), valid_spikes == 0");
+    return(R_NilValue);
+  }
+  
+     
+  int* c = (int*)malloc(sizeof(int)*valid_spikes);
+  int* trial = (int*)malloc(sizeof(int)*valid_spikes);
+  double* field_distance = (double*)malloc(sizeof(double)*valid_spikes);
+  int* time_res = (int*)malloc(sizeof(int)*valid_spikes);
+  double dist;
+  double min_dist;
+  
+  
+  int index = 0;
+  for(int i = 0; i < cells_lines; i++){
+    for(int j = 0; j < res_lines; j++){
+      if(clu[j]==cells[i]&&x[j]!=-1.0&&y[j]!=-1.0){
+        for(int k = 0; k < interval_lines; k++){
+          if(res[j]>start_intervals[k]&&res[j]<end_intervals[k]){
+            c[index]=cells[i];
+            trial[index]=k;
+            time_res[index]=res[j]-start_intervals[k];
+            min_dist=9999999999; // very large number
+            for(int l = 0; l < field_lines; l++){
+              if(clu_fields[l]==cells[i]){
+                dist=distance(x[j],y[j], xcom[l], ycom[l]); 
+                if(dist<min_dist){
+                  min_dist=dist;
+                }
+              }
+            }
+            field_distance[index]=min_dist;
+            index++;
+          }
+        }
+      }
+    }
+  }
+ 
+  int row_out=4;
+  SEXP out = PROTECT(allocMatrix(REALSXP,row_out,
+                                  valid_spikes));
+  double* o = REAL(out);
+  
+  for(int i = 0; i < valid_spikes; i++){
+    o[i*row_out+0]=c[i];
+    o[i*row_out+1]=trial[i];
+    o[i*row_out+2]=time_res[i];
+    o[i*row_out+3]=field_distance[i];
+  }
+
+    
+  free(field_distance);
+  free(c);
+  free(trial);
+  free(time_res);
+  UNPROTECT(1);
+  return(out);
+}
+                              
