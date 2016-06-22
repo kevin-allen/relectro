@@ -150,11 +150,6 @@ setMethod(f="getRecSession",
           })
 
 
-
-
-
-
-
 #' Return a list of clustered RecSession objects
 #'
 #'
