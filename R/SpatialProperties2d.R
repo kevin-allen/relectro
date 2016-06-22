@@ -1393,7 +1393,7 @@ setMethod(f="firingRateMapsRotation",
 #' Get a given percentile from the firing rate maps of a SpatialProperties2d object 
 #' 
 #' @param sp SpatialProperties2d object
-#' @param percentile
+#' @param percentile Given percentile to be retrieved
 #' @return Numeric vector with the xth percentile of the firing rate maps
 #' 
 #' @docType methods
@@ -1502,8 +1502,16 @@ setMethod(f="spikeDistanceMetric",
             ## get the firing fields and their xcom and ycom
             fields<-detectFiringFields(sp,minAreaCm2 = 20,rateThresholds = fieldThresholds)  
 
-            if(any(!st@cellList %in% unique(fields[,"clu"])))
-              stop("spikeDistanceMetric, a cell has no field")
+            if(any(!st@cellList %in% unique(fields[,"clu"]))){
+              print(paste("spikeDistanceMetric, a cell has no field",sp@session))
+              print(paste("old cell list:",st@cellList))
+              st@cellList<-st@cellList[st@cellList %in% unique(fields[,"clu"])]
+              print(paste("new cell list:",st@cellList))
+              if(length(st@cellList)==0)
+              {
+                return(NA)
+              }
+            }
             
          
             ## reduce the size of maps and map autocorrelation
@@ -1532,14 +1540,12 @@ setMethod(f="spikeDistanceMetric",
             sp@xSpikes<-results[1,]
             sp@ySpikes<-results[2,]
             
-            
             if(length(sp@xSpikes)!=length(st@res))
               stop("spikeDistanceMetric, length(xSpikes)!=length(st@res)")
             
-            
             results<-t(.Call("spike_distance_metric_cwrap",
-                  xSpikes,
-                  ySpikes,
+                  sp@xSpikes,
+                  sp@ySpikes,
                   as.integer(st@res),
                   as.integer(st@clu),
                   as.integer(st@nSpikes),
@@ -1565,8 +1571,6 @@ setMethod(f="spikeDistanceMetric",
             x<-data.frame(clu=st@cellList,radius=meanRadius)
             r<-merge(r,x)
             r$sdm<-r$distance/r$radius
-            
             return(r)
-            
           })
 
