@@ -417,7 +417,7 @@ setMethod(f="copyExperiment",
             
             if(copyType=="medium"){
               #each session will take care of copying itself.
-              sessionSpecificExtensions=c("res","clu","par","desen","whl","px_per_cm","resofs","desel",
+              sessionSpecificExtensions=c("res","clu","par","desen","px_per_cm","resofs","desel",
                                           "res_samples_per_whl_sample","sampling_rate_dat","whl","whd")
               tetrodeSpecificExtensions=c("res","clu")
             }

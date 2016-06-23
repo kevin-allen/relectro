@@ -360,7 +360,7 @@ setGeneric(name="copyRecSessionFiles",
 #' @aliases copyRecSessionFiles,ANY,ANY-method
 setMethod(f="copyRecSessionFiles",
           signature="RecSession",
-          definition=function(rs)
+          definition=function(rs,destination,sessionSpecificExtensions,tetrodeSpecificExtensions)
           {
             if(rs@session=="")
               stop("rs@session is empty")

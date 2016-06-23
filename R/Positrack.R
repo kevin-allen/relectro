@@ -95,8 +95,10 @@ setMethod(f="loadPositrack",
             pt@samplingRateDat<-read.table(paste(pathSession,"sampling_rate_dat",sep="."))$V1
             
             ## check that things add up
-            if(length(pt@xWhl)!=length(pt@hdWhd))
+            if(length(pt@xWhl)!=length(pt@hdWhd)){
+              print("length whl:",paste(length(pt@xWhl),"whd:",length(pt@hdWhd)))
               stop("Problem with length of whl and whd files")
+            }
             if(pt@samplingRateDat<1|pt@samplingRateDat>100000)
               stop(paste("pt@sampingRateDat is out of bound:",pt@samplingRateDat))
             if(pt@pxPerCm<1|pt@pxPerCm>10000)
