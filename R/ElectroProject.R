@@ -367,5 +367,71 @@ sortRecSessionListChronologically<-function(rsl){
     stop("sortRecSessionListChronologically: rsl[[1]] is not a RecSession object")
   o<-order(sapply(rsl,recordingDate))
   return(rsl[o])
-  
 }
+
+
+
+#' Create a copy of the data from an experiment
+#' 
+#' This function is used to make a copy of the database.
+#' 
+#' List of files exported if copyType is set to small
+#' - .res, .clu, .par, .desen, .whl, .px_per_cm, .resofs, .desel
+#' .res_samples_per_whl_sample .sampling_rate_dat, .whl .whd
+#' Also includes the tetrode specific .clu. and .res. files
+#' 
+#' 
+#' @param ep ElectroProject object
+#' @param sessionList List of RecSession objects that will be included in the copy
+#' @param copyType Type of copy. Can only be set to medium for now.
+#' @param extensions Character vector with the list of file types you want to export
+#' @param destination Path of the directory in which the copy is made
+#' 
+#' @docType methods
+#' @rdname copyExperiment-methods
+setGeneric(name="copyExperiment",
+           def=function(ep,sessionList,copyType="medium",extensions,destination)
+           {standardGeneric("copyExperiment")}
+)
+
+#' @rdname copyExperiment-methods
+#' @aliases copyExperiment,ANY,ANY-method
+setMethod(f="copyExperiment",
+          signature="ElectroProject",
+          definition=function(ep,sessionList,copyType="medium",extensions,destination)
+          {
+            
+            if(!dir.exists(destination)){
+              print(paste("copyExperiment: destination does not exist",destination))
+              print(paste(destination,"will be created"))
+              dir.create(destination)
+            }
+            if(ep@directory=="")
+              stop("copyExperiment: ep@directory is not set")
+            if(class(sessionList)!="list")
+              stop("copyExperiment: sessionList should be a list")
+            if(class(sessionList[[1]])!="RecSession")
+              stop("copyExperiment: sessionList[[1]] is not a RecSession object")
+            if(copyType!="medium")
+              stop("copyExperiment: copyType is not set to medium")
+            
+            if(copyType=="medium"){
+              #each session will take care of copying itself.
+              sessionSpecificExtensions=c("res","clu","par","desen","whl","px_per_cm","resofs","desel",
+                                          "res_samples_per_whl_sample","sampling_rate_dat","whl","whd")
+              tetrodeSpecificExtensions=c("res","clu")
+            }
+            
+            print(paste("destination:",destination))
+            print(paste("session specific extensions:"))
+            print(sessionSpecificExtensions)
+            print(paste("tetrode specific extensions:"))
+            print(tetrodeSpecificExtensions)
+            print(paste("additional session specific extensions:"))
+            print(extensions)
+            ## combine all the session specific extensions
+            sessionSpecificExtensions<-c(sessionSpecificExtensions,extensions)
+            ## each RecSession object will copy itself ##
+            res<-sapply(sessionList,copyRecSessionFiles,destination,sessionSpecificExtensions,tetrodeSpecificExtensions)
+            
+          })

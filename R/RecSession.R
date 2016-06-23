@@ -340,6 +340,84 @@ setMethod(f="getRecSessionObjects",
           })
 
 
+#' Make a copy of the files of the recording session in another directory
+#'
+#' This is used to export the data of an experiment. 
+#'
+#' @param rs A RecSession object
+#' @param destination A directory in which to do the backup. 
+#' If /data is given for destination, the data go in the directory /data/animalName/sessionName
+#' @param sessionSpecificExtensions List of file extensions. These are in the format session.extension
+#' @param tetrodeSpecificExtensions List of file extensions. These are in the format session.extension.tetrodeNo
+#' 
+#' @docType methods
+#' @rdname copyRecSessionFiles-methods
+setGeneric(name="copyRecSessionFiles",
+           def=function(rs,destination,sessionSpecificExtensions,tetrodeSpecificExtensions)
+           {standardGeneric("copyRecSessionFiles")}
+)
+#' @rdname copyRecSessionFiles-methods
+#' @aliases copyRecSessionFiles,ANY,ANY-method
+setMethod(f="copyRecSessionFiles",
+          signature="RecSession",
+          definition=function(rs)
+          {
+            if(rs@session=="")
+              stop("rs@session is empty")
+            if(rs@path=="")
+              stop("rs@path not set")
+           
+            print(paste("copyRecSessionFiles",rs@session))
+             
+            ## create mouse directory
+            mouseDestination=paste(destination,rs@animalName,sep="/")
+            if(!dir.exists(mouseDestination)){
+              print(paste("Creating",mouseDestination))
+              dir.create(mouseDestination)
+            }
+            
+            ## create session directory
+            sessionDestination=paste(destination,rs@animalName,rs@session,sep="/")
+            if(!dir.exists(sessionDestination)){
+              print(paste("Creating",sessionDestination))
+              dir.create(sessionDestination)
+            }  
+            
+            ## check that session specific files exists
+            fileNames<-paste(rs@fileBase,sessionSpecificExtensions,sep=".")
+            if(any(!file.exists(fileNames))){
+              print(paste("file missing:",fileNames(!file.exists(fileNames))))
+              stop("copyRecSessionFiles, missing files")
+            }
+            
+            ## check that tetrode specific files exists
+            fileNames<-paste(rs@fileBase,tetrodeSpecificExtensions,sep=".")
+            tet<-rep(1:rs@nElectrodes,each=length(fileNames))
+            fileNames<-paste(fileNames,tet,sep='.')
+            if(any(!file.exists(fileNames))){
+              print(paste("file missing:",fileNames(!file.exists(fileNames))))
+              stop("copyRecSessionFiles, missing files")
+            }
+            
+            ## copy session specific files
+            fileNames<-paste(rs@fileBase,sessionSpecificExtensions,sep=".")
+            newFileNames<-paste(paste(destination,rs@animalName,rs@session,rs@session,sep="/"),sessionSpecificExtensions,sep=".")
+            if(any(!file.copy(from = fileNames,to = newFileNames,overwrite = T,recursive = F)))
+              stop(paste("copy of files failed in", rs@session))
+            
+            ## copy tetrode specific files
+            fileNames<-paste(rs@fileBase,tetrodeSpecificExtensions,sep=".")
+            tet<-rep(1:rs@nElectrodes,each=length(fileNames))
+            fileNames<-paste(fileNames,tet,sep='.')
+            newFileNames<-paste(paste(destination,rs@animalName,rs@session,rs@session,sep="/"),tetrodeSpecificExtensions,sep=".")
+            tet<-rep(1:rs@nElectrodes,each=length(newFileNames))
+            newFileNames<-paste(newFileNames,tet,sep='.')
+            if(any(!file.copy(from = fileNames,to = newFileNames,overwrite = T,recursive = F)))
+              stop(paste("copy of files failed in", rs@session))
+})
+
+
+
 ### show ###
 setMethod("show", "RecSession",
           function(object){
@@ -367,6 +445,7 @@ setMethod("show", "RecSession",
           })
 
 
+
 #' Get animal name from session name
 #' 
 #' Assumes the session name is in the format name-date-rest
@@ -376,8 +455,6 @@ setMethod("show", "RecSession",
 animalNameFromSessionName<-function(sessionName=NULL){
     return(unlist(lapply(strsplit(as.character(sessionName),split="-"),function(x){return(x[[1]])})))
 }
-
-
 
 #' Get session name from cluId
 #' 
