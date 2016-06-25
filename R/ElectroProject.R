@@ -373,17 +373,19 @@ sortRecSessionListChronologically<-function(rsl){
 
 #' Create a copy of the data from an experiment
 #' 
-#' This function is used to make a copy of the database.
+#' There is an argument to specify the type of backup you want.
+#' This can be use to backup different files depending on
+#' what needs to be copied.
 #' 
-#' List of files exported if copyType is set to small
-#' - .res, .clu, .par, .desen, .whl, .px_per_cm, .resofs, .desel
+#' List of files exported if copyType is set to medium
+#' - .res, .clu, .par, .desen, .px_per_cm, .resofs, .desel
 #' .res_samples_per_whl_sample .sampling_rate_dat, .whl .whd
 #' Also includes the tetrode specific .clu. and .res. files
 #' 
 #' 
 #' @param ep ElectroProject object
 #' @param sessionList List of RecSession objects that will be included in the copy
-#' @param copyType Type of copy. Can only be set to medium for now.
+#' @param copyType Type of copy. Only "medium" is supported at the moment.
 #' @param extensions Character vector with the list of file types you want to export
 #' @param destination Path of the directory in which the copy is made
 #' 
@@ -400,7 +402,6 @@ setMethod(f="copyExperiment",
           signature="ElectroProject",
           definition=function(ep,sessionList,copyType="medium",extensions,destination)
           {
-            
             if(!dir.exists(destination)){
               print(paste("copyExperiment: destination does not exist",destination))
               print(paste(destination,"will be created"))
@@ -421,7 +422,6 @@ setMethod(f="copyExperiment",
                                           "res_samples_per_whl_sample","sampling_rate_dat","whl","whd")
               tetrodeSpecificExtensions=c("res","clu")
             }
-            
             print(paste("destination:",destination))
             print(paste("session specific extensions:"))
             print(sessionSpecificExtensions)
@@ -433,5 +433,4 @@ setMethod(f="copyExperiment",
             sessionSpecificExtensions<-c(sessionSpecificExtensions,extensions)
             ## each RecSession object will copy itself ##
             res<-sapply(sessionList,copyRecSessionFiles,destination,sessionSpecificExtensions,tetrodeSpecificExtensions)
-            
           })

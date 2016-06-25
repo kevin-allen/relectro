@@ -368,28 +368,24 @@ setMethod(f="copyRecSessionFiles",
               stop("rs@path not set")
            
             print(paste("copyRecSessionFiles",rs@session))
-             
             ## create mouse directory
             mouseDestination=paste(destination,rs@animalName,sep="/")
             if(!dir.exists(mouseDestination)){
               print(paste("Creating",mouseDestination))
               dir.create(mouseDestination)
             }
-            
             ## create session directory
             sessionDestination=paste(destination,rs@animalName,rs@session,sep="/")
             if(!dir.exists(sessionDestination)){
               print(paste("Creating",sessionDestination))
               dir.create(sessionDestination)
             }  
-            
             ## check that session specific files exists
             fileNames<-paste(rs@fileBase,sessionSpecificExtensions,sep=".")
             if(any(!file.exists(fileNames))){
               print(paste("file missing:",fileNames(!file.exists(fileNames))))
               stop("copyRecSessionFiles, missing files")
             }
-            
             ## check that tetrode specific files exists
             fileNames<-paste(rs@fileBase,tetrodeSpecificExtensions,sep=".")
             tet<-rep(1:rs@nElectrodes,each=length(fileNames))
@@ -398,13 +394,11 @@ setMethod(f="copyRecSessionFiles",
               print(paste("file missing:",fileNames(!file.exists(fileNames))))
               stop("copyRecSessionFiles, missing files")
             }
-            
             ## copy session specific files
             fileNames<-paste(rs@fileBase,sessionSpecificExtensions,sep=".")
             newFileNames<-paste(paste(destination,rs@animalName,rs@session,rs@session,sep="/"),sessionSpecificExtensions,sep=".")
             if(any(!file.copy(from = fileNames,to = newFileNames,overwrite = T,recursive = F)))
               stop(paste("copy of files failed in", rs@session))
-            
             ## copy tetrode specific files
             fileNames<-paste(rs@fileBase,tetrodeSpecificExtensions,sep=".")
             tet<-rep(1:rs@nElectrodes,each=length(fileNames))
