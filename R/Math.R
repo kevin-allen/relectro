@@ -21,7 +21,7 @@ makePairs<-function(cl1="",cl2=NULL){
     data.frame(Var1=m[1,],Var2=m[2,])
   }
   else{
-    expand.grid(1:3,4:5)
+    expand.grid(cl1,cl2)
   }
 }
 
