@@ -28,3 +28,5 @@ run the following
 You might need to add a few R packages to be able to build relectro. Here is a list of what was missing on a Fedora installation. In R, use install.packages().
 * rmarkdown
 * snow
+* plotrix
+* knitr
