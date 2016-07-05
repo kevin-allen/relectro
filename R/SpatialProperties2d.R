@@ -321,7 +321,7 @@ setMethod(f="spikeTriggeredFiringRateMap2d",
             if(minIsiMs<0)
               stop(paste("minIsiMs should be 0 or larger than 0"))
             if(maxIsiMs<0)
-              stop(paste("maxIsiMs should be 0 or larger than 0"))
+              stop(paste("maxIsiMs should larger than 0"))
             if(maxIsiMs<=minIsiMs)
               stop(paste("maxIsiMs should be larger than minIsiMs"))
             
@@ -388,6 +388,7 @@ setMethod(f="spikeTriggeredFiringRateMap2d",
 #' Default value is "rectangular"
 #' @param triggered Logical indicating whether to calculate a spike-triggered firing rate map instead of conventional map
 #' Default value is FALSE
+#' @param newMaps logical indicating if new maps are calculated when calling the function
 #' @return SpatialProperties2d object with the stats in the following slots: peakRate, infoScore, sparsity, borderScore and gridScore
 #' 
 #' @docType methods
@@ -400,16 +401,18 @@ setGeneric(name="getMapStats",
 #' @aliases getMapStats,ANY,ANY-method
 setMethod(f="getMapStats",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt,border="rectangular",triggered=FALSE)
+          definition=function(sp,st,pt,border="rectangular",triggered=FALSE,newMaps=TRUE)
           {
             if(border!="rectangular" & border!= "circular")
               stop(paste("getMapstats, value of border can be \"rectangular\" or \"circular\" but is", border))
             
             ## make the maps
-            if(triggered==FALSE){
-              sp<-firingRateMap2d(sp,st,pt)
-            } else{
-              sp<-spikeTriggeredFiringRateMap2d(sp,st,pt)
+            if(newMaps==TRUE){
+              if(triggered==FALSE){
+                sp<-firingRateMap2d(sp,st,pt)
+              } else{
+                sp<-spikeTriggeredFiringRateMap2d(sp,st,pt)
+              }
             }
 
             ### get peak rates
@@ -632,8 +635,6 @@ setMethod(f="mapSpatialAutocorrelation",
           {
             if(length(sp@maps)==0)
               stop("Need to call firingRateMap2d first to run getMapStats")
-            if(length(sp@occupancy)==0)
-              stop("sp@occupancy length ==0")
             sp@nColAuto = as.integer((sp@nColMap*2)+1)
             sp@nRowAuto = as.integer((sp@nRowMap*2)+1)
             results<- .Call("map_autocorrelation_cwrap",

@@ -404,8 +404,7 @@ setMethod(f="copyExperiment",
           {
             if(!dir.exists(destination)){
               print(paste("copyExperiment: destination does not exist",destination))
-              print(paste(destination,"will be created"))
-              dir.create(destination)
+              stop()
             }
             if(ep@directory=="")
               stop("copyExperiment: ep@directory is not set")
