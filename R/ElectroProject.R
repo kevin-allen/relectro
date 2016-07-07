@@ -252,7 +252,7 @@ setMethod(f="getSessionList",
 #' Not that the function should return the results in a list. 
 #' The results are saved in the resultsDirectory of the ElectroProject object.
 #' The names of the files saved will be the name of the elements in the list returned by the function
-#' The data from each recording session will be concatenated.
+#' The data from each recording session will be bound togheter using rbind. If the element is an array, they will be bound with abind.
 #' You can use snow::parLapply instead of lapply by setting parallel to TRUE and passing a valid cluster to the function
 #' If save is set to FALSE, the data returned by the lapply function will not be saved but retured.
 #'
@@ -315,10 +315,19 @@ setMethod(f="runOnSessionList",
              ## list of objects to merge and save
              objectNames<-names(list.res[[1]])
              for(n in objectNames){
-               
-               if(overwrite==T){assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
+               obj<-list.res[[1]]
+               if(overwrite==T){
+                 if(class(obj[[n]])=="array"){
+                  assign(n,do.call("abind",sapply(list.res,function(x){x[n]})))  ## bind along the last dimension
+                 }else{
+                  assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
+                 }
                }else{## concatonate to existing data
-                 assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
+                 if(class(obj[[n]])=="array"){
+                   assign(paste(n,"new",sep="."),do.call("abind", sapply(list.res,function(x){x[n]}))) ## bind along the last dimension
+                 }else{
+                  assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
+                 }
                  load(file=paste(ep@resultsDirectory,n,sep="/"))
                  assign(n,rbind(get(n),get(paste(n,"new",sep="."))))
                }
