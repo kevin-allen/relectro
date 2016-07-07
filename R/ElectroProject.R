@@ -55,6 +55,10 @@ setMethod(f="setSessionList",
             if(ep@directory=="")
               stop("ep@directory not set")
             
+            ## remove any "/" at the end of the directory name
+            if(substr(ep@directory,nchar(ep@directory),nchar(ep@directory))=="/")
+              ep@directory<-substr(ep@directory,1,nchar(ep@directory)-1)
+            
             ep@resultsDirectory=paste(ep@directory,"results",sep="/")
             
             if(!file.exists(ep@resultsDirectory)){
@@ -300,8 +304,6 @@ setMethod(f="runOnSessionList",
            } else {
              list.res<-lapply(sessionList,fnct,...)
            }
-           
-           ?lapply
            
            if(save==T){
              ## check that list.res is a list of list

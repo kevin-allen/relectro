@@ -96,7 +96,7 @@ test_that("firing rate maps",{
   sp@smoothRateMapSd=0
   sp@smoothOccupancySd=0
   sp<-firingRateMap2d(sp,st,pt)   
-  firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
+ # firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
   ## occ maps the animal was 3 times in each bin, resSamplesPerWhlSample/samplingRateDat*1000*3 = 60
   expect_equal(max(sp@occupancy),60)
   ## one spike in 60 ms time 
@@ -108,10 +108,14 @@ test_that("firing rate maps",{
   sp@smoothRateMapSd=3
   sp@smoothOccupancySd=3
   sp<-firingRateMap2d(sp,st,pt)   
- # firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
+#  firingRateMapsPlot(maps=sp@maps,names(sp@cellList))
   sumSmoothThree<-sum(sp@maps[which(sp@maps!=-1.0)])
   expect_equal(sumSmoothZero,sumSmoothThree)  
   
+  
+  ## create a map with a specific size  
+  sp<-firingRateMap2d(sp,st,pt,nRowMap = 100, nColMap = 101)   
+  expect_equal(dim(sp@maps),c(100,101,1))
 })
 
 test_that("border score, CM and DM in rectangular environments",{

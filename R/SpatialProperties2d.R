@@ -177,29 +177,39 @@ setMethod("show", "SpatialProperties2d",
 #'
 #' The occupancy map and the firing rate maps are smoothed with a Gaussian kernel
 #' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp
-#' 
+#' You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size
 #' 
 #' @param sp SpatialProperties1d object
 #' @param st SpikeTrain object
 #' @param pt Positrack object
+#' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
 #' @return SpatialProperties2d object with the firing rate maps
 #' 
 #' @docType methods
 #' @rdname firingRateMap2d-methods
 setGeneric(name="firingRateMap2d",
-           def=function(sp,st,pt)
+           def=function(sp,st,pt,nRowMap=NA,nColMap=NA)
            {standardGeneric("firingRateMap2d")}
 )
 #' @rdname firingRateMap2d-methods
 #' @aliases firingRateMap2d,ANY,ANY-method
 setMethod(f="firingRateMap2d",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt)
+          definition=function(sp,st,pt,nRowMap=NA,nColMap=NA)
           {
             if(length(pt@x)==0)
               stop(paste("pt@x has length of 0 in firingRateMap2d",st@session))
             if(st@nSpikes==0)
               stop(paste("st@nSpikes==0 in firingRateMap2d",st@session))
+            if(!is.na(nRowMap)|!is.na(nColMap)){
+              if(is.na(nRowMap))
+                stop("if you set nColMap, you need to also set nRowMap")
+              if(is.na(nColMap))
+                stop("if you set nRowMap, you need to also set nColMap")
+            }
             
             sp@cellList<-st@cellList
             
@@ -219,6 +229,16 @@ setMethod(f="firingRateMap2d",
             ## get the dimensions of the map
             sp@nRowMap=as.integer(((max(x)+1)/sp@cmPerBin)+1) # x in R is a row
             sp@nColMap=as.integer(((max(y)+1)/sp@cmPerBin)+1) # y in R is a col
+            
+            ## user want a map of a given size
+            if(!is.na(nRowMap)){
+              if(nRowMap<sp@nRowMap)
+                stop(paste("nRowMap value",nRowMap,"is smaller than the minimal size of the map",sp@nRowMap))
+              if(nColMap<sp@nColMap)
+                stop(paste("nColMap value",nColMap,"is smaller than the minimal size of the map",sp@nColMap))
+              sp@nRowMap=as.integer(nRowMap)
+              sp@nColMap=as.integer(nColMap)
+            }
             
             ## get spike position
             results<-.Call("spike_position_cwrap",
@@ -251,7 +271,7 @@ setMethod(f="firingRateMap2d",
                             length(st@startInterval),
                             as.integer(pt@resSamplesPerWhlSample))
             
-            sp@occupancy
+            #sp@occupancy
             
             #image((sp@occupancy),zlim=c(0,max(sp@occupancy,na.rm=T)))
             
@@ -279,6 +299,8 @@ setMethod(f="firingRateMap2d",
                             as.numeric(sp@occupancy),
                             sp@smoothRateMapSd/sp@cmPerBin)
             sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
+            #firingRateMapPlot(m=sp@maps[,,5])
+            
             return(sp)
           }
 )
