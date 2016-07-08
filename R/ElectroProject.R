@@ -318,13 +318,14 @@ setMethod(f="runOnSessionList",
                obj<-list.res[[1]]
                if(overwrite==T){
                  if(class(obj[[n]])=="array"){
-                  assign(n,do.call("abind",sapply(list.res,function(x){x[n]})))  ## bind along the last dimension
+                  
+                  assign(n,do.call(abind::abind,sapply(list.res,function(x){x[n]})))  ## bind along the last dimension
                  }else{
                   assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
                  }
                }else{## concatonate to existing data
                  if(class(obj[[n]])=="array"){
-                   assign(paste(n,"new",sep="."),do.call("abind", sapply(list.res,function(x){x[n]}))) ## bind along the last dimension
+                   assign(paste(n,"new",sep="."),do.call(abind::abind, sapply(list.res,function(x){x[n]}))) ## bind along the last dimension
                  }else{
                   assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
                  }
