@@ -1,0 +1,52 @@
+---
+title: "RecSession"
+author: "Kevin Allen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+#output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{relectro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+## RecSession
+
+RecSession object read text files (.par, .desen, .desel, etc) and get the information regarding what was done during the recording session. 
+
+We will load the information regarding the recording session that is included within the relectro package as example. 
+
+```{r RecSession}
+library(relectro)
+## the 3 commands are there to find the data provided with the package on your system.
+## you would not have to do this in real life.
+clufile<-unlist(strsplit(x=system.file("extdata", 
+                                       "jp4298-15022016-0106.clu", 
+                                       package = "relectro"), split="/"))
+datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
+session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
+
+## create a RecSession object
+## so rs is a RecSession object
+rs<-new("RecSession",session=session,path=datadir)
+
+## load configuration data from file
+rs<-loadRecSession(rs)
+## print information on the recording session
+rs
+```
+
+RecSession objects are useful because they spare you the trouble of reading and parsing several text files. 
+
+To know which methods are available for 
+```{r}
+methods(class = "RecSession")
+```
+
+As an example, you can get the time intervals when the animal was in a given environment.
+
+```{r}
+getIntervalsEnvironment(rs,environment = "lt")
+```
+
