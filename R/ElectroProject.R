@@ -400,23 +400,24 @@ sortRecSessionListChronologically<-function(rsl){
 #' @param copyType Type of copy. Only "medium" is supported at the moment.
 #' @param extensions Character vector with the list of file types you want to export
 #' @param destination Path of the directory in which the copy is made
+#' @param compress Logical indicating whether to call tar to make a tar.gzip from the copy
 #' 
 #' @docType methods
-#' @rdname copyExperiment-methods
-setGeneric(name="copyExperiment",
-           def=function(ep,sessionList,copyType="medium",extensions,destination)
-           {standardGeneric("copyExperiment")}
+#' @rdname copyDatabase-methods
+setGeneric(name="copyDatabase",
+           def=function(ep,sessionList,copyType="medium",extensions,destination,compress=FALSE)
+           {standardGeneric("copyDatabase")}
 )
 
-#' @rdname copyExperiment-methods
-#' @aliases copyExperiment,ANY,ANY-method
-setMethod(f="copyExperiment",
+#' @rdname copyDatabase-methods
+#' @aliases copyDatabase,ANY,ANY-method
+setMethod(f="copyDatabase",
           signature="ElectroProject",
-          definition=function(ep,sessionList,copyType="medium",extensions,destination)
+          definition=function(ep,sessionList,copyType="medium",extensions,destination,compress=FALSE)
           {
             if(!dir.exists(destination)){
-              print(paste("copyExperiment: destination does not exist",destination))
-              stop()
+              if(dir.create(path=destination,recursive=T)==FALSE)
+                stop()
             }
             if(ep@directory=="")
               stop("copyExperiment: ep@directory is not set")
@@ -426,7 +427,6 @@ setMethod(f="copyExperiment",
               stop("copyExperiment: sessionList[[1]] is not a RecSession object")
             if(copyType!="medium")
               stop("copyExperiment: copyType is not set to medium")
-            
             if(copyType=="medium"){
               #each session will take care of copying itself.
               sessionSpecificExtensions=c("res","clu","par","desen","px_per_cm","resofs","desel",
@@ -444,4 +444,13 @@ setMethod(f="copyExperiment",
             sessionSpecificExtensions<-c(sessionSpecificExtensions,extensions)
             ## each RecSession object will copy itself ##
             res<-sapply(sessionList,copyRecSessionFiles,destination,sessionSpecificExtensions,tetrodeSpecificExtensions)
-          })
+  
+            if(compress==TRUE)
+            {
+              comp=paste(destination,"tar.gzip",sep=".")
+              print(paste("creating",comp, "with the tar funciton"))
+              tar(tarfile=comp,
+                  files=destination,
+                  compression="gzip")
+            }
+      })

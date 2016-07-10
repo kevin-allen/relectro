@@ -383,7 +383,7 @@ setMethod(f="copyRecSessionFiles",
             ## check that session specific files exists
             fileNames<-paste(rs@fileBase,sessionSpecificExtensions,sep=".")
             if(any(!file.exists(fileNames))){
-              print(paste("file missing:",fileNames(!file.exists(fileNames))))
+              print(paste("file missing:",fileNames[!file.exists(fileNames)]))
               stop("copyRecSessionFiles, missing files")
             }
             ## check that tetrode specific files exists
