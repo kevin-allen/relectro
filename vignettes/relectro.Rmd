@@ -51,6 +51,10 @@ relectro defines a few S4 objects that represents projects, recording sessions, 
 * SpatialProperties1d
 * SpatialProperties2d
 
+### Learning by examples
+
+A good way to learn how to use the code is to look at examples. The code used in a recent manuscript is available [here](https://github.com/kevin-allen/prog_perez_escobar_2016).
+
 ### Development
 
 If you want to work on the source code, I would recommand reading the book "R packages" by Hadley Wickham. I am using the following packages for development: `devtools`, `roxygen2` and `testthat`.
