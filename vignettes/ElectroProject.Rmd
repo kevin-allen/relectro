@@ -1,0 +1,103 @@
+---
+title: "ElectroProject"
+author: "Kevin Allen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+#output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{relectro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## ElectroProject
+
+A project with electrophysiological data usually contains several recording sessions from different animals. ElectroProject is a class to represent all your recording sessions.
+Here is an example of a project we have. Normally you would create it with `ep<-new("ElectroProject",directory="/data/projects/vtrack")` and `ep<-setSessionList(ep)` but since you might not have the project on your computer we will load it from the object saved with the package.
+
+```{r electroProject}
+library(relectro)
+## the 3 commands are there to find the data provided with the package on your system.
+## you would not have to do this in real life.
+clufile<-unlist(strsplit(x=system.file("extdata", 
+                                       "jp4298-15022016-0106.clu", 
+                                       package = "relectro"), split="/"))
+datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/") 
+## load the object that came with relectro installation
+load(paste(datadir,"ep",sep="/"))
+## print a summary of the ElectroProject ep
+
+## get a list of clustered sessions for which there was a recording environment called "lt" and some electrodes
+## targetted at the medial entorhinal cortex (mec).
+rss<-getSessionList(ep,clustered=T,region="mec",env="lt")
+## get a single recording session out of the list of recording sessions
+oneRs<-rss[[11]] ## get a particular session from the list
+## print a summary of the recording session
+oneRs
+```
+
+
+
+## Running code on several recording sessions
+In analyzing data from a project, it is sometime useful to first perform analysi on single recording session and to bring the results of the analysis together to do project-wise analysis.
+
+The trick to do so is to write a R function that do the analysis to a single recording session and then apply this function to all your recording sessions.
+
+Here is an example of a very simple case.
+```{r severalSessions}
+## function returning a list with the sessionDuration and the number of tetrode
+myFunction<-function(x){
+  return(list(recTime=x@sessionDurationSec,nElectrodes=x@nElectrodes))
+}
+
+## run the function on a single session
+myFunction(oneRs)
+## apply the function to all your recording sessions with lapply
+list.res<-lapply(rss,myFunction) ## returns a list of lists
+## print the first to lists of the list!
+list.res[1:2]
+```
+
+You can do all sorts of analysis in your function. I usually return a list of data.frames or arrays (e.g. firing rate maps, autocorrelations, etc) from the function. Because the function runs on a list of sessions, we end up with a list of lists of.
+
+To simplify the process process of running functions on a list of sessions, there is a function called `runOnSessionList`. Have a look at the help to know how it works.
+```{r runOnSessionList}
+## set a place to save the results of the analysis
+ep@resultsDirectory<-"/tmp"
+## run myFunction of the list of recording sessions and save the results
+runOnSessionList(ep,sessionList=rss,fnct=myFunction,save=T)
+```
+To load the data that were saved use `load`. The file names is determined by the name of the object returned by the function in our case `recTime` and `nElectrodes`.
+```{r load}
+load(paste(ep@resultsDirectory,"recTime",sep="/"))
+head(recTime)
+rm(recTime)
+```
+
+
+##Parallel processing
+It is really easy to run code in parallel in R. It is often the case that same analysis is often run on several recording sessions. This is a perfect situation for parallel processing. You can use the `snow` package. You only need to install `snow` and of course `relectro` on all the computers that you want to use for the analysis. Then build a cluster of `workers` that you want to use. Instead of calling `lapply` use `parLapply`. 
+
+If using different computers, you need to load the `relectro` package on each thread. You also need to make sure that the other computers have an up-to-date version of relectro. All computer should run the same version of R.
+
+```{r parallel}
+library(snow)
+workers<-c(rep("localhost",2))# one computer with 2 threads
+cl<-makeCluster(workers, type = "SOCK",outfile="")
+## load relectro on each thread
+clusterEvalQ(cl,library(relectro))
+## run myFunction in parallel on all recording sessions
+system.time(runOnSessionList(ep,sessionList=rss,fnct=myFunction,
+                             save=T,overwrite=T,parallel=T,cluster=cl))
+## run sequencially instead
+system.time(runOnSessionList(ep,sessionList=rss,fnct=myFunction,
+                             save=T,overwrite=T,parallel=F))
+stopCluster(cl)
+rm(cl)
+```
+
+In this example, it is slower to work in parallel.
+
+If your code is almost only reading and writing files, it is better to run the code sequencially. A good example of this is if you are detecting ttl pulses from the .dat files. Conversely, if your code is processor intensive and has few read/write operations, you can speed up things considerably by increasing the number of threads used.
+
+There is nothing stopping you from running the code on several computers. Just give the ip of the computers you want to use when listing your workers. I have used up to 30 threads without any problems and it speeds up considerably for some analysis.

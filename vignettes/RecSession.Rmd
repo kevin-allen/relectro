@@ -50,3 +50,26 @@ As an example, you can get the time intervals when the animal was in a given env
 getIntervalsEnvironment(rs,environment = "lt")
 ```
 
+
+### Loading most objects in a recording session
+When working on the data of a single recording session, it is often useful to create and load the spike trains, position data, dat file information, cell infomration when analysing data in a recording session. You can do this by calling `getRecSessionObjects`. This will return a list of loaded objects ready for you to use. It takes a few seconds to run but it is easier to code.
+```{r loadObject}
+  ## the long way, only use if you want 1 or 2 objects
+  st<-new("SpikeTrain",session=rs@session,path=rs@path)
+  st<-loadSpikeTrain(st)
+  pt<-new("Positrack",session=rs@session,path=rs@path)
+  pt<-loadPositrack(pt)
+  df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),
+          path=rs@path,nChannels=rs@nChannels)
+  cg<-new("CellGroup",session=rs@session,path=rs@path,nTetrodes=rs@nElectrodes)
+  cg<-loadCellGroup(cg)
+  
+  ## the short way, use when you want of few of these objects
+  myList<-getRecSessionObjects(rs)
+  st<-myList$st # SpikeTrain object
+  pt<-myList$pt # Positrack object
+  df<-myList$df # DatFile object
+  cg<-myList$cg # CellGroup object
+  rm(myList)
+```
+
