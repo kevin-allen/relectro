@@ -1,0 +1,109 @@
+---
+title: "SpikeTrain"
+author: "Kevin Allen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+#output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{SpikeTrain}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+This vignette documents the use of the SpikeTrain object from the relectro package. SpikeTrain object represents the spike trains of a group of neurons recorded in the same recording session. The spike trains are usually loaded from files containing the spike times in sample values, the id of the cell firing and the sampling rate. You have to call the function `loadSpikeTrain()` to read the data from the files. The 3 files loaded have the extension `res`, `clu` and `sampling_rate_dat`. Note that you can also set the data manually with `setSpikeTrain()`. This feature is usefull if you want to work with simulated spike trains. 
+
+Once a SpikeTrain object is set, you can use different functions to do analysis on the spike trains. For example you can calculate spike-train autocorrelations using the function `spikeTimeAutocorrelation()`. You can also calculate the firing rate using `meanFiringRate()`.
+
+Here is a list of all methods to work with a SpikeTrain object.
+
+```{r list_methods}
+library(relectro)
+methods(class="SpikeTrain")
+```
+
+
+### Working with simulated spike trains
+
+
+```{r simulate_spike_train}
+## generate spikes for 3 neurons  
+res1<-cumsum(rpois(n=1000,lambda=10))
+res2<-cumsum(rpois(n=1000,lambda=15))
+res3<-cumsum(rpois(n=1000,lambda=20))
+clu<-c(rep(1,1000),rep(2,1000),rep(3,1000))
+df<-data.frame(res=c(res1,res2,res3),clu=clu)
+df<-df[order(df$res),] # sort according to res values
+## create a SpikeTrain object from random spikes ###
+st<-new("SpikeTrain")
+## set the spike trains in the object
+st<-setSpikeTrain(st=st,res=df$res,clu=df$clu,samplingRate=20000)
+## get the spike-time autocorrelation
+st<-spikeTimeAutocorrelation(st,binSizeMs=10,windowSizeMs=500,probability = F)
+auto<-spikeTimeAutocorrelationAsDataFrame(st)
+## plot the autocorrelation
+plot(auto$time[which(auto$clu==1)],auto$count[which(auto$clu==1)],
+     ylim=c(0,max(auto$count[which(auto$clu==1)])),type='l',ylab="Spike count", xlab="time (ms)")
+lines(auto$time[which(auto$clu==2)],auto$count[which(auto$clu==2)],col="red")
+lines(auto$time[which(auto$clu==3)],auto$count[which(auto$clu==3)],col="blue")
+## get the mean firing rate
+st<-meanFiringRate(st)
+st@meanFiringRate
+rm(clu,res1,res2,res3,df,auto,st)
+```
+
+
+If you want to calculate a spike-time crosscorrelation between the spikes and some events, you need to set some events within you SpikeTrain object with the function `setEvents()` and then call `spikeTimeCrosscorrelationEvents()`. This could be usefull to see if a cell react to some sort of stimulation or some behavioural events.
+
+### Limiting the analysis to a set of time intervals
+
+Most computations on neuronal activity need to be performed on a limited time period. This is acheived by setting some intervals in the SpikeTime object. You can do this with the function `setIntervals()`. The intervals of the SpikeTrain object are used when analyzing the spatial properties of neurons.
+
+
+### Working on data of a recording session
+
+Now here is an example from data files that are provided with the package. This is part of a recording session in which we recorded the activity of the medial entorhinal cortex on a linear track and in a square open-field. In this example, we calculate the spike-time crosscorrelation between the recorded neurons. The first 3 lines of code are to get the session name and path to these files.  
+
+```{r real_spike_trains}
+## find the data provided with the package
+clufile<-unlist(strsplit(x=system.file("extdata", 
+                                       "jp4298-15022016-0106.clu", 
+                                       package = "relectro"), split="/"))
+datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
+session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
+
+# create SpikeTrain object
+st<-new("SpikeTrain",session=session,path=datadir)
+st<-loadSpikeTrain(st) # load res clu and sampling rate
+## calculate spike-time crosscorrelation
+st<-spikeTimeCrosscorrelation(st,
+                              binSizeMs=1,
+                              windowSizeMs = 200,
+                              probability = T)
+cross<- spikeTimeCrosscorrelationAsDataFrame(st)
+plot(cross$time[which(cross$clu1==2&cross$clu2==5)],
+     cross$prob[which(cross$clu1==2&cross$clu2==5)],
+     ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),
+     type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5")
+## set some events, in this case the spikes of clu 2
+st<-setEvents(st,events=st@res[which(st@clu==2)])
+st<-spikeTimeCrosscorrelationEvents(st)
+cc<-spikeTimeCrosscorrelationEventsAsDataFrame(st)
+plot(cc$time[which(cc$clu==6)],
+     cc$count[which(cc$clu==6)],
+     ylim=c(0,max(cc$count[which(cc$clu==6)])),
+     ylab="Spike count",xlab="Time (ms)",type='l',main="cc spike cells 2 and 6")
+rm(cross,cc,clufile)
+```
+
+To calculate instantaneous firing rate from the spike trains
+```{r ifr}
+## calculate instantaneous firing rates
+st<-ifr(st)
+## plot ifr and spike of a cell
+n=400
+cell=1
+plot(head(st@ifrTime,n),head(st@ifr[cell,],n),
+     type='l',xlab="Time (sec)",ylab="Rate (Hz)")
+points(head(st@res[which(st@clu==st@cellList[cell])]/st@samplingRate,n),
+       rep(0,n),col='red')
+rm(n,cell)
+```
