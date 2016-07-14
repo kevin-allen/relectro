@@ -30,9 +30,9 @@ Sessions are usually divided in several trials with one .dat file for each trial
 
 \item{\code{electrodeLocation}}{List of electrode location, one per electrode}
 
-\item{\code{trialStartRes}}{Sample at which a trial starts.}
+\item{\code{trialStartRes}}{Sample at which a trial starts. Index starts at 0}
 
-\item{\code{trialEndRes}}{Sample at which a trial ends.}
+\item{\code{trialEndRes}}{Sample at which a trial ends. Index starts at 0}
 
 \item{\code{trialNames}}{Filebase of the individual trials}
 

@@ -47,7 +47,7 @@ SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_cha
 
 
 // whdFiles.c
-SEXP whd_file(SEXP x_r,SEXP y_r, SEXP hd_r, SEXP up_r, SEXP len_r, SEXP max_res_r, SEXP res_per_whd_r);
+SEXP whd_file(SEXP x_r,SEXP y_r, SEXP hd_r, SEXP up_r, SEXP len_r, SEXP max_res_r, SEXP res_per_whd_r,SEXP max_up_diff_r);
 
 
 // text_files.c
