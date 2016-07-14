@@ -45,6 +45,11 @@ int clean_group_data_file_si(struct group_data_file_si* gdf);
 SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r);
 SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channels_r, SEXP num_channels_get_r, SEXP start_index_r, SEXP end_index_r);
 
+
+// whdFiles.c
+SEXP whd_file(SEXP x_r,SEXP y_r, SEXP hd_r, SEXP up_r, SEXP len_r, SEXP max_res_r, SEXP res_per_whd_r);
+
+
 // text_files.c
 int file_lines(const char* file_name);
 int read_one_column_int_file(const char* file_name,int* data, int lines);
