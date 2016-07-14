@@ -1,0 +1,84 @@
+---
+title: "Positrack"
+author: "Kevin Allen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+#output: pdf_document
+vignette: >
+  %\VignetteIndexEntry{Positrack}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+This vignette documents the use of the Positrack object from the relectro package. Positrack objects are used to represent the path of the animal during a recording session. The data are loaded from the .whl and .whd files. The example below gives us time intervals for which the animal running speed was between 0 and 3 cm/sec. 
+
+```{r positrack1}
+library(relectro)
+## find the data provided with the package
+clufile<-unlist(strsplit(x=system.file("extdata", 
+                                       "jp4298-15022016-0106.clu", 
+                                       package = "relectro"), split="/"))
+datadir<-paste(clufile[1:length(clufile)-1],sep="/",collapse = "/")
+session=strsplit(clufile[length(clufile)],split="\\.")[[1]][1]
+
+## create a recSession, use later
+rs<-new("RecSession",session=session,path=datadir)
+rs<-loadRecSession(rs)
+
+
+## create positrack object
+pt<-new("Positrack",session=session,path=datadir)
+## load path from whl and whd files
+pt<-loadPositrack(pt)
+## get time interval that the animal ran between 0 and 3 cm per sec
+m<-getIntervalsAtSpeed(pt,0,3)
+m[1:10,]
+rm(m)
+```
+
+One can also use the intervals given by the RecSession object to limit the analysis of the path to these intervals.
+```{r positrack2}
+pt1<-setInvalidOutsideInterval(pt,
+                               s=getIntervalsEnvironment(rs,env="sqr70"))
+plot(pt1@x[1:10000],pt1@y[1:10000],
+     col="black", type='l',xlab="x (cm)",ylab="y (cm)")
+pt1 # tells you information about valid data.
+rm(pt1)
+```
+
+You can get the speed of the animal at some define time points
+```{r positrack3}
+plot(getSpeedAtResValues(pt,res=seq(100000,300000,20)),
+     type='l',xlab="res index",ylab="Running speed (cm/sec)")
+```
+
+There is a function to linearize the 2d position data into a 1d representation. This is useful to analyze the data from a linear track. The linear data can be accessed via `pt@lin`.
+```{r positrack4}
+getIntervalsEnvironment(rs,"lt")
+pt1<-setInvalidOutsideInterval(pt,s=getIntervalsEnvironment(rs,env="lt"))
+pt1<-linearzeLinearTrack(pt1)
+n=10000
+plot(head(pt1@x[!is.na(pt1@x)],n),
+     head(pt1@y[!is.na(pt1@x)],n),
+     xlim=c(0,85),ylim=c(0,85))
+points(head(pt1@lin[!is.na(pt1@x)],n),
+       head(pt1@y[!is.na(pt1@x)],n),
+       col="red")
+rm(n)
+```
+
+You can get intervals of time when the animal was running in a given direction in the linear data as follows.
+```{r positrack5}
+int<-getIntervalsAtDirection(pt1,direction=1)
+## plot an example
+s<-140000
+e<-s+700
+plot(pt1@lin[s:e],ylim=c(0,80))
+lines(pt1@dir[s:e]*10,col="red")
+points(int[,1]/pt1@resSamplesPerWhlSample-s,
+        rep(20,length(int[,1])),col="blue")
+points(int[,2]/pt1@resSamplesPerWhlSample-s,
+       rep(22,length(int[,1])),col="green")
+rm(s,e,int)
+```
+
+
