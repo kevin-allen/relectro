@@ -99,6 +99,13 @@ SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_cha
     return(R_NilValue);
   }
   channels=INTEGER_POINTER(channels_r);
+ 
+  Rprintf("num_channls_get: %d\n",num_channels_get);
+  for(int i = 0; i < num_channels_get; i++)
+    Rprintf("channel %d: %d\n",i,channels[i]);
+  
+ 
+ 
   
   PROTECT(file_names_r = AS_CHARACTER(file_names_r));
   file_lines = LENGTH(file_names_r);
@@ -140,10 +147,12 @@ SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_cha
   SEXP out = PROTECT(allocVector(INTSXP,needed_samples*num_channels_get));
   int* ptr = INTEGER_POINTER(out);
   
+  Rprintf("The out array pointer is at %d\n",ptr);
+  Rprintf("call to group_data_file_si_get_data_group_channels\n");
   if ((group_data_file_si_get_data_group_channels(&gdf,
                                                channels,
                                                num_channels_get,
-                                               ptr,
+                                               ptr, //allocated memory for the data
                                                INTEGER_VALUE(start_index_r),
                                                INTEGER_VALUE(end_index_r)))!=0)
   {
@@ -159,37 +168,6 @@ SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_cha
   UNPROTECT(2);
   return(out);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,int num_files,int num_channels)
 {
@@ -313,25 +291,26 @@ int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,in
                                                int* data, long int start_index, long int end_index)
 {
 
-  // function to get the data from one channel, intervals can cover more than one file
+  // function to get the data from several channels, intervals can cover more than one file
   // we do one read operation per file until we get all we need
-//  int* ptr;
+  
+  
   int file_index;
   long int num_samples_read, to_read, within_file_start_index,total_needed;
   // check that the index given make sense
   if (start_index<0)
   {
-    Rprintf("group_data_file_si_get_data_one_channel(): start index is smaller than 0: %ld\n",start_index);
+    Rprintf("group_data_file_si_get_data_group_channels(): start index is smaller than 0: %ld\n",start_index);
     return 1;
   }
   if (end_index<start_index)
   {
-    Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is smaller than start index(%ld)\n",end_index,start_index);
+    Rprintf("group_data_file_si_get_data_group_channels(): end index(%ld) is smaller than start index(%ld)\n",end_index,start_index);
     return 1;
   }
   if(end_index>gdf->num_samples_all_files)
   {
-    Rprintf("group_data_file_si_get_data_one_channel(): end index(%ld) is larger than the number of samples allfiles(%ld)\n",end_index,gdf->num_samples_all_files);
+    Rprintf("group_data_file_si_get_data_group_channels(): end index(%ld) is larger than the number of samples allfiles(%ld)\n",end_index,gdf->num_samples_all_files);
     return 1;
   }
   // find the file containing the beginning of data
@@ -350,6 +329,14 @@ int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,in
     within_file_start_index=start_index-gdf->resofs[file_index-1];
   }
   
+  
+  // data is filled with all samples of one channel together, we need an array of pointer to do this
+  // c1s1 c1s2 c1s3 ... c2s1 c2s2 c2s3 ...
+  int** ptr;
+  Rprintf("int** ptr has %d length",num_channels);
+  ptr= malloc(sizeof(int*)*num_channels);
+  
+  
   // set variables to know when we have enough data
   num_samples_read=0;
   total_needed=end_index-start_index+1;
@@ -363,27 +350,27 @@ int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,in
       to_read=gdf->file_group[file_index].num_samples_in_file-within_file_start_index;
     }
     
-    //ptr=one_channel+num_samples_read;
-    
-    //  Rprintf("reading file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
-    
-    //if((data_file_si_get_data_one_channel(&gdf->file_group[file_index], channel_no, ptr, within_file_start_index, within_file_start_index+to_read))!=0)
-    //{
-    //  Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
-    //}
+    Rprintf("set pointers\n");
+    for(int i = 0; i < num_channels; i++){
+      ptr[i]=data+(total_needed*i)+(num_samples_read);   
+      Rprintf("set pointer no: %d, offset: %d, pointer: %d\n",i,(total_needed*i)+(num_samples_read),ptr[i]);
+    }
+   
+    Rprintf("num_samples_read: %d\n",num_samples_read);
+    Rprintf("getting data from file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
+    if((data_file_si_get_data_several_channels(&gdf->file_group[file_index], channels,num_channels, ptr, 
+                                               within_file_start_index, within_file_start_index+to_read))!=0)
+    {
+      Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
+    }
     num_samples_read+=to_read;
     within_file_start_index=0;
     file_index++;
   }
+
+  free(ptr);
   return 0;
 }
-
-
-
-
-
-
-
 
 
 
@@ -605,6 +592,109 @@ int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, i
     }
   return 0;
 }
+
+int data_file_si_get_data_several_channels(struct data_file_si* df, int* channels, int num_channels, int** ptr, long int start_index, long int end_index)
+{
+  if(num_channels<=0)
+  {
+    Rprintf("data_file_si_get_data_several_channels(): channel_no < 0\n");
+    return 1;
+  }
+  for(int i =0; i < num_channels;i++){
+    if(channels[i] < 0)
+    {
+      Rprintf("data_file_si_get_data_several_channels(): channel_no < 0\n");
+      return 1;
+    }
+  }
+  for(int i =0; i < num_channels;i++){
+    if(channels[i] >= df->num_channels)
+    {
+      Rprintf("data_file_si_get_data_several_channels(): channel_no >= num_channels\n");
+      return 1;
+    }
+  }
+  if (start_index<0)
+  {
+    Rprintf("data_file_si_get_data_several_channels(): start_index < 0\n");
+    return 1;
+  }
+  if (start_index>df->num_samples_in_file)
+  {
+    Rprintf("data_file_si_get_data_several_channels(): start_index > num_samples\n");
+    return 1;
+  }
+  if(end_index<=start_index)
+  {
+    Rprintf("data_file_si_get_data_several_channels(): start_index <= end_index\n");
+    return 1;
+  }
+  if(end_index>df->num_samples_in_file)
+  {
+    Rprintf("data_file_si_get_data_several_channels(): end_index > num_samples\n");
+    return 1;
+  }
+  
+  int num_samples_to_read=end_index-start_index;
+  int num_complete_blocks_to_read=num_samples_to_read/df->num_samples_in_complete_block;
+  int num_blocks_to_read;
+  int num_samples_incomplete_block=num_samples_to_read%df->num_samples_in_complete_block;
+  long int i,j,k,index;
+  long int start_index_bytes;
+  index=0;
+  if(num_samples_incomplete_block>0)
+    num_blocks_to_read=num_complete_blocks_to_read+1;
+  else
+    num_blocks_to_read=num_complete_blocks_to_read;
+  
+  Rprintf("num_blocks_to_read: %d\n",num_blocks_to_read);
+  
+  for(int i = 0; i < num_channels; i++)
+  {
+    Rprintf("ptr %d %d\n",i,ptr[i]);
+  }
+ 
+  for (i = 0; i < num_blocks_to_read; i++)
+  {
+    start_index_bytes=(start_index*sizeof(short)*df->num_channels)+(df->block_size*i);
+    if(i<num_complete_blocks_to_read) // complete block
+    {
+      
+      Rprintf("Read complete block %d\n",i);
+      if(data_file_si_load_block(df,start_index_bytes,df->block_size)!=0)
+      {
+        Rprintf("data_file_si_get_data_several_channels(): problem loading block\n");
+        Rprintf("data_file_si_load_block(file,%ld,%d)\n",start_index_bytes,df->block_size);
+        return 1;
+      }
+      for (j = 0; j <  df->num_samples_in_complete_block; j++){
+        for(k = 0; k < num_channels;k++)
+        {
+          ptr[k][index]=df->data_block[(j*df->num_channels)+(channels[k])];
+        }
+        index++;
+      }
+    }
+    if(i==num_complete_blocks_to_read) // smaller and last block
+    {
+      Rprintf("Read incomplete block %d\n",i);
+      if(data_file_si_load_block(df,start_index_bytes,num_samples_incomplete_block*sizeof(short)*df->num_channels))
+      {
+        Rprintf("data_file_si_get_data_several_channels(): problem loading last block\n");
+        return 1;
+      }
+      for (j = 0; j < num_samples_incomplete_block; j++){
+        for(k = 0; k < num_channels;k++)
+        {
+          ptr[k][index]=df->data_block[(j*df->num_channels)+(channels[k])];
+        }
+        index++;
+      }
+    }
+  }
+  return 0;
+}  
+
 int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data, long int start_index, long int end_index)
 {
   

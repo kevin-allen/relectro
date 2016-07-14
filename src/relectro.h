@@ -35,6 +35,7 @@ int init_data_file_si(struct data_file_si* df,const char *file_name,int num_chan
 int clean_data_file_si(struct data_file_si* df);
 int data_file_si_load_block(struct data_file_si* df, long int start_index, long int size);
 int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, int* one_channel, long int start_index, long int end_index);
+int data_file_si_get_data_several_channels(struct data_file_si* df, int* channels, int num_channels, int** ptr, long int start_index, long int end_index);
 int data_file_si_get_data_all_channels(struct data_file_si* df, short int* data, long int start_index, long int end_index);
 
 int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,int num_files,int num_channels);

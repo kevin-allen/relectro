@@ -171,16 +171,16 @@ setMethod(f="datFilesGetOneChannel",
             startIndex<-1
             for(i in 1:length(firstSample)){
               s<-lastSample[i]-firstSample[i]+1
-              results[startIndex:(startIndex+s-1)]<-.Call("group_data_file_si_get_one_channel_cwrap", paste(df@path,df@fileNames,sep="/"),df@nChannels, channelNo,firstSample[i], lastSample[i])
+              results[startIndex:(startIndex+s-1)]<-.Call("group_data_file_si_get_one_channel_cwrap", 
+                                                          paste(df@path,df@fileNames,sep="/"),
+                                                          df@nChannels, 
+                                                          channelNo,
+                                                          firstSample[i], 
+                                                          lastSample[i])
               startIndex<-startIndex+s
             }
           return(results)
           })
-
-
-
-
-
 
 #' Function to read from several channels from a group of dat files
 #' 
@@ -197,15 +197,15 @@ setMethod(f="datFilesGetOneChannel",
 #' Index stats at 0
 #' @return A matrix containing the data, one channel per column.
 #' @docType methods
-#' @rdname datFilesGetGroupChannels-methods
-setGeneric(name="datFilesGetGroupChannels",
+#' @rdname datFilesGetChannels-methods
+setGeneric(name="datFilesGetChannels",
            def=function(df,channels,firstSample,lastSample)
-           {standardGeneric("datFilesGetGroupChannels")}
+           {standardGeneric("datFilesGetChannels")}
 )
 
-#' @rdname datFilesGetGroupChannels-methods
-#' @aliases datFilesGetGroupChannels,ANY,ANY-method
-setMethod(f="datFilesGetGroupChannels",
+#' @rdname datFilesGetChannels-methods
+#' @aliases datFilesGetChannels,ANY,ANY-method
+setMethod(f="datFilesGetChannels",
           signature="DatFiles",
           definition=function(df,channels,firstSample,lastSample)
           {
@@ -253,21 +253,15 @@ setMethod(f="datFilesGetGroupChannels",
               results[startIndex:(startIndex+s-1),]<-
                 .Call("group_data_file_si_get_group_channels_cwrap", 
                       paste(df@path,df@fileNames,sep="/"),
-                      df@nChannels, channels, length(channels),
-                      firstSample[i], lastSample[i])
+                      df@nChannels, 
+                      as.integer(channels), 
+                      length(channels),
+                      firstSample[i], 
+                      lastSample[i])
               startIndex<-startIndex+s
             }
             return(results)
           })
-
-
-
-
-
-
-
-
-
 
 ### show ###
 setMethod("show", "DatFiles",
