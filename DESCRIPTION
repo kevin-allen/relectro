@@ -6,6 +6,8 @@ Description: relectro contains S4 objects, methods and functions to analyse data
     from electrophysiological experiments. This will contain the code that we use to
     do most common analysis. Many functions are written in C for speed.
 License: GPL-2
+URL: http://github.com/kevin-allen/relectro
+BugReports: http://github.com/kevin-allen/relectro/issues
 Imports:
     snow,
     plotrix,
