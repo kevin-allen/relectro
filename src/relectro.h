@@ -407,7 +407,8 @@ SEXP identify_spike_times(SEXP dataf_r, SEXP dataf_size_r,
                           SEXP power_r, SEXP power_size_r,
                           SEXP powerWindowSize_r,
                           SEXP powerWindowSlide_r,
-                          SEXP powerThreshold_r);
+                          SEXP powerThreshold_r,
+                          SEXP refractory_r);
 SEXP merge_simultaneous_spikes(SEXP time_r,
                                SEXP trough_r,
                                SEXP size_r,

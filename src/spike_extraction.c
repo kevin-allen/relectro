@@ -7,14 +7,15 @@ SEXP identify_spike_times(SEXP dataf_r,
                           SEXP power_size_r,
                           SEXP powerWindowSize_r,
                           SEXP powerWindowSlide_r,
-                          SEXP powerThreshold_r)
-  
+                          SEXP powerThreshold_r,
+                          SEXP refractory_r)
   {
   
   int dataf_size=INTEGER_VALUE(dataf_size_r);
   int power_size=INTEGER_VALUE(power_size_r);
   int powerWindowSize=INTEGER_VALUE(powerWindowSize_r);
   int powerWindowSlide=INTEGER_VALUE(powerWindowSlide_r);
+  int refractory=INTEGER_VALUE(refractory_r);
   double powerThreshold=REAL(powerThreshold_r)[0];
   double* power = REAL(power_r);
   double* dataf = REAL(dataf_r);
@@ -26,6 +27,10 @@ SEXP identify_spike_times(SEXP dataf_r,
   if(power_size<0){
     Rprintf("identify_spike_time: power_size <0, %d\n", power_size);
     return 0;
+  }
+  if(refractory<0){
+    Rprintf("identify_spike_time: refractory < 0, %d\n",refractory);
+    return(0);
   }
   
   int num_windows=1+(dataf_size-powerWindowSize)/powerWindowSlide;
@@ -41,17 +46,19 @@ SEXP identify_spike_times(SEXP dataf_r,
   int numSpikes=0;
   
   
-  // loop in the power array
+  
+  
   int j;
   int indexDataStart;
   int indexDataEnd;
   for(int i = 0; i < num_windows; i++)
   {
-    if(power[i]>powerThreshold){
+    
+    if(power[i]>powerThreshold){ // this mean a spike
       j=i;
       while(j+1<num_windows&&power[j+1]>powerThreshold) //loop until power is below threshold
         j++;
-      
+      // power is up from i to j, there will only be one spike from i to j
       // get the peak power, not necessarily at the same time as spike
       for(int k = i; k <= j; k++)
       {
@@ -63,6 +70,7 @@ SEXP identify_spike_times(SEXP dataf_r,
         }
       }
       
+      // get the trace from begining of first high
       indexDataStart=powerWindowSlide*i;
       indexDataEnd=powerWindowSlide*j+powerWindowSize; // 0 to 9, 10 to 19
       for(int k=indexDataStart; k < indexDataEnd; k++)
@@ -84,12 +92,17 @@ SEXP identify_spike_times(SEXP dataf_r,
     }
   }
   
-  // make sure that the same spike was not detected twice because of overlapping time windows
+  // make sure that the same spike was not detected twice, and that refactory period was respected
+  int refUntil;
   for(int i = 0; i < numSpikes;i++)
   {
-    if(i+1<numSpikes&&spikes[i]==spikes[i+1])
+    refUntil=spikes[i]+refractory;
+   // if(i<numSpikes-1)
+  //    Rprintf("i: %d, spikes[i]: %d, spikes[i+1]: %d, refUntil: %d\n",i,spikes[i],spikes[i+1],refUntil);
+    if(i+1<numSpikes&&(spikes[i]==spikes[i+1]||spikes[i+1]<refUntil))
     {
       // remove the second spike
+    //  Rprintf("remove i+1: %d\n",i+1);
       for(j=i+1; j<numSpikes;j++)
       {
         spikes[j-1]=spikes[j];
@@ -99,9 +112,6 @@ SEXP identify_spike_times(SEXP dataf_r,
       numSpikes--;
     }
   }
-  
-  
-  
   
   SEXP out = PROTECT(allocMatrix(REALSXP,numSpikes,3));
   double* outc = REAL(out);
@@ -178,7 +188,7 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
       //  printf("adding single for i:%d to j:%d, num_spikes: %d, ti[num_spikes]: %d\n",i,j,num_spikes,ti[num_spikes]);
         num_spikes++;
       }
-    i=j;
+    i=j+1;
     }
     
   SEXP out = PROTECT(allocVector(REALSXP, num_spikes));
