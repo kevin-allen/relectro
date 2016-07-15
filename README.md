@@ -10,7 +10,7 @@ You will need to install the fftw3 C library to compute discrete Fourier transfo
 
 ## Install
 
-* Get the source code with the git clone command: `git clone https://github.com/kevin-allen/relectro.git`
+* Get the source code with the git clone command: `git clone http://github.com/kevin-allen/relectro.git`
 
 If you want to modify the code of relecto, I recommand using R studio together with the book "R Packages" by Hadley Wickham. Most of the tools used to develop relectro are presented in this book. You probably want to use the R package devtools for development.
 
