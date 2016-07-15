@@ -13,8 +13,8 @@
 #' @slot resofs Number of samples in each trial
 #' @slot env List of environment for each trial
 #' @slot electrodeLocation List of electrode location, one per electrode
-#' @slot trialStartRes Sample at which a trial starts.
-#' @slot trialEndRes Sample at which a trial ends.
+#' @slot trialStartRes Sample at which a trial starts. Index starts at 0
+#' @slot trialEndRes Sample at which a trial ends. Index starts at 0
 #' @slot trialNames Filebase of the individual trials
 #' @slot trialDurationSec Length of the trials in sec
 #' @slot sessionDurationSec Total length of the session in sec
@@ -137,7 +137,7 @@ setMethod(f="loadRecSession",
                 stop(paste("loadRecSession, problem with length of resofs",rs@session))
               ## trial times
               rs@trialStartRes<-c(0,rs@resofs[-length(rs@resofs)])
-              rs@trialEndRes<-rs@resofs
+              rs@trialEndRes<-rs@resofs-1 # resofs is the number of samples in one file, index is -1 that
               rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
               rs@sessionDurationSec<-sum(rs@trialDurationSec)
             }

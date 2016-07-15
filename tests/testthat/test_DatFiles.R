@@ -30,6 +30,15 @@ test_that("DatFiles",{
   d<-datFilesGetOneChannel(df,channelNo=4,firstSample=0,lastSample=sum(df@samples)-1)
   expect_equal(sum(d),(nSamples+2*nSamples)*5)
   
+  ## check function to read several channels
+  d<-datFilesGetChannels(df,channels = 0,firstSample = 0,lastSample = sum(df@samples)-1)
+  expect_equal(sum(d),nSamples+2*nSamples)
+  d<-datFilesGetChannels(df,channels = 4,firstSample = 0,lastSample = sum(df@samples)-1)
+  expect_equal(sum(d),(nSamples+2*nSamples)*5)
+  d<-datFilesGetChannels(df,channels = c(0,4),firstSample = 0,lastSample = sum(df@samples)-1)
+  expect_equal(sum(d),(nSamples+2*nSamples)*5+nSamples+2*nSamples)
+  
+  
   f<-file("k01.dat","wb")
   writeBin(object=rep(c(1:5),each=nChannels),con=f,size=2) # 5 channels, 6
   close(f)
@@ -41,20 +50,25 @@ test_that("DatFiles",{
   df<-datFilesSet(df,fileNames=c("k01.dat","k02.dat"),path="",nChannels=5)
   d<-datFilesGetOneChannel(df,channelNo=0,firstSample=0,lastSample=sum(df@samples)-1)
   expect_equal(any(diff(d)!=1),FALSE)
+  d<-datFilesGetChannels(df,channels=0,firstSample=0,lastSample=sum(df@samples)-1)
+  expect_equal(any(diff(d)!=1),FALSE)
+  
   
   ## with different start index
   d<-datFilesGetOneChannel(df,channelNo=0,firstSample=3,lastSample=5)
   expect_equal(d,c(4,5,6))
+  d<-datFilesGetChannels(df,channels=0,firstSample=3,lastSample=5)
+  expect_equal(d[,1],c(4,5,6))
   
   ## with several indices
   d<-datFilesGetOneChannel(df,channelNo=0,firstSample=c(3,2),lastSample=c(5,4))
   expect_equal(d,c(4,5,6,3,4,5))
+  d<-datFilesGetChannels(df,channels=0,firstSample=c(3,2),lastSample=c(5,4))
+  expect_equal(d[,1],c(4,5,6,3,4,5))
   
   ## arrays out of bound, 11 samples, 10 is the last index
   expect_error(datFilesGetOneChannel(df,channelNo=0,firstSample=0,lastSample=11))
-  
-  #df<-datFileGetGroupChannels(df,channels,firstSample=0,lastSample)
-  
+  expect_error(datFilesGetChannels(df,channels=0,firstSample=0,lastSample=11))
   
   
   file.remove("k01.dat","k02.dat")
