@@ -1,13 +1,13 @@
 library(relectro)
-
+library(testthat)
 context("spike extraction")
 test_that("spike extraction",{
   ## get a raw trace to work with
   sim<-simulateRawTrace(samplingRate=20000,
-                        durationSec=20,
+                        durationSec=0.5,
                         noiseSD=100,
                         noiseMean=0,
-                        waveformAmplitude=2000, ## very clear wave forms
+                        waveformAmplitude=3000, ## very clear wave forms
                         nClusters=3,
                         nChannels=4,
                         waveformDifferentiationSD=100,
@@ -16,13 +16,15 @@ test_that("spike extraction",{
                              samplingRate=20000,
                              powerWindowSizeMs=0.5,
                              powerWindowSlideMs=0.1,
-                             SDThreshold=3, ## high threshold
-                             simultaneousSpikeMaxJitterMs=0.4)
-  da<-spikeDetectionAccuracy(resD,sim$spikeTime,maxJitter=1)
-  ## all spikes should be detected on only true spikes
-  expect_equal(da$detectedTrue,length(sim$spikeTime))
-  expect_equal(da$trueDetected,length(sim$spikeTime))
-  expect_equal(da$detectedFalse,0)
-  expect_equal(da$trueNonDetected,0)
-  rm(da,sim,resD)
+                             SDThreshold=2, ## high threshold
+                             simultaneousSpikeMaxJitterMs=0.4,
+                             spikeDetectionRefractoryMs = 0.5)
+ 
+  ## should detect all and ony real spikes
+  expect_equal(length(resD),length(sim$spikeTime))
+  ## the spike times should be similar to real spike time,
+  ## difference is caused by jitter and noise in waveforms.
+  expect_lt(max(abs(resD-sim$spikeTime)),6)
+  
+  rm(sim,resD)
 })

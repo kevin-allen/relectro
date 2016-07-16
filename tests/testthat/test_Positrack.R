@@ -54,9 +54,10 @@ test_that("Positrack",{
   expect_equal(length(pt@speed),length(pt@x))
   expect_equal(pt@speed[which(pt@speed!=-1.0)],sp1[which(!is.na(sp1))])
   
-  # first and last speed sample should be set to -1.0
-  expect_equal(pt@speed[1],-1.0)
-  expect_equal(pt@speed[length(pt@speed)],-1.0)
+  # first and last speed sample should be set to NA
+  head(pt@speed)
+  expect_equal(is.na(pt@speed[1]),TRUE)
+  expect_equal(is.na(pt@speed[length(pt@speed)]),TRUE)
   
   rm(pt,maxx,minx,maxy,miny,x,y,hd,sp1)
 })
