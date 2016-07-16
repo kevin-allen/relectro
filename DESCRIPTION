@@ -11,8 +11,7 @@ BugReports: http://github.com/kevin-allen/relectro/issues
 Imports:
     snow,
     plotrix,
-    abind
-Depends:
+    abind,
     methods
 Suggests:
     knitr,

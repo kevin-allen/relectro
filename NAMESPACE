@@ -1,3 +1,12 @@
 useDynLib(relectro)
 exportPattern("^[[:alpha:]]+")
-
+importFrom("grDevices", "colorRampPalette")
+importFrom("graphics", "axis", "close.screen", "image", "lines",
+             "mtext", "par", "plot", "points", "screen", "split.screen",
+             "title")
+importFrom("methods", "new")
+importFrom("stats", "complete.cases", "cor", "cov", "lm",
+             "mahalanobis", "median", "pnorm", "prcomp", "predict",
+             "quantile", "rnorm", "rpois", "runif", "sd")
+importFrom("utils", "combn", "head", "read.table", "tar",
+             "write.table")

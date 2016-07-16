@@ -5,7 +5,8 @@
 \title{Detect spikes on the channels of a tetrode}
 \usage{
 detectSpikesTetrodes(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
-  SDThreshold, simultaneousSpikeMaxJitterMs, noDetectionBeginEndMs = 0.5)
+  SDThreshold, simultaneousSpikeMaxJitterMs, spikeDetectionRefractoryMs,
+  noDetectionBeginEndMs = 0.5)
 }
 \arguments{
 \item{data}{Matrix containing the spikes and some noise, one channel per column}
@@ -17,6 +18,12 @@ detectSpikesTetrodes(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
 \item{powerWindowSlideMs}{Shift of the window in ms between estimation of power}
 
 \item{SDThreshold}{Power threshold for spike detection.}
+
+\item{simultaneousSpikeMaxJitterMs}{Use to join spikes detected across tetrode as near the same time}
+
+\item{spikeDetectionRefractoryMs}{Refractory period in spike detection on a single channel}
+
+\item{noDetectionBeginEndMs}{Period at beginning and end of trace where nothin is detected because we can't get the waveform}
 }
 \value{
 list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower

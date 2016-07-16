@@ -7,7 +7,8 @@
 spikeExtractionTetrode(rs, df, tetrodeNumber, minPassHz = 800,
   maxPassHz = 5000, powerWindowSizeMs = 0.4, powerWindowSlideMs = 0.1,
   SDThreshold = 2, simultaneousSpikeMaxJitterMs = 0.2,
-  waveformWindowSizeMs = 1, firstSample = 0, lastSample = -1)
+  spikeDetectionRefractoryMs = 0.5, waveformWindowSizeMs = 1,
+  firstSample = 0, lastSample = -1)
 }
 \arguments{
 \item{rs}{RecSession object}
@@ -26,13 +27,15 @@ spikeExtractionTetrode(rs, df, tetrodeNumber, minPassHz = 800,
 
 \item{SDThreshold}{Power threshold in standard deviation above the mean for detection of a spike}
 
+\item{simultaneousSpikeMaxJitterMs}{Use to join spikes detected on several channels}
+
+\item{spikeDetectionRefractoryMs}{Period of refractory in the detection of spikes}
+
 \item{waveformWindowSizeMs}{Window size used when extracting the spike waveforms.}
 
 \item{firstSample}{First sample to consider in spike detection, by default 0, indices start at 0}
 
 \item{lastSample}{Last sample to consider in spike detection, if not set by user, all samples will be used}
-
-\item{spikeDetectionRefractoryMs}{Period of refractory in the detection of spikes}
 }
 \description{
 A RecSession object is used to get the information about the assignation of the recorded channels to tetrodes and the file names.

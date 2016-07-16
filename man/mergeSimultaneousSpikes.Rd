@@ -2,7 +2,7 @@
 % Please edit documentation in R/SpikeExtraction.R
 \name{mergeSimultaneousSpikes}
 \alias{mergeSimultaneousSpikes}
-\title{Merge simulatenous spikes that were detected on different tetrodes}
+\title{Merge simulatenous spikes that were detected on different wires}
 \usage{
 mergeSimultaneousSpikes(time, trough, maxTimeDifference)
 }

@@ -29,8 +29,8 @@ int band_pass_filter_one_channel_fftw(double* channel_data, int num_samples, int
   // checks for arguments
   if (num_samples <=0)
   {
-    fprintf(stderr,"band_pass_filter_one_channel_fftw\n");
-    fprintf(stderr,"num_samples should be larger than 0\n");
+    Rprintf("band_pass_filter_one_channel_fftw\n");
+    Rprintf("num_samples should be larger than 0\n");
     return -1;
   }
   if (sampling_rate <=0 || sampling_rate>=100000)

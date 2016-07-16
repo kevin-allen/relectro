@@ -25,8 +25,6 @@ relative to the electrophysiological recording.
 During recording, positrack sends ttl pulses to the recording system and the ttl pulses
 are used to synchronize the position and electrophysiological data. By default, the ttl
 pulses are on the last channel in the .dat files.
-}
-\details{
 This function runs on a single recording session
 }
 

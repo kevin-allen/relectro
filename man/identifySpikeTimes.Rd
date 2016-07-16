@@ -5,18 +5,20 @@
 \title{Detect spike time using filtered signal and root mean square arrays}
 \usage{
 identifySpikeTimes(dataf, power, powerWindowSize, powerWindowSlide,
-  powerThreshold)
+  powerThreshold, spikeDetectionRefractory)
 }
 \arguments{
-\item{dataf}{Filtered brain signal}
+\item{dataf}{Filtered brain signal from one channel}
 
-\item{power}{Power in sliding time windows}
+\item{power}{Power in sliding time windows in samples}
 
-\item{powerWindowSize}{Size of the power window}
+\item{powerWindowSize}{Size of the power window in samples}
 
-\item{powerWindowSlide}{Amount of shift in the power window between subsequent power estimates}
+\item{powerWindowSlide}{Amount of shift in the power window between subsequent power estimates in samples}
 
 \item{powerThreshold}{Threshold used to detect spikes}
+
+\item{spikeDetectionRefractory}{Refractory period in spike detection in samples}
 }
 \value{
 Matrix containing spike times and negative peak value of the spike. The spike times are in sample index starting at index 0.

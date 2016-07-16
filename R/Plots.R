@@ -39,6 +39,15 @@ firingRateMapPlot <- function(m,name="",
   }
 }
 
+
+#' Plot a several firing rate maps on the same page
+#' 
+#' Plot 2-dimensional representation of firing rate for several maps
+#' This is not currently being developed.
+#' 
+#' @param maps A 3d array containing maps (x,y,clu)
+#' @param names A character vector containing the name of each map in the array
+#' @param fn Character vector containing the file name for the plot
 firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
   num.cols<-5
   num.rows<-6
@@ -69,11 +78,21 @@ firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
 #  dev.off()
 }
 
+
+
+
+#' Plot a single spatial autocorrelation map
+#' 
+#' 
+#' @param m A matrix containing the data of the firing rate map.
+#' @param name Character vector giving the name of the map
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param main.title A title for the figure
+#' @param peak.rate.prefix Additional information to display before the peak value.
 firingRateMapAutoPlot <- function(m,name="",
                               outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
-                              axis.x.mgp=c(0,0,0),axis.y.mgp=c(0,0,0),
-                              cex.x.axis=0.6,cex.y.axis=0.6,cex.lab=0.6,
-                              xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="")
+                              main.title="",peak.rate.prefix="")
 {
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
@@ -85,6 +104,15 @@ firingRateMapAutoPlot <- function(m,name="",
   }
 }
 
+
+
+#' Plot a several spatial autocorrelation maps on the same page
+#' 
+#' This is not currently being developed.
+#' 
+#' @param maps A 3d array containing maps (x,y,clu)
+#' @param names A character vector containing the name of each map in the array
+#' @param fn Character vector containing the file name for the plot
 firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
   num.cols<-5
   num.rows<-6
@@ -139,7 +167,7 @@ headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.
 {
   radlim=max(df$rate)   
   par(oma=outma,cex.lab=cex.lab,cex.axis=cex.x.axis)
-  oldpar <- polar.plot(df$rate,
+  oldpar <- plotrix::polar.plot(df$rate,
                        polar.pos=df$deg,
                        labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
                        #                       labels="",
@@ -168,9 +196,28 @@ headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.
 
 
 
-linearRatePlot<-function(sp1,n=1,axis.y.pos=0,axis.x.pos=0,axis.y.las=2,
+#' Plot a linear rate histogram from a SpatialProperties1D object
+#' 
+#' In development
+#' 
+#' @param sp1 SpatialProperties1d object
+#' @param n Index of the histogram in the sp1 object that you want to plot
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param axis.x.pos position of x axis
+#' @param axis.y.pos position of y axis
+#' @param axis.y.las las of y axis
+#' @param mgp.x mgp for x axis
+#' @param mgp.y mgp for y axis
+#' @param xlab Name to display under the x axis
+#' @param ylab Name to display at the left of the y axis
+#' @param xaxis.at where to put the tics
+#' @param yaxis.at where to put the tics
+linearRatePlot<-function(sp1,n=1,
+                         outma=c(1,1,1,0),margin=c(1.5,2,0.8,0.3),
+                         axis.x.pos=0,axis.y.pos=0,axis.y.las=2,
                            mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),xlab="Position (cm)",ylab="Rate (Hz)",
-                           outma=c(1,1,1,0),margin=c(1.5,2,0.8,0.3),
+                           
                            xaxis.at=seq(0,80,20),yaxis.at=seq(0,50,10),...)
 {
   rate=sp1@rateHisto[,n]
@@ -189,6 +236,13 @@ linearRatePlot<-function(sp1,n=1,axis.y.pos=0,axis.x.pos=0,axis.y.las=2,
 }
 
 
+
+#' Plot several linear rate histograms from a SpatialProperties1D object
+#' 
+#' In development
+#' 
+#' @param sp1 SpatialProperties1d object
+#' @param fn file name
 linearRatePlots<-function(sp1,fn="page.full.plot.pdf"){
   num.cols<-5
   num.rows<-6

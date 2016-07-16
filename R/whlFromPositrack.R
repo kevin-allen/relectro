@@ -81,7 +81,7 @@ whdFromPositrack<-function(rs,
           length(up),
           rs@trialEndRes[tIndex]-rs@trialStartRes[tIndex],
           resSamplesPerWhdSample,
-          max_up_diff_res)
+          maxUpDiffRes)
     
     ## save a whd file in the session directory
     fn<-paste(paste(rs@path,rs@trialNames[tIndex],sep='/'),ext,sep='.')
@@ -102,7 +102,7 @@ whdFromPositrack<-function(rs,
               length(mainUp),
               rs@trialEndRes[length(rs@trialEndRes)],
               resSamplesPerWhdSample,
-              max_up_diff_res)
+              maxUpDiffRes)
 
   ## save a whd file in the session directory
   fn<-paste(paste(rs@path,rs@session,sep='/'),ext,sep='.')

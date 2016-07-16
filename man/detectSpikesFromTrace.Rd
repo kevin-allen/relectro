@@ -5,7 +5,7 @@
 \title{Detect spikes in a signal}
 \usage{
 detectSpikesFromTrace(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
-  SDThreshold)
+  SDThreshold, spikeDetectionRefractoryMs)
 }
 \arguments{
 \item{data}{Vector containing the spikes and some noise}
@@ -17,6 +17,8 @@ detectSpikesFromTrace(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
 \item{powerWindowSlideMs}{Shift of the window in ms between estimation of power}
 
 \item{SDThreshold}{Power threshold for spike detection.}
+
+\item{spikeDetectionRefractoryMs}{Refractory period in the spike detection}
 }
 \value{
 list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower

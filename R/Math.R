@@ -170,7 +170,7 @@ cor.diff <- function(r1,n1,r2,n2 ){
   diff   <- Z1 - Z2
   SEdiff <- sqrt( 1/(n1 - 3) + 1/(n2 - 3) )
   diff.Z  <- diff/SEdiff
-  p <- 2*pnorm( abs(diff.Z), lower=F)
+  p <- 2*pnorm( abs(diff.Z), lower.tail=F)
   cat( "Difference between ",r1,"(",n1,") and ",r2,"(",n2,")", "two-tailed p value:", p , "\n" )
 } 
 
