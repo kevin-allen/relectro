@@ -12,7 +12,7 @@ firingRateMapCenterOfMass(sp)
 \S4method{firingRateMapCenterOfMass}{SpatialProperties2d}(sp)
 }
 \arguments{
-\item{sp1}{SpatialProperties2d object}
+\item{sp}{SpatialProperties2d object}
 }
 \value{
 matrix containing the center of mass of the firing rate maps

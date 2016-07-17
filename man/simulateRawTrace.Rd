@@ -18,19 +18,21 @@ simulateRawTrace(samplingRate = 20000, durationSec = 1, noiseSD = 100,
 
 \item{noiseMean}{Mean of noise}
 
+\item{waveformAmplitude}{Negative amplitude of the generic spike waveform}
+
 \item{nClusters}{Number of different waveforms (neurons) in the trace}
 
 \item{nChannels}{Number of channels, 4 in case of tetrodes}
+
+\item{waveformDifferentiationSD}{Differentiation of the waveforms of different cluster 
+(gaussian noise added in generic waveform)}
 
 \item{minChannelScalling}{Minimal value (between 0 and 1) that can be used for creating the tetorde effect 
 (scalling of waveform on different channels)}
 
 \item{spikeJitterAcrossChannelMs}{Time variation between the waveforms of a spike on the different channels.}
 
-\item{wavefromAmplitude}{Negative amplitude of the generic spike waveform}
-
-\item{waveformDifferentonSD}{Differentiation of the waveforms of different cluster 
-(gaussian noise added in generic waveform)}
+\item{maxSpikes}{Maximum number of spikes to include in the traces}
 }
 \value{
 list containing trace, spikeTimes and cluId

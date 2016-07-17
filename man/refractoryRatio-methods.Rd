@@ -7,7 +7,8 @@
 \alias{refractoryRatio,SpikeTrain-method}
 \title{Get refractory ratio of each cluster from its spike-time autocorrelation}
 \usage{
-refractoryRatio(st, ...)
+refractoryRatio(st, refractoryMs = 1.5, binSizeMs = 0.5,
+  windowSizeMs = 25, minControlWindowMs = 5, maxControlWindowMs = 25)
 
 \S4method{refractoryRatio}{SpikeTrain}(st, refractoryMs = 1.5,
   binSizeMs = 0.5, windowSizeMs = 25, minControlWindowMs = 5,

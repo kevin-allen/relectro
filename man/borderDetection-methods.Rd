@@ -8,7 +8,7 @@
 \title{Detect the border pixels in an environment and return
 a matrix with border pixels identified.}
 \usage{
-borderDetection(sp, ...)
+borderDetection(sp, border = "rectangular")
 
 \S4method{borderDetection}{SpatialProperties2d}(sp, border = "rectangular")
 }

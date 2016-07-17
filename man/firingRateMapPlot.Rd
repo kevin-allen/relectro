@@ -6,7 +6,7 @@
 \usage{
 firingRateMapPlot(m, name = "", outma = c(2, 2, 2, 2), margin = c(1, 1, 1,
   1), cex.title = 0.4, cex.name = 0.4, xlab = "", ylab = "",
-  main.title = "", peak.rate.prefix = "", points = "")
+  main.title = "", peak.rate.prefix = "")
 }
 \arguments{
 \item{m}{A data.frame or matrix containing the data of the firing rate map. If a data.frame is given as argument, it should have the column names x, y and rate}

@@ -7,7 +7,7 @@
 \alias{getMapStatsShuffle,SpatialProperties2d-method}
 \title{Calculate random spatial statistics of the firing rate maps of neurons}
 \usage{
-getMapStatsShuffle(sp, st, pt, ...)
+getMapStatsShuffle(sp, st, pt, border = "rectangular", triggered = F)
 
 \S4method{getMapStatsShuffle}{SpatialProperties2d}(sp, st, pt,
   border = "rectangular", triggered = FALSE)

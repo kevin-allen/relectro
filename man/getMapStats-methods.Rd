@@ -7,7 +7,8 @@
 \alias{getMapStats,SpatialProperties2d-method}
 \title{Calculate spatial statistics of the firing rate maps of neurons}
 \usage{
-getMapStats(sp, st, pt, ...)
+getMapStats(sp, st, pt, border = "rectangular", triggered = F,
+  newMaps = T)
 
 \S4method{getMapStats}{SpatialProperties2d}(sp, st, pt,
   border = "rectangular", triggered = FALSE, newMaps = TRUE)

@@ -416,7 +416,7 @@ setMethod(f="spikeTriggeredFiringRateMap2d",
 #' @docType methods
 #' @rdname getMapStats-methods
 setGeneric(name="getMapStats",
-           def=function(sp,st,pt,...)
+           def=function(sp,st,pt,border="rectangular",triggered=F,newMaps=T)
            {standardGeneric("getMapStats")}
 )
 #' @rdname getMapStats-methods
@@ -536,7 +536,7 @@ setMethod(f="getMapStats",
 #' @docType methods
 #' @rdname getMapStatsShuffle-methods
 setGeneric(name="getMapStatsShuffle",
-           def=function(sp,st,pt,...)
+           def=function(sp,st,pt,border="rectangular",triggered=F)
            {standardGeneric("getMapStatsShuffle")}
 )
 #' @rdname getMapStatsShuffle-methods
@@ -838,7 +838,8 @@ setGeneric(name="gridSpacing",
            def=function(sp)
            {standardGeneric("gridSpacing")}
 )
-
+#' @rdname gridSpacing-methods
+#' @aliases gridSpacing,ANY,ANY-method
 setMethod(f="gridSpacing",
           signature="SpatialProperties2d",
           definition=function(sp)
@@ -890,12 +891,13 @@ setMethod(f="gridSpacing",
 #' 
 #' 
 #' @param sp SpatialProperties2d object
+#' @param border Set to rectangular or circular depending on the shape of environment 
 #' @return SpatialProperties2d object with the border scores in the slot borderScore
 #' 
 #' @docType methods
 #' @rdname borderScore-methods
 setGeneric(name="borderScore",
-           def=function(sp,...)
+           def=function(sp,border="rectangular")
            {standardGeneric("borderScore")}
 )
 #' @rdname borderScore-methods
@@ -905,24 +907,47 @@ setMethod(f="borderScore",
           definition=function(sp,border="rectangular")
           {
             
+            if(border!="rectangular"&border!="circular")
+              stop("only border = rectangular or circular is supported")
             
             if(length(sp@maps)==0)
               stop("Need to call firingRateMap2d first to run borderScore()")
             
-            results<-.Call("border_score_rectangular_environment_cwrap",
-                    as.integer(sp@cellList),
-                    length(sp@cellList),
-                    sp@nRowMap,
-                    sp@nColMap,
-                    sp@occupancy,
-                    sp@maps,
-                    sp@borderPercentageThresholdField,
-                    as.integer(sp@borderMinBinsInField))
+            if(border=="rectangular"){
+              results<-.Call("border_score_rectangular_environment_cwrap",
+                             as.integer(sp@cellList),
+                             length(sp@cellList),
+                             sp@nRowMap,
+                             sp@nColMap,
+                             sp@occupancy,
+                             sp@maps,
+                             sp@borderPercentageThresholdField,
+                             as.integer(sp@borderMinBinsInField))
+              
+              sp@borderScore<-results[1,]
+              sp@borderCM<-results[2,]
+              sp@borderDM<-results[3,]
+              sp@borderNumFieldsDetected<-results[4,]
+            }
+            if(border=="circular"){
+              ### get border score
+              results<-.Call("border_score_circular_environment_cwrap", ## if no field is detected, you get NaN values
+                             as.integer(sp@cellList),
+                             length(sp@cellList),
+                             sp@nRowMap,
+                             sp@nColMap,
+                             sp@occupancy,
+                             sp@maps,
+                             sp@borderPercentageThresholdField,
+                             as.integer(sp@borderMinBinsInField))
+              sp@borderScore<-results[1,]
+              sp@borderCM<-results[2,]
+              sp@borderDM<-results[3,]
+              sp@borderNumFieldsDetected<-results[4,]
+              sp@mapPolarity<-results[5,]
+              
+            }
             
-            sp@borderScore<-results[1,]
-            sp@borderCM<-results[2,]
-            sp@borderDM<-results[3,]
-            sp@borderNumFieldsDetected<-results[4,]
             return(sp)
           }
 )
@@ -934,14 +959,13 @@ setMethod(f="borderScore",
 #' 
 #' @param sp SpatialProperties2d object
 #' @param border Set to rectangular or circular depending of the type of environment
-#' Default value is rectangular 
+#' Default value is rectangular
 #' @return A matrix with the border pixels set to non negative positive values
 #'  
-#'
 #' @docType methods
 #' @rdname borderDetection-methods
 setGeneric(name="borderDetection",
-           def=function(sp,...)
+           def=function(sp,border="rectangular")
            {standardGeneric("borderDetection")}
 )
 #' @rdname borderDetection-methods
@@ -986,7 +1010,7 @@ setMethod(f="borderDetection",
 #' @docType methods
 #' @rdname speedScore-methods
 setGeneric(name="speedScore",
-           def=function(sp,st,pt,minSpeed,maxSpeed,runLm)
+           def=function(sp,st,pt,minSpeed,maxSpeed,runLm=F)
            {standardGeneric("speedScore")}
 )
 #' @rdname speedScore-methods
@@ -1176,7 +1200,7 @@ setMethod(f="speedRateTuningCurve",
 #' Calculate the center of mass of the firing rate maps in a SpatialProperties2d object
 #' 
 #' 
-#' @param sp1 SpatialProperties2d object
+#' @param sp SpatialProperties2d object
 #' @return matrix containing the center of mass of the firing rate maps
 #' 
 #' @docType methods
@@ -1345,7 +1369,7 @@ setMethod(f="statsAsDataFrame",
 #' @docType methods
 #' @rdname firingRateMapCorrelationRotation-methods
 setGeneric(name="firingRateMapCorrelationRotation",
-           def=function(sp1,sp2,...)
+           def=function(sp1,sp2,numRotations,rotationDegrees)
            {standardGeneric("firingRateMapCorrelationRotation")}
 )
 #' @rdname firingRateMapCorrelationRotation-methods
@@ -1380,7 +1404,7 @@ setMethod(f="firingRateMapCorrelationRotation",
 #' Rotate the firing rate maps of a SpatialProperties2d object 
 #' 
 #' 
-#' @param sp1 SpatialProperties2d object
+#' @param sp SpatialProperties2d object
 #' @param rotationDegrees Degrees of the rotation
 #' @return SpatialProperties2d object with the rotated maps
 #' 

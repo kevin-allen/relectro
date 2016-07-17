@@ -13,9 +13,9 @@ firingRateMapsRotation(sp, rotationDegrees)
   rotationDegrees = 10)
 }
 \arguments{
-\item{rotationDegrees}{Degrees of the rotation}
+\item{sp}{SpatialProperties2d object}
 
-\item{sp1}{SpatialProperties2d object}
+\item{rotationDegrees}{Degrees of the rotation}
 }
 \value{
 SpatialProperties2d object with the rotated maps

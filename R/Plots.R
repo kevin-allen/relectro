@@ -15,8 +15,7 @@
 firingRateMapPlot <- function(m,name="",
                               outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
                               cex.title=0.4,cex.name=0.4,
-                              xlab="",ylab="",main.title="",peak.rate.prefix="",
-                              points="")
+                              xlab="",ylab="",main.title="",peak.rate.prefix="")
 {
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
@@ -213,11 +212,11 @@ headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.
 #' @param ylab Name to display at the left of the y axis
 #' @param xaxis.at where to put the tics
 #' @param yaxis.at where to put the tics
+#' @param ... passed to the plot function
 linearRatePlot<-function(sp1,n=1,
                          outma=c(1,1,1,0),margin=c(1.5,2,0.8,0.3),
                          axis.x.pos=0,axis.y.pos=0,axis.y.las=2,
                            mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),xlab="Position (cm)",ylab="Rate (Hz)",
-                           
                            xaxis.at=seq(0,80,20),yaxis.at=seq(0,50,10),...)
 {
   rate=sp1@rateHisto[,n]
@@ -226,7 +225,7 @@ linearRatePlot<-function(sp1,n=1,
   plotxlim=c(0,max(position))
   plotylim=c(0,max(rate,na.rm=T))
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
-  plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
+  plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="",...)
   axis(side = 1, pos=axis.x.pos, at=xaxis.at, tck=-0.05,cex.axis=0.60,mgp=mgp.x)
   par(mgp=mgp.y)
   axis(side = 2, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.60,mgp=mgp.y)

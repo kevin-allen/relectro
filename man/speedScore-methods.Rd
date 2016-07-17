@@ -7,7 +7,7 @@
 \alias{speedScore,SpatialProperties2d-method}
 \title{Speed scores from spike train and positrack}
 \usage{
-speedScore(sp, st, pt, minSpeed, maxSpeed, runLm)
+speedScore(sp, st, pt, minSpeed, maxSpeed, runLm = F)
 
 \S4method{speedScore}{SpatialProperties2d}(sp, st, pt, minSpeed = 2,
   maxSpeed = 100, runLm = F)

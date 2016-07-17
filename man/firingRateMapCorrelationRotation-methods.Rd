@@ -8,7 +8,7 @@
 \title{Calculate a Pearson correlation coefficients between maps of two SpatialProperties2d object (sp1 and sp2) 
 after rotating the maps of the second object}
 \usage{
-firingRateMapCorrelationRotation(sp1, sp2, ...)
+firingRateMapCorrelationRotation(sp1, sp2, numRotations, rotationDegrees)
 
 \S4method{firingRateMapCorrelationRotation}{SpatialProperties2d}(sp1, sp2,
   numRotations = 36, rotationDegrees = 10)

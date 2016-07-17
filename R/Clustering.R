@@ -164,7 +164,7 @@ mergeTetrodeSpecificResCluFiles<-function(rs){
 #' 
 #' Read a file with the spike features. Uses a c function for speed.
 #'  
-#' @param file File name
+#' @param fileName File name
 #' @return A matrix with the spike features, one spike per row
 readFetFile<-function(fileName){
   if(!file.exists(fileName))

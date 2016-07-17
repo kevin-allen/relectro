@@ -7,7 +7,7 @@
 readFetFile(fileName)
 }
 \arguments{
-\item{file}{File name}
+\item{fileName}{File name}
 }
 \value{
 A matrix with the spike features, one spike per row

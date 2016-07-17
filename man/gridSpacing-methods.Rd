@@ -3,9 +3,13 @@
 \docType{methods}
 \name{gridSpacing}
 \alias{gridSpacing}
+\alias{gridSpacing,ANY,ANY-method}
+\alias{gridSpacing,SpatialProperties2d-method}
 \title{Calculate the grid spacing from the spatial autocorrelations}
 \usage{
 gridSpacing(sp)
+
+\S4method{gridSpacing}{SpatialProperties2d}(sp)
 }
 \arguments{
 \item{sp}{SpatialProperties2d object}

@@ -588,14 +588,15 @@ list(detectedTrue=detectedTrue,
 #' @param durationSec Total duration in second of the trace
 #' @param noiseSD Standard deviation of gaussian noise
 #' @param noiseMean Mean of noise
-#' @param wavefromAmplitude Negative amplitude of the generic spike waveform
+#' @param waveformAmplitude Negative amplitude of the generic spike waveform
 #' @param nClusters Number of different waveforms (neurons) in the trace
 #' @param nChannels Number of channels, 4 in case of tetrodes
-#' @param waveformDifferentonSD Differentiation of the waveforms of different cluster 
+#' @param waveformDifferentiationSD Differentiation of the waveforms of different cluster 
 #' (gaussian noise added in generic waveform)
-#' @param spikeJitterAcrossChannelMs Time variation between the waveforms of a spike on the different channels.
 #' @param minChannelScalling Minimal value (between 0 and 1) that can be used for creating the tetorde effect 
 #' (scalling of waveform on different channels)
+#' @param spikeJitterAcrossChannelMs Time variation between the waveforms of a spike on the different channels.
+#' @param maxSpikes Maximum number of spikes to include in the traces
 #' @return list containing trace, spikeTimes and cluId
 simulateRawTrace<-function(samplingRate=20000,
                            durationSec=1,

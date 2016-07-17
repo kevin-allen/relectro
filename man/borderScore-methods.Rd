@@ -7,12 +7,14 @@
 \alias{borderScore,SpatialProperties2d-method}
 \title{Calculate border scores from the firing maps}
 \usage{
-borderScore(sp, ...)
+borderScore(sp, border = "rectangular")
 
 \S4method{borderScore}{SpatialProperties2d}(sp, border = "rectangular")
 }
 \arguments{
 \item{sp}{SpatialProperties2d object}
+
+\item{border}{Set to rectangular or circular depending on the shape of environment}
 }
 \value{
 SpatialProperties2d object with the border scores in the slot borderScore
