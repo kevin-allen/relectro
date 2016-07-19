@@ -99,15 +99,17 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   channels<-rs@channelsTetrode[tetrodeNumber,]
   if(length(channels)==0)
     stop(paste("spikeExtractionTetrode, session:", rs@session, ", tetrode:",tetrodeNumber,", channels has length of 0"))
-  traces<-matrix(ncol=length(channels),nrow=lastSample+1-firstSample)
+  
+  ## load the raw trace from dat files
+  print(paste("reading channels",channels))
+  print(system.time(traces<-datFilesGetChannels(df,channels,
+                              firstSample=firstSample,
+                              lastSample=lastSample)))
+  
+  ## do filtering
   for(chan in 1:length(channels)){
-    print(paste("reading channel",channels[chan]))
-    ## load the raw trace from dat files
-    traces[,chan]<-datFilesGetOneChannel(df,channels[chan],
-                                      firstSample=firstSample,
-                                      lastSample=lastSample)
-    ## filter
-    traces[,chan]<-bandPassFilter(traces[,chan],rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
+    print(paste("filtering",channels[chan]))
+    traces[,chan]<-bandPassFilter(as.numeric(traces[,chan]),rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
   }
 
   #####################
