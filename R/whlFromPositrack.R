@@ -13,6 +13,7 @@
 #' @param rs RecSession object
 #' @param resSamplesPerWhdSample Number of samples in the electrophysiological recording for each whd sample.
 #' @param ttlChannel Channel with the ttl signal in the .dat files. By default it is the last channel. Channel numbers start at 0.
+#' If you want a different channel for each trial, give a numeric vector with the list of channel.
 #' @param maxUpDiffRes Maximum difference between successive up for which position will be interpolated
 whdFromPositrack<-function(rs,
                            resSamplesPerWhdSample=400,
@@ -33,11 +34,18 @@ whdFromPositrack<-function(rs,
                   fileNames=paste(rs@trialNames,"dat",sep="."),
                   path=rs@path,
                   nChannels=rs@nChannels)
-  if(is.na(ttlChannel)){
-    ttlChannel=rs@nChannels-1
+  
+  if(length(ttlChannel)!=length(rs@trialNames) & length(ttlChannel)!=1){
+    stop(paste("length of ttlChannel should be 1 or the number of trial in the session"))
+  }
+  if(length(ttlChannel)==1 & any(is.na(ttlChannel))){
+    ttlChannel=rep(rs@nChannel-1,length(rs@trialNames))
+  }
+  if(length(ttlChannel)==1 & any(!is.na(ttlChannel))){
+    ttlChannel=rep(ttlChannel,length(rs@trialNames))
   }
   
-  ext="whd.r"
+  ext="whd"
   mainUp<-vector()
   mainPosi<-data.frame()
   
@@ -45,9 +53,9 @@ whdFromPositrack<-function(rs,
   for(tIndex in 1:length(rs@trialNames)){
     print(paste(tIndex, rs@trialNames[tIndex]))
     ## get the data from dat file
-    print(paste("reading sycn channel",ttlChannel,"from",rs@trialStartRes[tIndex],"to",rs@trialEndRes[tIndex]))
-    x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel,
-                                     firstSample = rs@trialStartRes[tIndex],lastSample = rs@trialEndRes[tIndex]))
+    print(paste("reading sycn channel",ttlChannel[tIndex],"from",rs@trialStartRes[tIndex],"to",rs@trialEndRes[tIndex]))
+    x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel[tIndex],
+                                      firstSample = rs@trialStartRes[tIndex],lastSample = rs@trialEndRes[tIndex]))
     up<-detectUps(x) ## detect rising times of ttl pulses
     fn<-paste(paste(rs@path,rs@trialNames[tIndex],sep='/'),"positrack",sep='.')
     if(!file.exists(fn))
@@ -56,7 +64,8 @@ whdFromPositrack<-function(rs,
     colnames(posi)<-c("time","no","x","y","hd")
     lup<-length(up)
     lposi<-length(posi$time)
-    
+    print(paste("Number of ttl pulses:",lup))
+    print(paste("Number of frames in positrack file:",lposi))
     if(lup!=lposi)  
     {
       print(paste("whdFromPositrack,",rs@trialNames[tIndex],"length of up (",lup,") and positrack (",lposi,") differs"))
@@ -67,27 +76,28 @@ whdFromPositrack<-function(rs,
     ## we shift the spots forward by one and ignore the last up ##
     posi<-posi[2:length(posi$time),]
     up<-up[1:(length(up)-1)]  
-  
+    
     ### create a main up and main posi for the entire recording session
     mainUp<-c(mainUp,up+rs@trialStartRes[tIndex])
-    mainPosi<-rbind(mainPosi,posi)
-    
+    mainPosi<-rbind(mainPosi,posi[,1:5])
+    head(mainPosi)
+    head(posi)
     ## call c function to make the whl file for this trial
     whd<- .Call("whd_file",
-          posi$x,
-          posi$y,
-          posi$hd,
-          as.integer(up),
-          length(up),
-          rs@trialEndRes[tIndex]-rs@trialStartRes[tIndex],
-          resSamplesPerWhdSample,
-          maxUpDiffRes)
+                posi$x,
+                posi$y,
+                posi$hd,
+                as.integer(up),
+                length(up),
+                rs@trialEndRes[tIndex]-rs@trialStartRes[tIndex],
+                resSamplesPerWhdSample,
+                maxUpDiffRes)
     
     ## save a whd file in the session directory
     fn<-paste(paste(rs@path,rs@trialNames[tIndex],sep='/'),ext,sep='.')
     print(paste("writing",fn))
     write.table(x = whd,file=fn,quote = FALSE,row.names = FALSE, col.names = FALSE)
- }
+  }
   
   if(length(mainUp)!=length(mainPosi$x)){
     print(paste("whdFromPositrack,",rs@session,"length of mainUp (",length(mainUp),") and mainPosi (",length(mainPosi$x),") differs"))
@@ -103,7 +113,7 @@ whdFromPositrack<-function(rs,
               rs@trialEndRes[length(rs@trialEndRes)],
               resSamplesPerWhdSample,
               maxUpDiffRes)
-
+  
   ## save a whd file in the session directory
   fn<-paste(paste(rs@path,rs@session,sep='/'),ext,sep='.')
   print(paste("writing",fn))
