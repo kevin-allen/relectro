@@ -12,7 +12,8 @@ whdFromPositrack(rs, resSamplesPerWhdSample = 400, ttlChannel = NA,
 
 \item{resSamplesPerWhdSample}{Number of samples in the electrophysiological recording for each whd sample.}
 
-\item{ttlChannel}{Channel with the ttl signal in the .dat files. By default it is the last channel. Channel numbers start at 0.}
+\item{ttlChannel}{Channel with the ttl signal in the .dat files. By default it is the last channel. Channel numbers start at 0.
+If you want a different channel for each trial, give a numeric vector with the list of channel.}
 
 \item{maxUpDiffRes}{Maximum difference between successive up for which position will be interpolated}
 }

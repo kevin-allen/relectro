@@ -318,7 +318,6 @@ setMethod(f="runOnSessionList",
                obj<-list.res[[1]]
                if(overwrite==T){
                  if(class(obj[[n]])=="array"){
-                  
                   assign(n,do.call(abind::abind,sapply(list.res,function(x){x[n]})))  ## bind along the last dimension
                  }else{
                   assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
@@ -326,11 +325,13 @@ setMethod(f="runOnSessionList",
                }else{## concatonate to existing data
                  if(class(obj[[n]])=="array"){
                    assign(paste(n,"new",sep="."),do.call(abind::abind, sapply(list.res,function(x){x[n]}))) ## bind along the last dimension
+                   load(file=paste(ep@resultsDirectory,n,sep="/"))
+                   assign(n,abind::abind(get(n),get(paste(n,"new",sep="."))))
                  }else{
-                  assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
+                   assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
+                   load(file=paste(ep@resultsDirectory,n,sep="/"))
+                   assign(n,rbind(get(n),get(paste(n,"new",sep="."))))
                  }
-                 load(file=paste(ep@resultsDirectory,n,sep="/"))
-                 assign(n,rbind(get(n),get(paste(n,"new",sep="."))))
                }
                print(paste("saving",paste(ep@resultsDirectory,n,sep="/")))
                save(list=n,file=paste(ep@resultsDirectory,n,sep="/"))
@@ -379,6 +380,16 @@ sortRecSessionListChronologically<-function(rsl){
     stop("sortRecSessionListChronologically: rsl[[1]] is not a RecSession object")
   o<-order(sapply(rsl,recordingDate))
   return(rsl[o])
+}
+
+
+#' Get a character vector with the session names of a list of RecSession object
+#' 
+#' @param rsl List containing recording sessions
+#' @return Charcter vector of the session names
+sessionNamesFromSessionList<-function(rss){
+  x<-function(rs){rs@session}
+  unlist(lapply(rss,x))
 }
 
 
