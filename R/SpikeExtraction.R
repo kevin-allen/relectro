@@ -109,30 +109,32 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   ## do filtering
   for(chan in 1:length(channels)){
     print(paste("filtering",channels[chan]))
-    traces[,chan]<-bandPassFilter(as.numeric(traces[,chan]),rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
+    print(system.time(
+      traces[,chan]<-bandPassFilter(as.numeric(traces[,chan]),rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)))
   }
 
   #####################
   ## spike detection ##
   #####################
   print("spike detection")
-  res<-detectSpikesTetrodes(data=traces,
+  print(system.time(res<-detectSpikesTetrodes(data=traces,
                             samplingRate=rs@samplingRate,
                             powerWindowSizeMs=powerWindowSizeMs,
                             powerWindowSlideMs=powerWindowSlideMs,
                             SDThreshold=SDThreshold,
                             simultaneousSpikeMaxJitterMs=simultaneousSpikeMaxJitterMs,
                             spikeDetectionRefractoryMs=spikeDetectionRefractoryMs
-                            )
+                            )))
+  
   print(paste(length(res),"spikes detected"))
   
   #########################################
   ## write the res file for this tetrode ##
   #########################################
   print(paste("writing",paste(paste(rs@path,rs@session,sep="/"),"res",tetrodeNumber,sep=".")))
-  write(res,file=paste(paste(rs@path,rs@session,sep="/"),"res",tetrodeNumber,sep="."),ncolumns=1)
-  write(rep(1,length(res)+1),file=paste(paste(rs@path,rs@session,sep="/"),"clu",tetrodeNumber,sep="."),ncolumns=1)
-  
+  write(as.integer(res),file=paste(paste(rs@path,rs@session,sep="/"),"res",tetrodeNumber,sep="."),ncolumns=1)
+  write(as.integer(rep(1,length(res)+1)),file=paste(paste(rs@path,rs@session,sep="/"),"clu",tetrodeNumber,sep="."),ncolumns=1)
+
   ###################################################
   # extract waveform of each spike, save .spk files #
   ###################################################
