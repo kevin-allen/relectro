@@ -109,8 +109,7 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   ## do filtering
   for(chan in 1:length(channels)){
     print(paste("filtering",channels[chan]))
-    print(system.time(
-      traces[,chan]<-bandPassFilter(as.numeric(traces[,chan]),rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)))
+    traces[,chan]<-bandPassFilter(as.numeric(traces[,chan]),rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
   }
 
   #####################
@@ -133,8 +132,7 @@ spikeExtractionTetrode<-function(rs,df,tetrodeNumber,
   #########################################
   print(paste("writing",paste(paste(rs@path,rs@session,sep="/"),"res",tetrodeNumber,sep=".")))
   write(as.integer(res),file=paste(paste(rs@path,rs@session,sep="/"),"res",tetrodeNumber,sep="."),ncolumns=1)
-  write(as.integer(rep(1,length(res)+1)),file=paste(paste(rs@path,rs@session,sep="/"),"clu",tetrodeNumber,sep="."),ncolumns=1)
-
+  
   ###################################################
   # extract waveform of each spike, save .spk files #
   ###################################################

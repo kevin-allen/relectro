@@ -39,7 +39,7 @@ whdFromPositrack<-function(rs,
     stop(paste("length of ttlChannel should be 1 or the number of trial in the session"))
   }
   if(length(ttlChannel)==1 & any(is.na(ttlChannel))){
-    ttlChannel=rep(rs@nChannel-1,length(rs@trialNames))
+    ttlChannel=rep(rs@nChannels-1,length(rs@trialNames))
   }
   if(length(ttlChannel)==1 & any(!is.na(ttlChannel))){
     ttlChannel=rep(ttlChannel,length(rs@trialNames))
