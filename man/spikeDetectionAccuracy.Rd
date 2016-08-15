@@ -2,7 +2,7 @@
 % Please edit documentation in R/SpikeExtraction.R
 \name{spikeDetectionAccuracy}
 \alias{spikeDetectionAccuracy}
-\title{Get the results of spike detection}
+\title{Get the results of spike detection from simulated data.}
 \usage{
 spikeDetectionAccuracy(sTimeD, sTimeT, maxJitter = 2)
 }
@@ -14,6 +14,6 @@ spikeDetectionAccuracy(sTimeD, sTimeT, maxJitter = 2)
 \item{maxJitter}{Max jitter to considered simulated and detected spike as the same spikes}
 }
 \description{
-Get the results of spike detection
+Get the results of spike detection from simulated data.
 }
 
