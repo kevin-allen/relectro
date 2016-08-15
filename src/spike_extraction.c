@@ -45,15 +45,11 @@ SEXP identify_spike_times(SEXP dataf_r,
   double* powerPeak = (double*)malloc(num_windows*sizeof(double));
   int numSpikes=0;
   
-  
-  
-  
   int j;
   int indexDataStart;
   int indexDataEnd;
   for(int i = 0; i < num_windows; i++)
   {
-    
     if(power[i]>powerThreshold){ // this mean a spike
       j=i;
       while(j+1<num_windows&&power[j+1]>powerThreshold) //loop until power is below threshold
@@ -87,31 +83,42 @@ SEXP identify_spike_times(SEXP dataf_r,
           }
         }
       }
-      i=j;
+      i=j; // will be incremented again with the for loop
       numSpikes++;
     }
   }
   
   // make sure that the same spike was not detected twice, and that refactory period was respected
+  int* toRemove = (int*)malloc(numSpikes*sizeof(int));
+  for(int i =0; i < numSpikes;i++)
+    toRemove[i]=0;
   int refUntil;
-  for(int i = 0; i < numSpikes;i++)
+  for(int i = 0; i < numSpikes-1;i++) // there should be at least one spike after current spike
   {
-    refUntil=spikes[i]+refractory;
-   // if(i<numSpikes-1)
-  //    Rprintf("i: %d, spikes[i]: %d, spikes[i+1]: %d, refUntil: %d\n",i,spikes[i],spikes[i+1],refUntil);
-    if(i+1<numSpikes&&(spikes[i]==spikes[i+1]||spikes[i+1]<refUntil))
-    {
-      // remove the second spike
-    //  Rprintf("remove i+1: %d\n",i+1);
-      for(j=i+1; j<numSpikes;j++)
+    if(toRemove[i]==0){ // we have not already decided to remove this spike
+      refUntil=spikes[i]+refractory; // do not accept spike until refUntil
+      j=i+1;// move to next spike
+      while(j<numSpikes&&spikes[j]<refUntil)
       {
-        spikes[j-1]=spikes[j];
-        negVal[j-1]=negVal[j];
-        powerPeak[j-1]=powerPeak[j];
+        //Rprintf("%d %d %d %d %d\n",i,j,spikes[i], spikes[j], refUntil);
+        toRemove[j]=1;
+        j++;
       }
-      numSpikes--;
     }
   }
+  
+  int numValidSpikes=0;
+  for(int i = 0; i < numSpikes;i++)
+  {
+    if(toRemove[i]==0){
+      spikes[numValidSpikes]=spikes[i];
+      negVal[numValidSpikes]=negVal[i];
+      powerPeak[numValidSpikes]=powerPeak[i];
+      numValidSpikes++;
+    }
+  }
+  numSpikes=numValidSpikes;
+  
   
   SEXP out = PROTECT(allocMatrix(REALSXP,numSpikes,3));
   double* outc = REAL(out);
@@ -123,12 +130,10 @@ SEXP identify_spike_times(SEXP dataf_r,
   free(spikes);
   free(negVal);
   free(powerPeak);
+  free(toRemove);
   UNPROTECT(1);
   return(out);
 }
-
-
-
 
 
 SEXP merge_simultaneous_spikes(SEXP time_r,

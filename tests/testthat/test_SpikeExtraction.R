@@ -19,12 +19,10 @@ test_that("spike extraction",{
                              SDThreshold=2, ## high threshold
                              simultaneousSpikeMaxJitterMs=0.4,
                              spikeDetectionRefractoryMs = 0.5)
- 
   ## should detect all and ony real spikes
-  expect_equal(length(resD),length(sim$spikeTime))
+  expect_equal(length(resD$spikeTimes),length(sim$spikeTime))
   ## the spike times should be similar to real spike time,
   ## difference is caused by jitter and noise in waveforms.
-  expect_lt(max(abs(resD-sim$spikeTime)),6)
-  
+  expect_lt(max(abs(resD$spikeTimes-sim$spikeTime)),6)
   rm(sim,resD)
 })

@@ -17,14 +17,19 @@
 #' The spike waveforms are extracted and the waveforms recorded on the same channels are submitted to a principal component analysis.
 #' The first 3 components of each channels are used as spike features.
 #'
-#' Tested against the procedure used from JC with recordings from the medial entorhinal cortex. 
-#' Spikes with large amplitude are detected by both methods. 
+#' First tested with simulated spikes (see simulateRawTrace() and spikeDetectionAccuracy()).
+#' There is a testthat file showing how this is done (test/testthat/test_SpikeTrain.R).
+#'
+#' Then tested against the procedure used from JC with recordings from the medial entorhinal cortex.
+#' Spikes with large amplitude are detected by both methods.
 #' There is more variability between methods when spikes are close to detection threshold.
 #' This method with the default parameters have a shorter detection refractory period after a spike.
 #' 
+#' You can have a visual inspection of the spike detection with plotSpikeDetectionSegment().
+#' 
 #' The spike times of a tetrode are saved in sessionName.res.tetrodeNo.
-#' The spike features are saved in sessionName.fet.tetrodeNo
-#' The spike waveform (in binary format) are saved in sessionName.spk.tetrodeNo
+#' The spike features are saved in sessionName.fet.tetrodeNo.
+#' The spike waveform (in binary format) are saved in sessionName.spk.tetrodeNo.
 #' 
 #' @param rs RecSession object
 #' @param minPassHz Minimal frequency in Hz that is kept before calculating power
@@ -58,7 +63,7 @@ spikeExtractionSession<-function(rs,
   print(paste("filters:", minPassHz,maxPassHz,"Hz"))
   print(paste("Power window:", powerWindowSizeMs,"ms, slide:", powerWindowSlideMs,"ms, threshold:", SDThreshold,",trialByTrial:",trialByTrial))
   
-  for (i in 1:rs@nElectrodes)
+  for (i in 1:1) ##rs@nElectrodes)
   {
     if(trialByTrial==F){
       spikeExtractionTetrodeAllTrialsTogether(rs,df,tetrodeNumber=i,
@@ -96,7 +101,7 @@ spikeExtractionSession<-function(rs,
 #' @param simultaneousSpikeMaxJitterMs Use to join spikes detected across tetrode as near the same time
 #' @param spikeDetectionRefractoryMs Refractory period in spike detection on a single channel
 #' @param noDetectionBeginEndMs Period at beginning and end of trace where nothin is detected because we can't get the waveform
-#' @return list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower
+#' @return list containing the spikeTimes and powerThreshold
 detectSpikesTetrodes<-function(data,
                                samplingRate,
                                powerWindowSizeMs,
@@ -110,7 +115,8 @@ detectSpikesTetrodes<-function(data,
   ## array to store the detected spike times
   spikes<-matrix(ncol=4)
   colnames(spikes)<-c("time","power","trough","channel")
-  results<-list()
+  ## numerics to store power threshold per channel
+  powerThresholds<-numeric(length = nChannels)
   for(chan in 1:nChannels){
     sdetec<-detectSpikesFromTrace(data[,chan],
                                   samplingRate,
@@ -118,6 +124,7 @@ detectSpikesTetrodes<-function(data,
                                   powerWindowSlideMs,
                                   SDThreshold,
                                   spikeDetectionRefractoryMs)
+    powerThresholds[chan]<-sdetec$rmsThreshold
     sp<-cbind(sdetec$spikeTime,
               sdetec$spikePower,
               sdetec$spikeTrough,
@@ -130,9 +137,9 @@ detectSpikesTetrodes<-function(data,
   }
   spikes<-spikes[order(spikes[,1]),] # sort spike matrix according to time
   spikes<-spikes[complete.cases(spikes),] # remove a row of NA that was there from creation of spike matrix
-  ## join spikes that are within 0.3 ms of each other (6 samples)
+  ## join spikes that are within 0.2 ms of each other (4 samples)
   res<-mergeSimultaneousSpikes(spikes[,"time"],spikes[,"trough"],simultaneousSpikeMaxJitterMs*samplingRate/1000)
-  return(res)
+  return(list(spikeTimes=res,powerThresholds=powerThresholds))
 }
 
 
@@ -150,7 +157,7 @@ detectSpikesTetrodes<-function(data,
 #' @param powerWindowSlideMs Shift of the window in ms between estimation of power
 #' @param SDThreshold Power threshold for spike detection.
 #' @param spikeDetectionRefractoryMs Refractory period in the spike detection
-#' @return list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower
+#' @return list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime, spikePower, spikeTrough
 detectSpikesFromTrace<-function(data,
                                 samplingRate,
                                 powerWindowSizeMs,
@@ -182,10 +189,51 @@ detectSpikesFromTrace<-function(data,
        rmsMean=rms.mean,
        rmsThreshold=rms.threshold,
        spikeTime=sp[,1],
-       spikePower=sp[,2],
+       spikePower=sp[,3],
        spikeTrough=sp[,2])
 }
 
+
+
+#' Detect spike time using filtered signal and root mean square arrays
+#' 
+#' 
+#' @param dataf Filtered brain signal from one channel
+#' @param power Power in sliding time windows in samples
+#' @param powerWindowSize Size of the power window in samples
+#' @param powerWindowSlide Amount of shift in the power window between subsequent power estimates in samples
+#' @param powerThreshold Threshold used to detect spikes
+#' @param spikeDetectionRefractory Refractory period in spike detection in samples
+#' @return Matrix containing spike times and negative peak value of the spike. The spike times are in sample index starting at index 0.
+identifySpikeTimes<-function(dataf,
+                             power,
+                             powerWindowSize,
+                             powerWindowSlide,
+                             powerThreshold,
+                             spikeDetectionRefractory){
+  if(length(dataf)==0)
+    stop(paste("identifySpikeTime: length(dataf)==0"))
+  if(length(power)==0)
+    stop(paste("identifySpikeTime: length(power)==0"))
+  if(powerWindowSize<=0)
+    stop(paste("identifySpikeTime: powerWindowSize<=0"))
+  if(powerWindowSlide<=0)
+    stop(paste("identifySpikeTime: powerWindowSlide<=0"))
+  if(powerThreshold<0)
+    stop(paste("identifySpikeTime: powerThreshold<0"))
+  if(spikeDetectionRefractory<0)
+    stop(paste("identifySpikeTime:spikeDetectionRefractory<0"))
+  
+  results<- .Call("identify_spike_times",
+                  dataf, length(dataf),
+                  power, length(power),
+                  powerWindowSize,
+                  powerWindowSlide,
+                  powerThreshold,
+                  spikeDetectionRefractory)
+  colnames(results)<-c("time","trough","power")
+  return(results)
+}
 
 
 
@@ -279,13 +327,26 @@ spikeExtractionTetrodeTrialByTrial<-function(rs,df,tetrodeNumber,
         traces[,chan]<-bandPassFilter(as.numeric(traces[,chan]),rs@samplingRate,minPassHz=minPassHz,maxPassHz=maxPassHz)
       }
     
-      res<-detectSpikesTetrodes(data=traces,
+      results<-detectSpikesTetrodes(data=traces,
                                 samplingRate=rs@samplingRate,
                                 powerWindowSizeMs=powerWindowSizeMs,
                                 powerWindowSlideMs=powerWindowSlideMs,
                                 SDThreshold=SDThreshold,
                                 simultaneousSpikeMaxJitterMs=simultaneousSpikeMaxJitterMs,
                                 spikeDetectionRefractoryMs=spikeDetectionRefractoryMs)
+      
+      ################################
+      ## save the power thresholds  ##
+      ################################
+      powerThresholds<-results$powerThresholds
+      if(trial==1){
+        write(powerThresholds,file=paste(paste(rs@path,rs@trialNames[trial],sep="/"),"powerThresholds",sep="."),ncolumns=1,append = FALSE)
+      }else{
+        write(powerThresholds,file=paste(paste(rs@path,rs@trialNames[trial],sep="/"),"powerThresholds",sep="."),ncolumns=1,append = TRUE)
+      }
+      
+      
+      res<-results$spikeTimes
       allRes<-c(allRes,res+rs@trialStartRes[trial])
       print(paste(length(res),"spikes detected"))
       
@@ -412,7 +473,7 @@ spikeExtractionTetrodeAllTrialsTogether<-function(rs,df,tetrodeNumber,
   ## spike detection ##
   #####################
   print("spike detection")
-  print(system.time(res<-detectSpikesTetrodes(data=traces,
+  print(system.time(results<-detectSpikesTetrodes(data=traces,
                             samplingRate=rs@samplingRate,
                             powerWindowSizeMs=powerWindowSizeMs,
                             powerWindowSlideMs=powerWindowSlideMs,
@@ -420,7 +481,7 @@ spikeExtractionTetrodeAllTrialsTogether<-function(rs,df,tetrodeNumber,
                             simultaneousSpikeMaxJitterMs=simultaneousSpikeMaxJitterMs,
                             spikeDetectionRefractoryMs=spikeDetectionRefractoryMs
                             )))
-  
+  res<-results$spikeTimes
   print(paste(length(res),"spikes detected"))
   
   #########################################
@@ -626,47 +687,6 @@ spikePCA<-function(swf){
 }
 
 
-
-
-#' Detect spike time using filtered signal and root mean square arrays
-#' 
-#' 
-#' @param dataf Filtered brain signal from one channel
-#' @param power Power in sliding time windows in samples
-#' @param powerWindowSize Size of the power window in samples
-#' @param powerWindowSlide Amount of shift in the power window between subsequent power estimates in samples
-#' @param powerThreshold Threshold used to detect spikes
-#' @param spikeDetectionRefractory Refractory period in spike detection in samples
-#' @return Matrix containing spike times and negative peak value of the spike. The spike times are in sample index starting at index 0.
-identifySpikeTimes<-function(dataf,
-                             power,
-                             powerWindowSize,
-                             powerWindowSlide,
-                             powerThreshold,
-                             spikeDetectionRefractory){
-  if(length(dataf)==0)
-    stop(paste("identifySpikeTime: length(dataf)==0"))
-  if(length(power)==0)
-    stop(paste("identifySpikeTime: length(power)==0"))
-  if(powerWindowSize<=0)
-    stop(paste("identifySpikeTime: powerWindowSize<=0"))
-  if(powerWindowSlide<=0)
-    stop(paste("identifySpikeTime: powerWindowSlide<=0"))
-  if(powerThreshold<0)
-    stop(paste("identifySpikeTime: powerThreshold<0"))
-  if(spikeDetectionRefractory<0)
-    stop(paste("identifySpikeTime:spikeDetectionRefractory<0"))
-  
-  results<- .Call("identify_spike_times",
-                  dataf, length(dataf),
-                  power, length(power),
-                  powerWindowSize,
-                  powerWindowSlide,
-                  powerThreshold,
-                  spikeDetectionRefractory)
-  colnames(results)<-c("time","trough","power")
-  return(results)
-}
 
 
 #'  Get the waveform matrix, one spike per row
@@ -887,4 +907,106 @@ plotSimulatedRawTrace<-function(sim,detectedSpikeTimes=NA,...){
   if(length(detectedSpikeTimes)!=0){
     points(detectedSpikeTimes,rep(-ySpacing+50,length(detectedSpikeTimes)),pch="*")
   }
+}
+
+#' Plot the raw traces of a tetrode together with spike times of real data
+#' 
+#' This function can be used to visualise the detected spikes on the raw traces.
+#' Use this to get a qualitative impression of the spike detection. 
+#' 
+#' @param rs RecSession object
+#' @param df DatFiles object
+#' @param tetrodeNo Numeric indicating the Tetrode number
+#' @param minPassHz Min frequency for the band pass filter
+#' @param maxPassHz Max frequency for the band pass filter
+#' @param firstSample First sample to display
+#' @param lastSample Last sample to display
+#' @param addSpikes Numeric containing spikes as a comparison for spikes in .res.tetrodeNo file.
+#' @param powerWindowSizeMs Power window
+#' @param powerWindowSlideMs Slide of the power window.
+#' @param SDThreshold Power threshold
+#' @param spikeDetectionRefractoryMs
+#'
+#' @details Filtering might create some artefacts at the very beginning and end of traces.
+#' 
+plotSpikeDetectionSegment<-function(rs, df, tetrodeNo = 1,
+                                    minPassHz =800, maxPassHz=8000,
+                                    firstSample = 0, lastSample = 5000,
+                                    addSpikes=NA,
+                                    powerWindowSizeMs=0.3,
+                                    powerWindowSlideMs=0.1,
+                                    SDThreshold=2.25,
+                                    spikeDetectionRefractoryMs=0.5)
+{
+  if(tetrodeNo>rs@nElectrodes)
+    stop(paste("plotSpikeDetectionSegment: tetrodeNo (",tetrodeNo,") is larger than rs@nElectrode(",rs@nElectrode,")"))
+  
+  if(firstSample>=lastSample)
+    stop("plotSpikeDetectionSegment: firstSample>=lastSample")
+  
+  if(lastSample-firstSample>100000)
+    stop("plotSpikeDetectionSegment: lastSample-firstSample>100000")
+  
+  channels<-rs@channelsTetrode[tetrodeNo,]
+  traces<-datFilesGetChannels(df,channels,
+                              firstSample=firstSample,
+                              lastSample=lastSample)
+  for(chan in 1:length(channels)){
+    ## get the filtered signal
+    traces[,chan]<-bandPassFilter(as.numeric(traces[,chan]),
+                                  rs@samplingRate,
+                                  minPassHz=minPassHz,maxPassHz=maxPassHz)
+  }
+  
+  
+  
+  
+  spikeTimes<-as.numeric(read.table(file =paste(rs@path,paste(rs@session,"res",tetrodeNo,sep="."),sep="/"))$V1)
+  spikeTimes<-spikeTimes[which(spikeTimes>=firstSample&spikeTimes<=lastSample)]
+  spikeTimes<-spikeTimes-firstSample
+  
+  ## plot raw traces
+  plot(traces[,1],type='l',
+       ylim=c(-2000,7000),
+       xlim=c(0,lastSample-firstSample),
+       xlab="Samples")
+  lines(traces[,2]+2000)
+  lines(traces[,3]+4000)
+  lines(traces[,4]+6000)
+  
+  ## plot spikes
+  cex=0.9
+  points(spikeTimes,rep(5300,length(spikeTimes)),pch="|",col="red",cex=cex)
+  points(spikeTimes,rep(3300,length(spikeTimes)),pch="|",col="red",cex=cex)
+  points(spikeTimes,rep(1300,length(spikeTimes)),pch="|",col="red",cex=cex)
+  points(spikeTimes,rep(-700,length(spikeTimes)),pch="|",col="red",cex=cex)
+
+  if(length(addSpikes)!=0){
+    addSpikes<-addSpikes[which(addSpikes>=firstSample&addSpikes<=lastSample)]
+    addSpikes<-addSpikes-firstSample
+    points(addSpikes,rep(5100,length(addSpikes)),pch="|",col="blue",cex=cex)
+    points(addSpikes,rep(3100,length(addSpikes)),pch="|",col="blue",cex=cex)
+    points(addSpikes,rep(1100,length(addSpikes)),pch="|",col="blue",cex=cex)
+    points(addSpikes,rep(-900,length(addSpikes)),pch="|",col="blue",cex=cex)
+  }
+  
+  ## plot power
+  ## get the power thresholds
+  tn<-rs@trialNames[which(rs@trialStartRes<=firstSample&rs@trialEndRes>firstSample)]
+  powerThresholds<-as.numeric(read.table(file =paste(rs@path,paste(tn,"powerThresholds",sep="."),sep="/"))$V1)[channels+1]
+  for(chan in 1:length(channels)){
+    ## we calculate power only on the strech of data to be plotted
+    power<-detectSpikesFromTrace(traces[,chan],
+                                 rs@samplingRate,
+                                 powerWindowSizeMs=powerWindowSizeMs,
+                                 powerWindowSlideMs=powerWindowSlideMs,
+                                 SDThreshold=SDThreshold,
+                                 spikeDetectionRefractoryMs=spikeDetectionRefractoryMs)
+    lines(power$rmsT,2000*(chan-1)+300+power$rms*2,col="green")
+    lines(c(0,lastSample-firstSample),rep(2000*(chan-1)+300+powerThresholds[chan]*2,2),col="red")
+    
+     points(power$rmsT[which(power$rms>powerThresholds[chan])], 
+            rep(2000*(chan-1)+400,length(power$rmsT[which(power$rms>powerThresholds[chan])])),col="blue")
+  }
+  
 }

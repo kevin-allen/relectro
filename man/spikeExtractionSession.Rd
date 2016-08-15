@@ -55,13 +55,18 @@ After detecting spikes on all channels of a tetrode, the spikes occurring almost
 The spike waveforms are extracted and the waveforms recorded on the same channels are submitted to a principal component analysis.
 The first 3 components of each channels are used as spike features.
 
-Tested against the procedure used from JC with recordings from the medial entorhinal cortex. 
-Spikes with large amplitude are detected by both methods. 
+First tested with simulated spikes (see simulateRawTrace() and spikeDetectionAccuracy()).
+There is a testthat file showing how this is done (test/testthat/test_SpikeTrain.R).
+
+Then tested against the procedure used from JC with recordings from the medial entorhinal cortex.
+Spikes with large amplitude are detected by both methods.
 There is more variability between methods when spikes are close to detection threshold.
 This method with the default parameters have a shorter detection refractory period after a spike.
 
+You can have a visual inspection of the spike detection with plotSpikeDetectionSegment().
+
 The spike times of a tetrode are saved in sessionName.res.tetrodeNo.
-The spike features are saved in sessionName.fet.tetrodeNo
-The spike waveform (in binary format) are saved in sessionName.spk.tetrodeNo
+The spike features are saved in sessionName.fet.tetrodeNo.
+The spike waveform (in binary format) are saved in sessionName.spk.tetrodeNo.
 }
 
