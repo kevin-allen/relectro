@@ -6,7 +6,7 @@
    
  Use the fil file for each channel}
 \usage{
-createSpkFile(traces, rs, res, window = 32, tetrodeNumber)
+createSpkFile(traces, rs, res, window = 32, tetrodeNumber, append = 0)
 }
 \arguments{
 \item{traces}{Matrix with the electrophysiological traces}
@@ -18,6 +18,8 @@ createSpkFile(traces, rs, res, window = 32, tetrodeNumber)
 \item{window}{Number of ms that will be shown}
 
 \item{tetrodeNumber}{Tetrode number used in the file name}
+
+\item{append}{If set to 1, will append to the file.}
 }
 \description{
 Create the spk file for each tetrode

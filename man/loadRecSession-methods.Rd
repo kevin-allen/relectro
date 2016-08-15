@@ -19,7 +19,7 @@ RecSession
 }
 \description{
 You need to set the session and  path slots of your object before calling this function
-This will read the .par, .desen, .desel, .sampling_rate_dat, .resofs files
-to fill up the RecSession object
+This will read the .par, .desen, .desel, .sampling_rate_dat, .resofs files.
+If the resofs is missing will try to get trial times from a datFiles object.
 }
 

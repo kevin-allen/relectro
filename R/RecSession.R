@@ -50,8 +50,8 @@ RecSession <- setClass(
 #' Load the data regarding a recording session
 #'
 #' You need to set the session and  path slots of your object before calling this function
-#' This will read the .par, .desen, .desel, .sampling_rate_dat, .resofs files
-#' to fill up the RecSession object
+#' This will read the .par, .desen, .desel, .sampling_rate_dat, .resofs files.
+#' If the resofs is missing will try to get trial times from a datFiles object.
 #'
 #' @param rs A RecSession object
 #' @return RecSession
@@ -150,7 +150,7 @@ setMethod(f="loadRecSession",
                               path=rs@path,
                               nChannels=rs@nChannels)
               rs@trialStartRes<-c(0,cumsum(df@samples[1:(length(df@samples)-1)]))
-              rs@trialEndRes<-cumsum(df@samples[1:(length(df@samples))])-1
+              rs@trialEndRes<-cumsum(df@samples[1:(length(df@samples))])-1  # -1 because we want the index
               if(length(rs@samplingRate)!=0){
                 rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
                 rs@sessionDurationSec<-sum(rs@trialDurationSec)

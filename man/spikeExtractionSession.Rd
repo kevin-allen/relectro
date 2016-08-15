@@ -5,9 +5,10 @@
 \title{Perform the spike extraction for a recording session}
 \usage{
 spikeExtractionSession(rs, minPassHz = 800, maxPassHz = 5000,
-  powerWindowSizeMs = 0.4, powerWindowSlideMs = 0.1, SDThreshold = 2,
+  powerWindowSizeMs = 0.4, powerWindowSlideMs = 0.1, SDThreshold = 1.75,
   simultaneousSpikeMaxJitterMs = 0.2, spikeDetectionRefractoryMs = 0.5,
-  waveformWindowSizeMs = 1, firstSample = 0, lastSample = -1)
+  waveformWindowSizeMs = 1, trialByTrial = TRUE, firstSample = 0,
+  lastSample = -1)
 }
 \arguments{
 \item{rs}{RecSession object}
@@ -28,6 +29,8 @@ spikeExtractionSession(rs, minPassHz = 800, maxPassHz = 5000,
 
 \item{waveformWindowSizeMs}{Window size used when extracting the spike waveforms.}
 
+\item{trialByTrial}{Logical indicating whether spike detection and extraction is done separately for each trial. Uses less memory}
+
 \item{firstSample}{First sample to consider in spike detection, by default 0, indices start at 0}
 
 \item{lastSample}{Last sample to consider in spike detection, if not set by user, all samples will be used}
@@ -37,5 +40,6 @@ This function calls spikeExtractionTetrode for each tetrode of the recording ses
 }
 \details{
 A RecSession object is used to get the information about the assignation of the recorded channels to tetrodes and the file names.
+Set the trialByTrial argument to true if working with a very long recording session. The spike detection will use less memory.
 }
 

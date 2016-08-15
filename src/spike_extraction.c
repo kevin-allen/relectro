@@ -237,7 +237,7 @@ SEXP spike_waveform_from_traces(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_
   return(out);
 }
 
-SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r, SEXP file_name_r){
+SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r, SEXP file_name_r,SEXP append_r){
   const char* file_name = CHAR(STRING_ELT(file_name_r,0));
   int * m = INTEGER_POINTER(data_r);
   int nrow=INTEGER_VALUE(nrow_r);
@@ -245,17 +245,19 @@ SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res
   int* res=INTEGER_POINTER(res_r);
   int res_lines = INTEGER_VALUE(res_lines_r);
   int window = INTEGER_VALUE(window_r);
-  
-  
-  Rprintf("writing %s\n",
-          file_name);
+  int append=INTEGER_VALUE(append_r);
   
   // memory for one spike
   short int* out=(short int*)malloc(sizeof(short int)*window*ncol);
   
-  FILE *my_file = fopen(file_name, "wb");
+  FILE *my_file;
+  if(append==1){
+   my_file= fopen(file_name, "a");
+  }
+  else{
+    my_file=fopen(file_name, "w");
+  }
   
-  //
   int index;
   int wb;// begin window
   for(int i = 0; i < res_lines; i++){
