@@ -153,7 +153,7 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
     return 0;
   }
   
-  // set the arry to one spike per power window, which is way too many
+  // set the array to max possible size
   int* ti=(int*)malloc(size*sizeof(int));
   int num_spikes=0;
   
@@ -162,18 +162,18 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
   int smallest_trough=0;
   for(int i = 0; i < size; i++)
   {
-   // printf("i:%d, time[i]: %d\n",i,time[i]);
+    //Rprintf("i:%d, time[i]: %d\n",i,time[i]);
     j=i;
     while((j+1)<size && (time[j+1]-time[i])<max_time_difference){
-      //printf("join with j:%d, time[j]: %d\n",j,time[j]);
+      //Rprintf("join with j:%d, time[j]: %d\n",j,time[j]);
       j++;
     }
     
-  //  printf("from %d to %d\n",i,j);
+    //Rprintf("from %d to %d\n",i,j);
     
     if(i==j){ // no simultaneous spikes
       ti[num_spikes]=time[i];
-      //printf("adding single i == %d,  num_spikes: %d, ti[num_spikes]: %d\n",i,num_spikes,ti[num_spikes]);
+      //Rprintf("adding single i == %d,  num_spikes: %d, ti[num_spikes]: %d\n",i,num_spikes,ti[num_spikes]);
       num_spikes++;
     }
     else{ // simultaneous spikes (from index i to j), find the spike with smallest trough and keep it.
@@ -190,10 +190,10 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
           }
         }
         ti[num_spikes]=time[index_keep];
-      //  printf("adding single for i:%d to j:%d, num_spikes: %d, ti[num_spikes]: %d\n",i,j,num_spikes,ti[num_spikes]);
+        //Rprintf("adding single for i:%d to j:%d, num_spikes: %d, ti[num_spikes]: %d\n",i,j,num_spikes,ti[num_spikes]);
         num_spikes++;
+        i=j;
       }
-    i=j+1;
     }
     
   SEXP out = PROTECT(allocVector(REALSXP, num_spikes));
@@ -205,6 +205,10 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
   UNPROTECT(1);
   return(out);
 }
+
+
+
+
 
 
 SEXP spike_waveform_from_traces(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r){

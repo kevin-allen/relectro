@@ -135,12 +135,64 @@ detectSpikesTetrodes<-function(data,
     sp<-sp[which(sp[,1]>(noDetectionBeginEndMs*samplingRate/1000)),]
     spikes<-rbind(spikes,sp)
   }
+  
+  
   spikes<-spikes[order(spikes[,1]),] # sort spike matrix according to time
   spikes<-spikes[complete.cases(spikes),] # remove a row of NA that was there from creation of spike matrix
   ## join spikes that are within 0.2 ms of each other (4 samples)
+  print(spikes[which(spikes[,"time"]<1000),])
   res<-mergeSimultaneousSpikes(spikes[,"time"],spikes[,"trough"],simultaneousSpikeMaxJitterMs*samplingRate/1000)
+  print(head(res))
+  
   return(list(spikeTimes=res,powerThresholds=powerThresholds))
 }
+
+
+#' Merge simulatenous spikes that were detected on different wires
+#' 
+#' The spike time associated with the smallest trough is kept.
+#' 
+#' 
+#' @param time Numeric containing the spike times
+#' @param trough Numeric containing the trough of detected spikes
+#' @param maxTimeDifference Maximal time difference to be considered simultaneous
+#' @return Numeric containing the spike times
+mergeSimultaneousSpikes<-function(time,
+                                  trough,
+                                  maxTimeDifference){
+  if(length(time)==0)
+    stop(paste("mergeSimultaneousSpike: length(time)==0"))
+  if(length(trough)==0)
+    stop(paste("mergeSimultaneousSpike: length(trough)==0"))
+  if(length(time)!=length(trough))
+    stop(paste("mergeSimultaneousSpike: length(trough)!-length(time)"))
+  if(maxTimeDifference<=0)
+    stop(paste("mergeSimultaneousSpike: maxTimeDifference<=0"))
+  results<- .Call("merge_simultaneous_spikes",
+                  as.integer(time),trough,length(time), as.integer(maxTimeDifference))
+  return(results)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #' Detect spikes times in a filtered signal.
@@ -762,31 +814,6 @@ plotSpikes<-function(rs,channels,res,windowMs=2){
      }
     }
   close.screen(all.screens = TRUE)
-}
-
-#' Merge simulatenous spikes that were detected on different wires
-#' 
-#' The spike time associated with the smallest trough is kept.
-#' 
-#' 
-#' @param time Numeric containing the spike times
-#' @param trough Numeric containing the trough of detected spikes
-#' @param maxTimeDifference Maximal time difference to be considered simultaneous
-#' @return Numeric containing the spike times
-mergeSimultaneousSpikes<-function(time,
-                                   trough,
-                                   maxTimeDifference){
-  if(length(time)==0)
-    stop(paste("mergeSimultaneousSpike: length(time)==0"))
-  if(length(trough)==0)
-    stop(paste("mergeSimultaneousSpike: length(trough)==0"))
-  if(length(time)!=length(trough))
-    stop(paste("mergeSimultaneousSpike: length(trough)!-length(time)"))
-  if(maxTimeDifference<=0)
-    stop(paste("mergeSimultaneousSpike: maxTimeDifference<=0"))
-  results<- .Call("merge_simultaneous_spikes",
-                  as.integer(time),trough,length(time), as.integer(maxTimeDifference))
-  return(results)
 }
 
 #' Get the results of spike detection from simulated data.
