@@ -23,13 +23,13 @@ runOnSessionList(ep, sessionList, fnct = function(x) {     NA }, save = T,
 
 \item{save}{Whether you want to save the data returned by the function}
 
+\item{overwrite}{Logical indicating if the data returned by the function will overwrite the old one when saving into a file}
+
 \item{parallel}{Whether you want to run the function in parallel}
 
 \item{cluster}{A cluster generated from the makeCluster function of the snow package}
 
 \item{...}{optional arguments to fnct}
-
-\item{overwirte}{Logical indicating if the data returned by the function will overwrite the old one when saving into a file}
 }
 \value{
 list of list returned by the lapply function

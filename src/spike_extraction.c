@@ -10,7 +10,15 @@ SEXP identify_spike_times(SEXP dataf_r,
                           SEXP powerThreshold_r,
                           SEXP refractory_r)
   {
+// function to get the spike times from the high power events.
+// if the size of the powerWindow is small the trough of the spike
+// might fall outside of the powerWindow. This is why, I modify this
+// so that the trough can also be just before and after the window with
+// high power. Power detect either raising or descending peak of > 700 Hz
+// oscillation, so the sholders should be approx 0.5 ms  (~ 10 samples)
+// will try with sholders of the size of the refractory period
   
+
   int dataf_size=INTEGER_VALUE(dataf_size_r);
   int power_size=INTEGER_VALUE(power_size_r);
   int powerWindowSize=INTEGER_VALUE(powerWindowSize_r);
@@ -48,7 +56,19 @@ SEXP identify_spike_times(SEXP dataf_r,
   int j;
   int indexDataStart;
   int indexDataEnd;
-  for(int i = 0; i < num_windows; i++)
+  
+  int startWindow; // because of sholder to the power window
+  int endWindow; // because of solder to the power window
+  j=0;
+  while(powerWindowSize*j<=refractory){
+    j++;
+  }
+  startWindow=j;
+  endWindow=num_windows-j;
+  
+  
+  
+  for(int i = startWindow; i < endWindow; i++)
   {
     if(power[i]>powerThreshold){ // this mean a spike
       j=i;
@@ -67,8 +87,8 @@ SEXP identify_spike_times(SEXP dataf_r,
       }
       
       // get the trace from begining of first high
-      indexDataStart=powerWindowSlide*i;
-      indexDataEnd=powerWindowSlide*j+powerWindowSize; // 0 to 9, 10 to 19
+      indexDataStart=powerWindowSlide*i-refractory;
+      indexDataEnd=powerWindowSlide*j+powerWindowSize+refractory; // 0 to 9, 10 to 19
       for(int k=indexDataStart; k < indexDataEnd; k++)
       {
         if(k==indexDataStart){
@@ -88,6 +108,7 @@ SEXP identify_spike_times(SEXP dataf_r,
     }
   }
   
+  
   // make sure that the same spike was not detected twice, and that refactory period was respected
   int* toRemove = (int*)malloc(numSpikes*sizeof(int));
   for(int i =0; i < numSpikes;i++)
@@ -106,7 +127,6 @@ SEXP identify_spike_times(SEXP dataf_r,
       }
     }
   }
-  
   int numValidSpikes=0;
   for(int i = 0; i < numSpikes;i++)
   {
@@ -118,6 +138,7 @@ SEXP identify_spike_times(SEXP dataf_r,
     }
   }
   numSpikes=numValidSpikes;
+  
   
   
   SEXP out = PROTECT(allocMatrix(REALSXP,numSpikes,3));
@@ -307,4 +328,36 @@ SEXP get_waveform_matrix(SEXP signal_r, SEXP signal_lines_r, SEXP res_r, SEXP re
 
   UNPROTECT(1);
   return(out);
+}
+
+
+SEXP write_fet_file(SEXP nFeatures_r, SEXP nSpikes_r, SEXP fet_r, SEXP fileName_r, SEXP append_r){
+  int nFeatures = INTEGER_VALUE(nFeatures_r);
+  int nSpikes = INTEGER_VALUE(nSpikes_r);
+  int * fet = INTEGER_POINTER(fet_r);
+  const char* file_name = CHAR(STRING_ELT(fileName_r,0));
+  int append=INTEGER_VALUE(append_r);
+  
+  FILE *f;
+  if(append==1){
+    f = fopen(file_name, "a");
+  }else{
+    f = fopen(file_name, "w");
+  }
+  if (f==NULL){
+    Rprintf("Error opening %s\n",file_name);
+    return(R_NilValue);
+  }
+  
+  fprintf(f, "%d\n",nFeatures);
+  for(int i=0; i < nSpikes; i++){
+    for(int j=0; j < nFeatures-1; j++){
+      fprintf(f,"%d ",fet[j*nSpikes+i]);
+    }
+    fprintf(f,"%d\n",fet[(nFeatures-1)*nSpikes+i]);
+  }
+  fclose(f);
+  
+  
+  return(R_NilValue);
 }

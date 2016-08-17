@@ -13,6 +13,15 @@ spikeDetectionAccuracy(sTimeD, sTimeT, maxJitter = 2)
 
 \item{maxJitter}{Max jitter to considered simulated and detected spike as the same spikes}
 }
+\value{
+list with
+detectedTrue: spikes that were detected that coincided with a true spike
+detectedFalse: spikes that were detected that did not coincided with a true spike
+trueDetected: Number of true spikes that were detected
+trueNonDetected: Number of true spikes that were not detected
+probabilityTrueDetected: Probability to detect true spikes
+probabilityDetectedTrue: Probability that a detected spike is a true spike
+}
 \description{
 Get the results of spike detection from simulated data.
 }

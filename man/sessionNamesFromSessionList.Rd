@@ -7,7 +7,7 @@
 sessionNamesFromSessionList(rss)
 }
 \arguments{
-\item{rsl}{List containing recording sessions}
+\item{rss}{List containing recording sessions}
 }
 \value{
 Charcter vector of the session names

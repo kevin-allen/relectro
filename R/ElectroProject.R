@@ -262,7 +262,7 @@ setMethod(f="getSessionList",
 #' @param sessionList List of RecSession objects on which the function will be applied
 #' @param fnct A function to run on each RecSession
 #' @param save Whether you want to save the data returned by the function
-#' @param overwirte Logical indicating if the data returned by the function will overwrite the old one when saving into a file  
+#' @param overwrite Logical indicating if the data returned by the function will overwrite the old one when saving into a file  
 #' @param parallel Whether you want to run the function in parallel
 #' @param cluster A cluster generated from the makeCluster function of the snow package
 #' @param ... optional arguments to fnct
@@ -387,7 +387,7 @@ sortRecSessionListChronologically<-function(rsl){
 
 #' Get a character vector with the session names of a list of RecSession object
 #' 
-#' @param rsl List containing recording sessions
+#' @param rss List containing recording sessions
 #' @return Charcter vector of the session names
 sessionNamesFromSessionList<-function(rss){
   x<-function(rs){rs@session}

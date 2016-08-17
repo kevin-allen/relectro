@@ -21,7 +21,7 @@ detectSpikesFromTrace(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
 \item{spikeDetectionRefractoryMs}{Refractory period in the spike detection}
 }
 \value{
-list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower
+list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime, spikePower, spikeTrough
 }
 \description{
 This function works on the data of a single channel. 
