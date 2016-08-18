@@ -357,7 +357,223 @@ SEXP write_fet_file(SEXP nFeatures_r, SEXP nSpikes_r, SEXP fet_r, SEXP fileName_
     fprintf(f,"%d\n",fet[(nFeatures-1)*nSpikes+i]);
   }
   fclose(f);
-  
-  
   return(R_NilValue);
+}
+
+SEXP spike_geometrical_features(SEXP spikes_r,SEXP nSpikes_r, SEXP spikeSize_r){
+  double * spikes = REAL(spikes_r);
+  int nSpikes = INTEGER_VALUE(nSpikes_r);
+  int spikeSize = INTEGER_VALUE(spikeSize_r);
+  double * spk; // pointer to single spike
+  int featuresPerSpike=5;
+  SEXP out = PROTECT(allocMatrix(REALSXP,nSpikes,featuresPerSpike));
+  double* o=REAL(out);
+  
+  double baseline; // mean of the first and last quarter of the waveform
+  double trough; // most negative value
+  double b1,b2;
+  double amplitude;
+  double threshold_amplitude;
+  double threshold_amplitude_proportion=0.5;
+  int trough_index;
+  int index;
+  double interpolation_start;
+  double interpolation_end;
+  int start_spike_index;
+  int end_spike_index;
+  double spike_duration;
+  double first_half_duration;
+  double second_half_duration;
+  double max;
+ // int index_peak_from_baseline_pre;
+//  int index_peak_from_baseline_post;
+  double peak_from_baseline_pre;
+  double peak_from_baseline_post;
+  double peak_amplitude_asymmetry;
+  int upsideDown;
+  for(int i = 0 ; i < nSpikes; i++){
+    spk = spikes+(i*spikeSize); // point to a single spike
+    
+    // get baseline voltage
+    b1=0; // first baseline
+    b2=0; // second baseline
+    b1=mean_double(spikeSize/4,spk);
+    b2=mean_double(spikeSize/4,spk+spikeSize-(spikeSize/4));
+    baseline=(b1+b2)/2;
+    
+    // get trough
+    // we assume that the trough is near the middle of the waveform
+    upsideDown=0;
+    trough=baseline;
+    trough_index=spikeSize/3;
+    for(int j = spikeSize/3; j < spikeSize-(spikeSize/3);j++){
+      if(trough>spk[j]){
+        trough=spk[j];
+        trough_index=j;
+      }
+    }
+    if(trough==baseline){ // spike is upside down
+      upsideDown=1;
+      trough_index=spikeSize/3;
+      for(int j = spikeSize/3; j < spikeSize-(spikeSize/3);j++){
+        if(trough<spk[j]){
+          trough=spk[j];
+          trough_index=j;
+        }
+      } 
+    }
+    amplitude=baseline-trough;
+    
+    if(upsideDown==0){
+      // get width 
+      // need the to know the voltage at which we want to calculate width
+      threshold_amplitude=baseline-(amplitude*threshold_amplitude_proportion);
+      // find the index of threshold before trough
+      index = trough_index;
+      interpolation_start = 0; // proportion of a bin to add if we interpolate to the threshold
+      interpolation_end = 0;
+      while(index>0 && spk[index]<threshold_amplitude)
+        index--;
+      start_spike_index=index;
+      if(index>0)
+      {
+        interpolation_start= (spk[index]-threshold_amplitude)/(spk[index]-spk[index+1]); // proportion of a bin to add
+        interpolation_start=start_spike_index+interpolation_start;
+      }else
+      {
+        interpolation_start=start_spike_index;
+      }
+      // find the index of threshold after trough
+      index = trough_index;
+      while(index<spikeSize && spk[index]<threshold_amplitude)
+        index++;
+      end_spike_index=index;
+      if(index<spikeSize-1)
+      {
+        interpolation_end=(spk[index]-threshold_amplitude)/(spk[index]-spk[index-1]); // proportion of a bin to add
+        interpolation_end=end_spike_index-interpolation_end;
+      }else{
+        interpolation_end=end_spike_index;
+      }
+    }else{
+      // get width 
+      // need the to know the voltage at which we want to calculate width
+      threshold_amplitude=baseline-(amplitude*threshold_amplitude_proportion);
+      // find the index of threshold before trough
+      index = trough_index;
+      interpolation_start = 0; // proportion of a bin to add if we interpolate to the threshold
+      interpolation_end = 0;
+      while(index>0 && spk[index]>threshold_amplitude)
+        index--;
+      start_spike_index=index;
+      if(index>0)
+      {
+        interpolation_start= (spk[index]-threshold_amplitude)/(spk[index]-spk[index+1]); // proportion of a bin to add
+        interpolation_start=start_spike_index+interpolation_start;
+      }else{
+        interpolation_start=start_spike_index;
+      }
+      // find the index of threshold after trough
+      index = trough_index;
+      while(index<spikeSize && spk[index]>threshold_amplitude)
+        index++;
+      end_spike_index=index;
+      if(index<spikeSize-1)
+      {
+        interpolation_end=(spk[index]-threshold_amplitude)/(spk[index]-spk[index-1]); // proportion of a bin to add
+        interpolation_end=end_spike_index-interpolation_end;
+      }else{
+        interpolation_end=end_spike_index;
+      }
+    }
+    
+    
+    spike_duration=(interpolation_end-interpolation_start);
+    first_half_duration=(trough_index-interpolation_start);
+    second_half_duration=(interpolation_end-trough_index);
+    
+    if(spike_duration<=0)
+    {
+      Rprintf("\n");
+      for(int j = 0; j < spikeSize; j++)
+        Rprintf("%lf\n",j,spk[j]);
+      Rprintf("b1:%lf b2:%lf base:%lf trou:%lf trough_index: %d amp:%lf spikeD:%lf firstHalfD:%lf secondHalfD:%lf\n",
+              b1,b2,baseline,trough,trough_index,amplitude,spike_duration,first_half_duration,second_half_duration);
+      Rprintf("inter_start:%d inter_end:%d\n",
+              interpolation_start,interpolation_end);
+      
+              
+    }
+    
+    
+    
+    
+    // asymmetry
+    // calculate the peak amplitude asymmetry (a-b)/(|a|+|b|)
+    // a and b being peak_from_baseline_pre and peak_from_baseline_post
+    if(upsideDown==0){
+      max=trough;
+      for (int i =0; i < trough_index;i++)
+      {
+        if(spk[i]>max)
+        {
+          max=spk[i];
+          // index_peak_from_baseline_pre=i;
+        }
+      }
+      peak_from_baseline_pre=max-baseline;
+      max=trough;
+      for (int i = trough_index; i < spikeSize;i++)
+      {
+        if(spk[i]>max)
+        {
+          max=spk[i];
+          //    index_peak_from_baseline_post=i;
+        }
+      }
+      peak_from_baseline_post=max-baseline;
+    }
+    else{
+      max=trough;
+      for (int i =0; i < trough_index;i++)
+      {
+        if(spk[i]<max)
+        {
+          max=spk[i];
+          // index_peak_from_baseline_pre=i;
+        }
+      }
+      peak_from_baseline_pre=max-baseline;
+      max=trough;
+      for (int i = trough_index; i < spikeSize;i++)
+      {
+        if(spk[i]<max)
+        {
+          max=spk[i];
+          //    index_peak_from_baseline_post=i;
+        }
+      }
+      peak_from_baseline_post=max-baseline;
+    }
+    
+    if(sqrt(peak_from_baseline_pre*peak_from_baseline_pre)+sqrt(peak_from_baseline_post*peak_from_baseline_post)!=0){
+      peak_amplitude_asymmetry=(peak_from_baseline_pre-peak_from_baseline_post)/
+        (sqrt(peak_from_baseline_pre*peak_from_baseline_pre)+sqrt(peak_from_baseline_post*peak_from_baseline_post));
+    }else{
+      peak_amplitude_asymmetry=0;
+    }
+    
+    
+    o[0*nSpikes+i]=amplitude;
+    o[1*nSpikes+i]=spike_duration;
+    o[2*nSpikes+i]=first_half_duration;
+    o[3*nSpikes+i]=second_half_duration;
+    o[4*nSpikes+i]=peak_amplitude_asymmetry;
+    
+  //  Rprintf("b1:%lf b2:%lf base:%lf trou:%lf amp:%lf spikeD:%lf firstHalfD:%lf secondHalfD:%lf peakPre:%lf peakPost:%lf asym:%lf\n",
+    //        b1,b2,baseline,trough,amplitude,spike_duration,first_half_duration,second_half_duration,
+      //      peak_from_baseline_pre, peak_from_baseline_post,peak_amplitude_asymmetry);
+    }
+  UNPROTECT(1);
+  return(out);
 }

@@ -26,3 +26,27 @@ test_that("spike extraction",{
   expect_lt(max(abs(resD$spikeTimes-sim$spikeTime)),4)
   rm(sim,resD)
 })
+
+test_that("spike geometrical features",{
+  nSpikes=1
+  wf<-c(0,0,0,0,0,0,0,0,0,-500,0,0,0,0,0,0,0,0,0,0)
+  swf<-array(dim = c(nSpikes,length(wf),1),data = rep(wf,each=nSpikes))
+  fet<-spikeGeoFeatures(swf)
+  expect_equal(fet[1],500)
+  expect_equal(fet[3],fet[4])
+  expect_equal(fet[2],fet[3]+fet[4])
+
+  wf<-c(0,0,0,0,0,0,0,0,100,-500,50,0,0,0,0,0,0,0,0,0)
+  swf<-array(dim = c(nSpikes,length(wf),1),data = rep(wf,each=nSpikes))
+  fet<-spikeGeoFeatures(swf)
+  expect_equal(fet[5],(100-50)/(100+50))  
+
+  wf<-c(0,0,0,0,0,0,0,0,250,500,0,0,0,0,0,0,0,0,0,0)
+  swf<-array(dim = c(nSpikes,length(wf),1),data = rep(wf,each=nSpikes))
+  fet<-spikeGeoFeatures(swf)
+  expect_equal(fet[1],-500)
+  expect_equal(fet[2],1.5)
+  expect_equal(fet[2],fet[3]+fet[4])
+  expect_equal(fet[3],fet[4]*2)
+  
+})
