@@ -7,8 +7,8 @@
 \alias{crossRefractoryRatio,SpikeTrain-method}
 \title{Get the cross refractory ratio of each cluster from its spike-time crosscorrelation}
 \usage{
-crossRefractoryRatio(st, refractoryMs, binSizeMs, windowSizeMs,
-  minControlWindowMs, maxControlWindowMs)
+crossRefractoryRatio(st, refractoryMs = 1.5, binSizeMs = 0.5,
+  windowSizeMs = 25, minControlWindowMs = 5, maxControlWindowMs = 25)
 
 \S4method{crossRefractoryRatio}{SpikeTrain}(st, refractoryMs = 1.5,
   binSizeMs = 0.5, windowSizeMs = 25, minControlWindowMs = 5,

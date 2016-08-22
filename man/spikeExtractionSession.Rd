@@ -7,8 +7,7 @@
 spikeExtractionSession(rs, minPassHz = 800, maxPassHz = 8000,
   powerWindowSizeMs = 0.3, powerWindowSlideMs = 0.1, SDThreshold = 2.25,
   simultaneousSpikeMaxJitterMs = 0.2, spikeDetectionRefractoryMs = 0.5,
-  waveformWindowSizeMs = 1, trialByTrial = TRUE, firstSample = 0,
-  lastSample = -1)
+  waveformWindowSizeMs = 1, firstSample = 0, lastSample = -1)
 }
 \arguments{
 \item{rs}{RecSession object}
@@ -29,9 +28,6 @@ spikeExtractionSession(rs, minPassHz = 800, maxPassHz = 8000,
 
 \item{waveformWindowSizeMs}{Window size used when extracting the spike waveforms.}
 
-\item{trialByTrial}{Logical indicating whether spike detection and extraction is done separately for each trial. 
-If TRUE, the spike extraction uses much less memory as raw data are loaded in smaller blocks}
-
 \item{firstSample}{First sample to consider in spike detection, by default 0, indices start at 0}
 
 \item{lastSample}{Last sample to consider in spike detection, if not set by user, all samples will be used}
@@ -42,14 +38,11 @@ A RecSession object is used to get the information about the assignation of the
 recorded channels to tetrodes and the trial names.
 }
 \details{
-Depending on the value of trialByTrial, spikeExtractionTetrodeAllTrialsTogether() or
-spikeExtractionTetrodeTrialByTrial() will be called.
-
-The spike detection is done channel by channel.
+The extraction is done trial by trial (each dat file separately).
 A band pass filter (Butterworth filter) is applied to the raw signal.
 The power (root mean square) is calculated in sliding windows to obtain the mean and standard deviation of the power.
 A threashold is set for spike detection.
-Adjacent windows above threshold contain one spike.
+Adjacent windows above threshold contain one spike, a sholder of the spike refractory period is added to the window.
 The spike time is assigned to the most negative value in the window.
 After detecting spikes on all channels of a tetrode, the spikes occurring almost simultaneously on different channels are merged.
 The spike waveforms are extracted and the waveforms recorded on the same channels are submitted to a principal component analysis.

@@ -157,75 +157,6 @@ SEXP identify_spike_times(SEXP dataf_r,
 }
 
 
-SEXP merge_simultaneous_spikes(SEXP time_r,
-                               SEXP trough_r,
-                               SEXP size_r,
-                               SEXP max_time_difference_r)
-{
-  // merge spikes with isi smaller than max_time_difference
-  // when merging use spike time of the spike with smallest trough
-  int size=INTEGER_VALUE(size_r);
-  int max_time_difference=INTEGER_VALUE(max_time_difference_r);
-  int* time = INTEGER_POINTER(time_r);
-  double* trough = REAL(trough_r);
-  
-  if(size<=0){
-    Rprintf("merge_simultaneous_spike: size <=0, %d\n", size);
-    return 0;
-  }
-  
-  // set the array to max possible size
-  int* ti=(int*)malloc(size*sizeof(int));
-  int num_spikes=0;
-  
-  int j;
-  int index_keep=0;
-  int smallest_trough=0;
-  for(int i = 0; i < size; i++)
-  {
-    //Rprintf("i:%d, time[i]: %d\n",i,time[i]);
-    j=i;
-    while((j+1)<size && (time[j+1]-time[i])<max_time_difference){
-      //Rprintf("join with j:%d, time[j]: %d\n",j,time[j]);
-      j++;
-    }
-    
-    //Rprintf("from %d to %d\n",i,j);
-    
-    if(i==j){ // no simultaneous spikes
-      ti[num_spikes]=time[i];
-      //Rprintf("adding single i == %d,  num_spikes: %d, ti[num_spikes]: %d\n",i,num_spikes,ti[num_spikes]);
-      num_spikes++;
-    }
-    else{ // simultaneous spikes (from index i to j), find the spike with smallest trough and keep it.
-      for(int k = i; k <= j; k++){
-        if(k==i){
-          index_keep=k;
-          smallest_trough=trough[k];
-        }
-        else{
-          if(trough[k]<smallest_trough){
-            index_keep=k;
-            smallest_trough=trough[k];
-            }
-          }
-        }
-        ti[num_spikes]=time[index_keep];
-        //Rprintf("adding single for i:%d to j:%d, num_spikes: %d, ti[num_spikes]: %d\n",i,j,num_spikes,ti[num_spikes]);
-        num_spikes++;
-        i=j;
-      }
-    }
-    
-  SEXP out = PROTECT(allocVector(REALSXP, num_spikes));
-  double* outc = REAL(out);
-  for(int i = 0; i < num_spikes; i++)
-    outc[i]=ti[i];
-
-  free(ti);
-  UNPROTECT(1);
-  return(out);
-}
 
 
 
@@ -577,3 +508,113 @@ SEXP spike_geometrical_features(SEXP spikes_r,SEXP nSpikes_r, SEXP spikeSize_r){
   UNPROTECT(1);
   return(out);
 }
+
+
+SEXP merge_simultaneous_spikes(SEXP time_r,
+                               SEXP trough_r,
+                               SEXP size_r,
+                               SEXP max_time_difference_r)
+{
+  // merge spikes with isi smaller than max_time_difference
+  // when merging use spike time of the spike with smallest trough
+  int size=INTEGER_VALUE(size_r);
+  int max_time_difference=INTEGER_VALUE(max_time_difference_r);
+  int* time = INTEGER_POINTER(time_r);
+  double* trough = REAL(trough_r);
+  
+  if(size<=0){
+    Rprintf("merge_simultaneous_spike: size <=0, %d\n", size);
+    return 0;
+  }
+  
+  // set the array to max possible size
+  int* ti=(int*)malloc(size*sizeof(int));
+  int num_spikes=0;
+  
+  int j;
+  int index_keep=0;
+  int smallest_trough=0;
+  int latest_trough;
+  for(int i = 0; i < size; i++)
+  {
+    // loop from a new spike or the last that was added from simultaneous spikes
+    
+    j=i;
+    while((j+1)<size && (time[j+1]-time[i])<max_time_difference){
+      //Rprintf("join with j:%d, time[j]: %d\n",j,time[j]);
+      j++;
+    }
+    
+    if(i==j){ // no simultaneous spikes to join
+      if(num_spikes>0){
+       if(ti[num_spikes-1]!=time[i]){ // if the spike was not already added
+         ti[num_spikes]=time[i];
+         latest_trough=trough[i];
+         num_spikes++;
+       }
+      }
+      else{ // this is the first spike
+      ti[num_spikes]=time[i];
+      latest_trough=trough[i];
+      num_spikes++;
+      }
+    }
+    else{ // simultaneous spikes (from index i to j), find the spike with smallest trough and keep it.
+      for(int k = i; k <= j; k++){
+        if(k==i){
+          index_keep=k;
+          smallest_trough=trough[k];
+        }
+        else{
+          if(trough[k]<smallest_trough){
+            index_keep=k;
+            smallest_trough=trough[k];
+          }
+        }
+      }
+      if(num_spikes>0){
+        if(ti[num_spikes-1]+max_time_difference<time[index_keep]){ // not in the refractory of previous spike, add spike
+          ti[num_spikes]=time[index_keep];
+          latest_trough=trough[index_keep];
+          num_spikes++;
+          time[j]=time[index_keep];
+          trough[j]=trough[index_keep];
+          i=j-1;
+        }
+        else{ // in the refractory of previous spike, keep only the one with smallest trough
+          if(latest_trough>trough[index_keep]) // trough is smaller for new spike, replace last added
+          {
+            ti[num_spikes-1]=time[index_keep];
+            latest_trough=trough[index_keep];
+            time[j]=time[index_keep];
+            trough[j]=trough[index_keep];
+            i=j-1;
+          }
+          else
+          {
+            i=j; // if we don't add the new spike and keep the already added one
+          }
+        }
+      }
+      else{ // num_spikes==0
+        ti[num_spikes]=time[index_keep];
+        latest_trough=trough[index_keep];
+        num_spikes++;
+        time[j]=time[index_keep];
+        trough[j]=trough[index_keep];
+        i=j-1;
+        if(i<0)i=0;
+      }
+    }
+  }
+  
+  SEXP out = PROTECT(allocVector(REALSXP, num_spikes));
+  double* outc = REAL(out);
+  for(int i = 0; i < num_spikes; i++)
+    outc[i]=ti[i];
+  
+  free(ti);
+  UNPROTECT(1);
+  return(out);
+}
+

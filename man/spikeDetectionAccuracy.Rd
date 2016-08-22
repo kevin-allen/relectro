@@ -2,7 +2,7 @@
 % Please edit documentation in R/SpikeExtraction.R
 \name{spikeDetectionAccuracy}
 \alias{spikeDetectionAccuracy}
-\title{Get the results of spike detection from simulated data.}
+\title{Assess the quality of spike detection with simulated data.}
 \usage{
 spikeDetectionAccuracy(sTimeD, sTimeT, maxJitter = 2)
 }
@@ -23,6 +23,6 @@ probabilityTrueDetected: Probability to detect true spikes
 probabilityDetectedTrue: Probability that a detected spike is a true spike
 }
 \description{
-Get the results of spike detection from simulated data.
+Assess the quality of spike detection with simulated data.
 }
 

@@ -4,7 +4,7 @@
 \alias{createSpkFile}
 \title{Create the spk file for each tetrode
    
- Use the fil file for each channel}
+ Use the traces and spike times given as arguments}
 \usage{
 createSpkFile(traces, rs, res, window = 32, tetrodeNumber, append = 0)
 }
@@ -24,6 +24,6 @@ createSpkFile(traces, rs, res, window = 32, tetrodeNumber, append = 0)
 \description{
 Create the spk file for each tetrode
    
- Use the fil file for each channel
+ Use the traces and spike times given as arguments
 }
 

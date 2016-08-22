@@ -65,8 +65,6 @@ spikeExtractionSession<-function(rs,
                                        firstSample=firstSample,lastSample=lastSample)
 }
 
-
-
 #' Perform the spike extraction for a given tetrode, reading data from each channel trial by trial
 #' 
 #' This function uses much less memory, especially if the recording session is very long.
@@ -120,7 +118,7 @@ spikeExtractionTetrodeTrialByTrial<-function(rs,df,tetrodeNumber,
   if(tetrodeNumber>rs@nElectrodes)
     stop("spikeExtractionTetrode: tetrodeNumber>rs@nElectrodes")
   
-  print(paste("spike extration for",rs@session,tetrodeNumber, "from sample",firstSample,"to",lastSample, "trial by trial"))
+  print(paste("spike extration for",rs@session,tetrodeNumber, "from sample",firstSample,"to",lastSample))
   channels<-rs@channelsTetrode[tetrodeNumber,]
   
   if(length(channels)==0)
@@ -204,7 +202,7 @@ spikeExtractionTetrodeTrialByTrial<-function(rs,df,tetrodeNumber,
       rm(traces)
     }
   }
-  
+
   ## spike waveforms are in swf
   ## spike times are in allRes
   
@@ -217,15 +215,17 @@ spikeExtractionTetrodeTrialByTrial<-function(rs,df,tetrodeNumber,
   #######################
   # Get spike features ##
   #######################
-  print(paste("Tetrode",tetrodeNumber,":",(dim(swf)[1]), "spikes:"))
-  print("Extraction of spike features")
-  
+  print(paste("Tetrode",tetrodeNumber,":",(dim(swf)[1]), "spikes"))
   fet<-spikePCA(swf)
   fet1<-spikeGeoFeatures(swf) ## add spike amplitude and width
+  
+  ## width is in sample number (numeric) and will be transformed to integer, loosing all decimals. 
+  ## scale by 100 to avoid this.
+  fet1[,rep(c(F,T,T,T,F),dim(swf)[3])]<-fet1[,rep(c(F,T,T,T,F),dim(swf)[3])]*100
+  
+  ## we keep amplitude and width,
   fet1<-fet1[,rep(c(T,T,F,F,F),dim(swf)[3])]
-  fet<-cbind(fet,fet1) ## features are PCA, amplitude and width
-  
-  
+  fet<-cbind(fet,fet1) ## features are PCA, amplitude and width, for a total of 20 features
   ###############################################################
   # Create a tetrode specific par file for kluster or sgclust5b #
   ###############################################################
@@ -234,7 +234,14 @@ spikeExtractionTetrodeTrialByTrial<-function(rs,df,tetrodeNumber,
   ##################################################
   ## save features used for clustering of spikes ###
   ##################################################
-  writeFetFile(rs,allRes,fet,tetrodeNumber)  
+  writeFetFile(rs,allRes,fet,tetrodeNumber) 
+  
+  ######################################
+  ## write mm file for sgclust5b #######
+  ######################################
+  writeMmFile(rs,fet,tetrodeNumber)
+  
+  
   rm(res,fet,swf)
 }
 
@@ -263,6 +270,7 @@ detectSpikesTetrodes<-function(data,
                                spikeDetectionRefractoryMs,
                                noDetectionBeginEndMs=0.5)
 {
+  
   nChannels=ncol(data)
   ## array to store the detected spike times
   spikes<-matrix(ncol=4)
@@ -293,10 +301,44 @@ detectSpikesTetrodes<-function(data,
   
   spikes<-spikes[order(spikes[,1]),] # sort spike matrix according to time
   spikes<-spikes[complete.cases(spikes),] # remove a row of NA that was there from creation of spike matrix
+  
   ## join spikes that are within 0.2 ms of each other (4 samples)
   res<-mergeSimultaneousSpikes(spikes[,"time"],spikes[,"trough"],simultaneousSpikeMaxJitterMs*samplingRate/1000)
+  
   return(list(spikeTimes=res,powerThresholds=powerThresholds))
 }
+
+
+#' Merge simulatenous spikes that were detected on different wires
+#' 
+#' The spike time associated with the smallest trough is kept.
+#' 
+#' 
+#' @param time Numeric containing the spike times
+#' @param trough Numeric containing the trough of detected spikes
+#' @param maxTimeDifference Maximal time difference to be considered simultaneous
+#' @return Numeric containing the spike times
+mergeSimultaneousSpikes<-function(time,
+                                  trough,
+                                  maxTimeDifference){
+  if(length(time)==0)
+    stop(paste("mergeSimultaneousSpike: length(time)==0"))
+  if(length(trough)==0)
+    stop(paste("mergeSimultaneousSpike: length(trough)==0"))
+  if(length(time)!=length(trough))
+    stop(paste("mergeSimultaneousSpike: length(trough)!-length(time)"))
+  if(maxTimeDifference<=0)
+    stop(paste("mergeSimultaneousSpike: maxTimeDifference<=0"))
+  results<- .Call("merge_simultaneous_spikes",
+                  as.integer(time),trough,length(time), as.integer(maxTimeDifference))
+  return(results)
+}
+
+
+
+
+
+
 
 
 
@@ -354,54 +396,7 @@ detectSpikesFromTrace<-function(data,
 }
 
 
-#' Merge simulatenous spikes that were detected on different wires
-#' 
-#' The spike time associated with the smallest trough is kept.
-#' 
-#' 
-#' @param time Numeric containing the spike times
-#' @param trough Numeric containing the trough of detected spikes
-#' @param maxTimeDifference Maximal time difference to be considered simultaneous
-#' @return Numeric containing the spike times
-mergeSimultaneousSpikes<-function(time,
-                                  trough,
-                                  maxTimeDifference){
-  if(length(time)==0)
-    stop(paste("mergeSimultaneousSpike: length(time)==0"))
-  if(length(trough)==0)
-    stop(paste("mergeSimultaneousSpike: length(trough)==0"))
-  if(length(time)!=length(trough))
-    stop(paste("mergeSimultaneousSpike: length(trough)!-length(time)"))
-  if(maxTimeDifference<=0)
-    stop(paste("mergeSimultaneousSpike: maxTimeDifference<=0"))
-  results<- .Call("merge_simultaneous_spikes",
-                  as.integer(time),trough,length(time), as.integer(maxTimeDifference))
-  return(results)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#' Detect spike time using filtered signal and root mean square arrays
+#' Detect spike times using filtered signal and root mean square arrays
 #' 
 #' 
 #' @param dataf Filtered brain signal from one channel
@@ -495,6 +490,31 @@ writeParTetrodeFile<-function(rs,res,fet,tetrodeNumber){
 }
 
 
+#'  Write the mm file for each tetrode
+#'
+#'  This is a legacy file created by Csicsvari detection programs
+#'  relectro don't use it but it is usefull if manual clustering is done with sgclust5b
+#'  
+#'  The content of the file is the mean and std of each feature. 
+#'  Need to check if this is correct
+#'            
+#'            
+#' @param rs RecSession object
+#' @param fet Matrix with spike features, one spike per row
+#' @param tetrodeNumber Tetrode number
+writeMmFile<-function(rs,fet,tetrodeNumber){
+  file=paste(paste(rs@path,rs@session,sep="/"),"mm",tetrodeNumber,sep=".")
+  print(paste("Writing",file))
+  m<-apply(fet,2,mean)
+  s<-apply(fet,2,sd)
+  ## add a 0 0 for time
+  m[length(m)+1]<-0
+  s[length(s)+1]<-0
+  write(t(matrix(c(m,s),ncol=2)),
+  file=file,ncolumns=2,append = FALSE)
+}
+
+
 #'  Write the fet file
 #'  
 #'  The first line of the fet file contains a single number indicating the number of features per spike
@@ -561,10 +581,9 @@ spikeWaveformFromTraces<-function(traces,res,window=20){
   return(array(data=results,dim=c(length(res),window,ncol(traces))))
 }
 
-
 #'  Create the spk file for each tetrode
 #'    
-#'  Use the fil file for each channel
+#'  Use the traces and spike times given as arguments
 #' 
 #' @param traces Matrix with the electrophysiological traces
 #' @param rs RecSession
@@ -598,7 +617,6 @@ createSpkFile<-function(traces,rs,res,window=32,tetrodeNumber,append=0){
 #' 
 #' @param swf Array with the spike waveforms [spike,time,channel]
 #' @return Matrix with the different spike features, one spike per row
-
 spikePCA<-function(swf){
   if(class(swf)!="array")
     stop(paste("spikePCA: swf is not an array but a",class(swf)))
@@ -620,17 +638,12 @@ spikePCA<-function(swf){
   return(fet)
 }
 
-
-
-
-#'  Get the geometrical features of the spikes, treating each channel independently
+#' Get the geometrical features of the spikes, treating each channel independently
 #'  
-#'  The geometrical features are amplitude, with at 50% of amplitude, spike asymmetry
+#' The geometrical features are amplitude, width at 50% of amplitude, width first half, width second half and spike asymmetry
 #'    
-#' 
 #' @param swf Array with the spike waveforms [spike,time,channel]
-#' @return Matrix. Each column is a feature and each row is a spike. There are 5 features per channel in the swf array.
-#'The features are amplitude, width, widthFirstHalf, widthSecondHalf, spikeAsymmetry for each spike.
+#' @return Matrix. Each column is a feature and each row is a spike. There are 5 features per channel in the swf array. The features are amplitude, width, widthFirstHalf, widthSecondHalf, spikeAsymmetry for each spike.
 spikeGeoFeatures <-function(swf){
   
   if(class(swf)!="array")
@@ -649,7 +662,6 @@ spikeGeoFeatures <-function(swf){
   }
   return(fet)
 }
-
 
 #'  Get the waveform matrix, one spike per row
 #' 
@@ -675,58 +687,7 @@ getWaveformMatrix<-function(res,v,window=20){
   return(results)
 }
 
-#'  Plot the waveform of spikes
-#'  
-#'  Use the fil file for each channel
-#' 
-#' @param rs RecSession
-#' @param channels Numeric with the list of channels for the tetrode on which the spikes were detected
-#' @param res Numeric with the time stamps of the spikes in sample value
-#' @param windowMs Number of ms that will be shown
-plotSpikes<-function(rs,channels,res,windowMs=2){
-  
-  if(length(channels)==0)
-    stop(paste("plotSpikes: length(channels)==0"))
-  
-  for(i in 1:length(channels)){
-    if(!file.exists(paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
-      stop(paste("missing file:",paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep=".")))
-  }
-  
-  ## check the length of the fil files
-  a<-readBin(what="numeric",con=paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep="."),size=4,n=1000000000)
-  ## allocate a matrix to load the data
-  m<-matrix(ncol=length(channels),nrow=length(a))
-  ## fill the matrix
-  for(i in 1:length(channels)){
-    m[,i]<-readBin(what="numeric",con=paste(paste(rs@path,rs@session,sep="/"),"fil",channels[i],sep="."),size=4,n=1000000000)
-  }
-  window<-windowMs*rs@samplingRate/1000
-  
-  num.cols<-length(channels)
-  num.rows<-1
-  plot.per.page=num.cols*num.rows
-  n<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
-              rep(seq(1/num.cols,1,1/num.cols),num.rows),
-              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
-              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
-  split.screen(n)  
-  for(chanIndex in 1:length(channels)){
-    screen(chanIndex)
-    for(spikeIndex in 1:length(res)){
-      wfi<-(res[spikeIndex]+1-window/2):(res[spikeIndex]+1+window/2)
-      if(spikeIndex==1){
-        par(mar=c(1,1,1,1), oma=c(2,1,0,0),cex.lab=0.6,cex.axis=0.6,mgp=c(1,0.3,0.2))
-       plot((1:length(wfi))/rs@samplingRate*1000,m[wfi,chanIndex],type='l',ylim=c(-1500,1000),col=chanIndex,xlab="ms")
-      } else{
-        lines((1:length(wfi))/rs@samplingRate*1000,m[wfi,chanIndex],col=chanIndex)
-      }
-     }
-    }
-  close.screen(all.screens = TRUE)
-}
-
-#' Get the results of spike detection from simulated data.
+#' Assess the quality of spike detection with simulated data.
 #' 
 #' @param sTimeD Spike times of detected spikes
 #' @param sTimeT Spike times of simulated spikes
@@ -956,7 +917,3 @@ plotSpikeDetectionSegment<-function(rs, df, tetrodeNo = 1,
             rep(2000*(chan-1)+400,length(power$rmsT[which(power$rms>powerThresholds[chan])])),col="blue")
   }
 }
-
-
-
-

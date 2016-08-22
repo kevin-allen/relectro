@@ -942,8 +942,8 @@ setMethod(f="refractoryRatio",
 #' @docType methods
 #' @rdname crossRefractoryRatio-methods
 setGeneric(name="crossRefractoryRatio",
-           def=function(st,refractoryMs,binSizeMs,windowSizeMs,
-                        minControlWindowMs,maxControlWindowMs)
+           def=function(st,refractoryMs=1.5,binSizeMs=0.5,windowSizeMs=25,
+                        minControlWindowMs=5.0,maxControlWindowMs=25)
            {standardGeneric("crossRefractoryRatio")})
 #' @rdname crossRefractoryRatio-methods
 #' @aliases crossRefractoryRatio,ANY,ANY-method
