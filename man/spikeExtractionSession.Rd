@@ -4,8 +4,8 @@
 \alias{spikeExtractionSession}
 \title{Perform the spike extraction for a recording session}
 \usage{
-spikeExtractionSession(rs, minPassHz = 800, maxPassHz = 5000,
-  powerWindowSizeMs = 0.4, powerWindowSlideMs = 0.1, SDThreshold = 2,
+spikeExtractionSession(rs, minPassHz = 800, maxPassHz = 8000,
+  powerWindowSizeMs = 0.3, powerWindowSlideMs = 0.1, SDThreshold = 2.25,
   simultaneousSpikeMaxJitterMs = 0.2, spikeDetectionRefractoryMs = 0.5,
   waveformWindowSizeMs = 1, firstSample = 0, lastSample = -1)
 }
@@ -33,9 +33,33 @@ spikeExtractionSession(rs, minPassHz = 800, maxPassHz = 5000,
 \item{lastSample}{Last sample to consider in spike detection, if not set by user, all samples will be used}
 }
 \description{
-This function calls spikeExtractionTetrode for each tetrode of the recording session.
+This function does the spike extraction for a recording sessions.
+A RecSession object is used to get the information about the assignation of the 
+recorded channels to tetrodes and the trial names.
 }
 \details{
-A RecSession object is used to get the information about the assignation of the recorded channels to tetrodes and the file names.
+The extraction is done trial by trial (each dat file separately).
+A band pass filter (Butterworth filter) is applied to the raw signal.
+The power (root mean square) is calculated in sliding windows to obtain the mean and standard deviation of the power.
+A threashold is set for spike detection.
+Adjacent windows above threshold contain one spike, a sholder of the spike refractory period is added to the window.
+The spike time is assigned to the most negative value in the window.
+After detecting spikes on all channels of a tetrode, the spikes occurring almost simultaneously on different channels are merged.
+The spike waveforms are extracted and the waveforms recorded on the same channels are submitted to a principal component analysis.
+The first 3 components of each channels are used as spike features.
+
+First tested with simulated spikes (see simulateRawTrace() and spikeDetectionAccuracy()).
+There is a testthat file showing how this is done (test/testthat/test_SpikeTrain.R).
+
+Then tested against the procedure used from JC with recordings from the medial entorhinal cortex.
+Spikes with large amplitude are detected by both methods.
+There is more variability between methods when spikes are close to detection threshold.
+This method with the default parameters have a shorter detection refractory period after a spike.
+
+You can have a visual inspection of the spike detection with plotSpikeDetectionSegment().
+
+The spike times of a tetrode are saved in sessionName.res.tetrodeNo.
+The spike features are saved in sessionName.fet.tetrodeNo.
+The spike waveform (in binary format) are saved in sessionName.spk.tetrodeNo.
 }
 

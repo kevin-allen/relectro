@@ -8,7 +8,7 @@
 \description{
 This class is used to manipulate and represent the position data of the animal.
 The first data point is at time resSamplesPerWhlSample and not 0.
-The data are usually loaded from .whl, .whd, .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm
+The data are usually loaded from .whd, .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm
 }
 \section{Slots}{
 

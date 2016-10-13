@@ -2,7 +2,7 @@
 #' 
 #' This class is used to manipulate and represent the position data of the animal.
 #' The first data point is at time resSamplesPerWhlSample and not 0.
-#' The data are usually loaded from .whl, .whd, .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm
+#' The data are usually loaded from .whd, .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm
 #' 
 #' @slot session A character vector containing the names of the recording session.
 #' @slot path The directory in which the files of the session are located.
@@ -74,8 +74,6 @@ setMethod(f="loadPositrack",
               pt@path=getwd()
             }
             pathSession=paste(pt@path,pt@session,sep="/")
-            if(!file.exists(paste(pathSession,"whl",sep=".")))
-              stop("need",paste(pathSession,"whl",sep="."))
             if(!file.exists(paste(pathSession,"whd",sep=".")))
               stop("need",paste(pathSession,"whd",sep="."))
             if(!file.exists(paste(pathSession,"res_samples_per_whl_sample",sep=".")))
@@ -85,10 +83,9 @@ setMethod(f="loadPositrack",
             if(!file.exists(paste(pathSession,"px_per_cm",sep=".")))
               stop("need",paste(pathSession,"px_per_cm",sep="."))
             ## get sampling rate
-            whl<-read.table(paste(pathSession,"whl",sep="."))
-            pt@xWhl<-whl$V1
-            pt@yWhl<-whl$V2
             whd<-read.table(paste(pathSession,"whd",sep="."))
+            pt@xWhl<-whd$V1
+            pt@yWhl<-whd$V2
             pt@hdWhd<-whd$V3
             pt@resSamplesPerWhlSample<-read.table(paste(pathSession,"res_samples_per_whl_sample",sep="."))$V1
             pt@pxPerCm<-read.table(paste(pathSession,"px_per_cm",sep="."))$V1

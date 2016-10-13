@@ -2,7 +2,7 @@
 % Please edit documentation in R/SpikeExtraction.R
 \name{detectSpikesTetrodes}
 \alias{detectSpikesTetrodes}
-\title{Detect spikes on the channels of a tetrode}
+\title{Detect spikes on the channels of a tetrode.}
 \usage{
 detectSpikesTetrodes(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
   SDThreshold, simultaneousSpikeMaxJitterMs, spikeDetectionRefractoryMs,
@@ -26,9 +26,12 @@ detectSpikesTetrodes(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
 \item{noDetectionBeginEndMs}{Period at beginning and end of trace where nothin is detected because we can't get the waveform}
 }
 \value{
-list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower
+list containing the spikeTimes and powerThreshold
 }
 \description{
-If there are low components in the signal, they should be filtered out.
+This loop for each channel of a tetrode, detect the spikes by calling detectSpikesFromTrace().
+The spikes occurring almost simultaneously on different channels are merged with
+mergeSimultaneousSpikes().
+Assumes any low frequency components were filtered out before calling this function.
 }
 

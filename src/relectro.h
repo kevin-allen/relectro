@@ -57,6 +57,7 @@ SEXP read_one_column_int_file_cwrap(SEXP file_name_r);
 SEXP read_fet_file_cwrap(SEXP file_name_r);
 
 // math.c
+double mean_double(int size,double* data);
 double sum_double(int num_data, double* data, double invalid);
 int find_max(int num_data, int* data);
 double find_max_double_index(int num_data,double* data, int* index);
@@ -419,6 +420,8 @@ SEXP merge_simultaneous_spikes(SEXP time_r,
                                SEXP trough_r,
                                SEXP size_r,
                                SEXP max_time_difference_r);
-SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r, SEXP file_name_r);
+SEXP create_spk_file(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r, SEXP file_name_r,SEXP append_r);
 SEXP get_waveform_matrix(SEXP signal_r, SEXP signal_lines_r, SEXP res_r, SEXP res_lines_r, SEXP window_r);
 SEXP spike_waveform_from_traces(SEXP data_r, SEXP nrow_r, SEXP ncol_r, SEXP res_r, SEXP res_lines_r, SEXP window_r);
+SEXP write_fet_file(SEXP nFeatures_r, SEXP nSpikes_r, SEXP fet_r, SEXP fileName_r, SEXP append_r);
+SEXP spike_geometrical_features(SEXP spikes_r,SEXP nSpikes_r, SEXP spikeSize_r);

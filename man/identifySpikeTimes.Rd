@@ -2,7 +2,7 @@
 % Please edit documentation in R/SpikeExtraction.R
 \name{identifySpikeTimes}
 \alias{identifySpikeTimes}
-\title{Detect spike time using filtered signal and root mean square arrays}
+\title{Detect spike times using filtered signal and root mean square arrays}
 \usage{
 identifySpikeTimes(dataf, power, powerWindowSize, powerWindowSlide,
   powerThreshold, spikeDetectionRefractory)
@@ -24,6 +24,6 @@ identifySpikeTimes(dataf, power, powerWindowSize, powerWindowSlide,
 Matrix containing spike times and negative peak value of the spike. The spike times are in sample index starting at index 0.
 }
 \description{
-Detect spike time using filtered signal and root mean square arrays
+Detect spike times using filtered signal and root mean square arrays
 }
 

@@ -249,18 +249,20 @@ setMethod(f="getSessionList",
 #'
 #' This applies a function to a list of RecSession objects.
 #' If save is set to TRUE, the results returned by the function will be saved. 
-#' Not that the function should return the results in a list. 
+#' The function applied to single recording sessions should return the results in a list. 
 #' The results are saved in the resultsDirectory of the ElectroProject object.
 #' The names of the files saved will be the name of the elements in the list returned by the function
 #' The data from each recording session will be bound togheter using rbind. If the element is an array, they will be bound with abind.
 #' You can use snow::parLapply instead of lapply by setting parallel to TRUE and passing a valid cluster to the function
 #' If save is set to FALSE, the data returned by the lapply function will not be saved but retured.
+#' If overwrite is set to TRUE, previous data will be overwrite when saving the data.
+#' If overwrite is set to FALSE, the new data will be appended to the old one.
 #'
 #' @param ep ElectroProject object
 #' @param sessionList List of RecSession objects on which the function will be applied
 #' @param fnct A function to run on each RecSession
 #' @param save Whether you want to save the data returned by the function
-#' @param overwrite Whether you want to overwrite the previous data when saving the results
+#' @param overwrite Logical indicating if the data returned by the function will overwrite the old one when saving into a file  
 #' @param parallel Whether you want to run the function in parallel
 #' @param cluster A cluster generated from the makeCluster function of the snow package
 #' @param ... optional arguments to fnct
@@ -318,7 +320,6 @@ setMethod(f="runOnSessionList",
                obj<-list.res[[1]]
                if(overwrite==T){
                  if(class(obj[[n]])=="array"){
-                  
                   assign(n,do.call(abind::abind,sapply(list.res,function(x){x[n]})))  ## bind along the last dimension
                  }else{
                   assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
@@ -326,11 +327,13 @@ setMethod(f="runOnSessionList",
                }else{## concatonate to existing data
                  if(class(obj[[n]])=="array"){
                    assign(paste(n,"new",sep="."),do.call(abind::abind, sapply(list.res,function(x){x[n]}))) ## bind along the last dimension
+                   load(file=paste(ep@resultsDirectory,n,sep="/"))
+                   assign(n,abind::abind(get(n),get(paste(n,"new",sep="."))))
                  }else{
-                  assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
+                   assign(paste(n,"new",sep="."),do.call("rbind", sapply(list.res,function(x){x[n]})))
+                   load(file=paste(ep@resultsDirectory,n,sep="/"))
+                   assign(n,rbind(get(n),get(paste(n,"new",sep="."))))
                  }
-                 load(file=paste(ep@resultsDirectory,n,sep="/"))
-                 assign(n,rbind(get(n),get(paste(n,"new",sep="."))))
                }
                print(paste("saving",paste(ep@resultsDirectory,n,sep="/")))
                save(list=n,file=paste(ep@resultsDirectory,n,sep="/"))
@@ -379,6 +382,16 @@ sortRecSessionListChronologically<-function(rsl){
     stop("sortRecSessionListChronologically: rsl[[1]] is not a RecSession object")
   o<-order(sapply(rsl,recordingDate))
   return(rsl[o])
+}
+
+
+#' Get a character vector with the session names of a list of RecSession object
+#' 
+#' @param rss List containing recording sessions
+#' @return Charcter vector of the session names
+sessionNamesFromSessionList<-function(rss){
+  x<-function(rs){rs@session}
+  unlist(lapply(rss,x))
 }
 
 

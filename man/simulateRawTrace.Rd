@@ -7,7 +7,7 @@
 simulateRawTrace(samplingRate = 20000, durationSec = 1, noiseSD = 100,
   noiseMean = 0, waveformAmplitude = 700, nClusters = 3, nChannels = 4,
   waveformDifferentiationSD = 200, minChannelScalling = 0.3,
-  spikeJitterAcrossChannelMs = 0.2, maxSpikes = 10000)
+  spikeJitterAcrossChannelMs = 0.1, maxSpikes = 10000)
 }
 \arguments{
 \item{samplingRate}{Sampling rate of the trace}

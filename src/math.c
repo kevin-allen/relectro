@@ -1,5 +1,22 @@
 #include <math.h>
 #include "relectro.h"
+double mean_double(int size,double* data)
+{
+  if(size<=0)
+  {
+    Rprintf("function mean_double(int,double*)\n");
+    Rprintf("size<=0\n");
+    return -1.0;
+  }
+  double mean=0;
+  int n=0;
+  for(int i = 0; i < size; i++)
+  {
+    mean=mean+data[i];
+    n++;
+  }
+  return mean/n;
+}
 double sum_double(int num_data, double* data, double invalid)
 {
   /* calculate the sum of an array */

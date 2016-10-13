@@ -50,8 +50,8 @@ RecSession <- setClass(
 #' Load the data regarding a recording session
 #'
 #' You need to set the session and  path slots of your object before calling this function
-#' This will read the .par, .desen, .desel, .sampling_rate_dat, .resofs files
-#' to fill up the RecSession object
+#' This will read the .par, .desen, .desel, .sampling_rate_dat, .resofs files.
+#' If the resofs is missing will try to get trial times from a datFiles object.
 #'
 #' @param rs A RecSession object
 #' @return RecSession
@@ -128,7 +128,7 @@ setMethod(f="loadRecSession",
                 stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }
             
-            ## if early process was run on this one, get more informaiton
+            ## if early process was run on this one, get more informaiton from resofs file
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
             {
               ## read the resofs file  
@@ -138,8 +138,23 @@ setMethod(f="loadRecSession",
               ## trial times
               rs@trialStartRes<-c(0,rs@resofs[-length(rs@resofs)])
               rs@trialEndRes<-rs@resofs-1 # resofs is the number of samples in one file, index is -1 that
-              rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
-              rs@sessionDurationSec<-sum(rs@trialDurationSec)
+              if(length(rs@samplingRate)!=0){
+                rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
+                rs@sessionDurationSec<-sum(rs@trialDurationSec)
+              }
+            }else
+            { ## try to get information from dat files
+              df<-new("DatFiles")
+              df<-datFilesSet(df,
+                              fileNames=paste(rs@trialNames,"dat",sep="."),
+                              path=rs@path,
+                              nChannels=rs@nChannels)
+              rs@trialStartRes<-c(0,cumsum(df@samples[1:(length(df@samples)-1)]))
+              rs@trialEndRes<-cumsum(df@samples[1:(length(df@samples))])-1  # -1 because we want the index
+              if(length(rs@samplingRate)!=0){
+                rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
+                rs@sessionDurationSec<-sum(rs@trialDurationSec)
+              }
             }
             if(file.exists(paste(rs@fileBase,"clu",sep="."))&
                file.exists(paste(rs@fileBase,"res",sep="."))) rs@clustered=T

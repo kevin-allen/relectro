@@ -2,7 +2,7 @@
 % Please edit documentation in R/SpikeExtraction.R
 \name{detectSpikesFromTrace}
 \alias{detectSpikesFromTrace}
-\title{Detect spikes in a signal}
+\title{Detect spikes times in a filtered signal.}
 \usage{
 detectSpikesFromTrace(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
   SDThreshold, spikeDetectionRefractoryMs)
@@ -21,9 +21,14 @@ detectSpikesFromTrace(data, samplingRate, powerWindowSizeMs, powerWindowSlideMs,
 \item{spikeDetectionRefractoryMs}{Refractory period in the spike detection}
 }
 \value{
-list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime and spikePower
+list containing rms, rmsT, rmsSD, rmsMean, rmsThreshold, spikeTime, spikePower, spikeTrough
 }
 \description{
-If there are low components in the signal, they should be filtered out.
+This function works on the data of a single channel. 
+It calculates the power with the function powerRootMeanSquare(), and calculates the mean and standard deviation.
+It calls identifySpikeTimes() to get the spike times and other parameters of the detected spikes.
+}
+\details{
+If there are low frequency components in the signal, they should be filtered out.
 }
 

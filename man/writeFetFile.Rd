@@ -2,9 +2,12 @@
 % Please edit documentation in R/SpikeExtraction.R
 \name{writeFetFile}
 \alias{writeFetFile}
-\title{Write the fet file}
+\title{Write the fet file
+ 
+ The first line of the fet file contains a single number indicating the number of features per spike
+ The next lines are the features per spike, one spike per line.}
 \usage{
-writeFetFile(rs, res, fet, tetrodeNumber)
+writeFetFile(rs, res, fet, tetrodeNumber, append = FALSE)
 }
 \arguments{
 \item{rs}{RecSession object}
@@ -14,8 +17,13 @@ writeFetFile(rs, res, fet, tetrodeNumber)
 \item{fet}{Matrix with spike features, one spike per row}
 
 \item{tetrodeNumber}{Tetrode number}
+
+\item{append}{Whether or not the previous file is overwritten}
 }
 \description{
 Write the fet file
+ 
+ The first line of the fet file contains a single number indicating the number of features per spike
+ The next lines are the features per spike, one spike per line.
 }
 
