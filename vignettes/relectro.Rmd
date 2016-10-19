@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-This vignette documents the relectro R package. relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. The focus is on data recorded with tetrodes. relectro relies on several C functions in computationally intensive segments of the code.
+relectro is being developped to analyze data from electrophysiological experiments in R. The main aim of this package is to allow users to do common analysis of electrophysiological data within R. The focus is on data recorded with tetrodes. relectro relies on several C functions in computationally intensive segments of the code.
 
 ### Install relectro
 
@@ -40,7 +40,7 @@ You can get information regarding these objects or function with `?`
 
 ### S4 objects
 
-relectro defines a few S4 objects that represents projects, recording sessions, spike trains, position data, etc. Most functions are actually methods associated with these objects. The organisation of the vignettes will follow this organization.
+relectro defines a few S4 objects that represents projects, recording sessions, spike trains, position data, etc. Most functions are actually methods associated with these objects. 
 
 * ElectroProject
 * RecSession
@@ -55,6 +55,8 @@ relectro defines a few S4 objects that represents projects, recording sessions, 
 ### Learning by examples
 
 A good way to learn how to use the code is to look at examples. The code used in a recent manuscript is available [here](https://github.com/kevin-allen/prog_perez_escobar_2016).
+
+There is a repository called [relectro_data](https://github.com/kevin-allen/relectro_data). This contains a small data set and some vignette to get you started with using relectro. 
 
 ### Development
 
