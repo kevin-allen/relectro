@@ -185,16 +185,6 @@ headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.
 
 
 
-
-
-
-
-
-
-
-
-
-
 #' Plot a linear rate histogram from a SpatialProperties1D object
 #' 
 #' In development

@@ -157,9 +157,6 @@ mergeTetrodeSpecificResCluFiles<-function(rs){
 }
 
 
-
-
-
 #' Read a fet file
 #' 
 #' Read a file with the spike features. Uses a c function for speed.
@@ -173,6 +170,3 @@ readFetFile<-function(fileName){
         fileName)
   return(m)
 }
-
-
-

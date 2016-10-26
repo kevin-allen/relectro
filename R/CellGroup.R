@@ -1,8 +1,8 @@
 #' An S4 class representing a group of cells
 #' 
-#' This class is used to get the tetrode id and brain region associated with each cell of a recording session. 
-#' It also get the cluster id of the cell on its respective tetrode. The easiest way to set it up is from the information
-#' contained in a RecSession object.
+#' This class gets you the tetrode id and brain region associated with each cell of a recording session. 
+#' It also get the cluster id of the cell on its respective tetrode.
+#' 
 #' @slot session A character vector containing the names of the recording session.
 #' @slot path The directory in which the files of the session are located.
 #' @slot fileBase Is the path and session
@@ -17,6 +17,7 @@
 #' @slot brainRegion region in which the cell was recorded
 #' @examples
 #' df<-new("CellGroup")
+#' @
 CellGroup <- setClass(
   "CellGroup", ## name of the class
   slots=c(session="character",
@@ -30,7 +31,7 @@ CellGroup <- setClass(
           tetrode="numeric",
           tetrodeId="character",
           cluToTetrode="numeric",
-          brainRegion="character"),  # cell list to limit the analysis to these cells
+          brainRegion="character"),
   prototype = list(session="",path="",nTetrodes=0))
 
 #' Load the information regarding a group of cells

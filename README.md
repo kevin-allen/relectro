@@ -31,4 +31,6 @@ You might need to add a few R packages to be able to build relectro. Here is a l
 * knitr
 * abind
 
-##
+## Feedback
+
+Please report any issues or suggestions at http://github.com/kevin-allen/relectro/issues.

@@ -639,11 +639,13 @@ spikePCA<-function(swf){
 }
 
 #' Get the geometrical features of the spikes, treating each channel independently
-#'  
+#'
 #' The geometrical features are amplitude, width at 50% of amplitude, width first half, width second half and spike asymmetry
 #'    
 #' @param swf Array with the spike waveforms [spike,time,channel]
-#' @return Matrix. Each column is a feature and each row is a spike. There are 5 features per channel in the swf array. The features are amplitude, width, widthFirstHalf, widthSecondHalf, spikeAsymmetry for each spike.
+#' @return Matrix. Each column is a feature and each row is a spike. 
+#' There are 5 features per channel in the swf array. 
+#' The features are amplitude, width, widthFirstHalf, widthSecondHalf, spikeAsymmetry for each spike.
 spikeGeoFeatures <-function(swf){
   
   if(class(swf)!="array")
