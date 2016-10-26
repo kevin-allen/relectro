@@ -84,8 +84,8 @@ plot(cross$time[which(cross$clu1==2&cross$clu2==5)],
      ylim=c(0,max(cross$prob[which(cross$clu1==2&cross$clu2==5)])),
      type='l',ylab="Spike probability",xlab="Time (ms)",main="cc cells 2 and 5")
 ## set some events, in this case the spikes of clu 2
-st<-setEvents(st,events=st@res[which(st@clu==2)])
-st<-spikeTimeCrosscorrelationEvents(st)
+  st<-setEvents(st,events=st@res[which(st@clu==2)])
+  st<-spikeTimeCrosscorrelationEvents(st)
 cc<-spikeTimeCrosscorrelationEventsAsDataFrame(st)
 plot(cc$time[which(cc$clu==6)],
      cc$count[which(cc$clu==6)],
