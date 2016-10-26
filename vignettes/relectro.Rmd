@@ -22,6 +22,7 @@ To download the source code, open a terminal and run :
 To install relectro, run the following from the same terminal :
 
 ```R CMD build relectro``` 
+
 ```R CMD INSTALL relectro```
 
 To use relectro in R:

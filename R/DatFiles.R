@@ -98,7 +98,9 @@ setMethod(f="datFilesSamples",
             
             ## check that the file size can be divided by nChannels
             if(any(df@size%%(df@nChannels*2)!=0)){
-              stop(paste("size of a .dat file can't be divided by",df@nChannels*2))
+              print(paste("size of a .dat file can't be divided by",df@nChannels*2))
+              print(paste(df@path,df@fileNames,sep="/")[which(df@size%%(df@nChannels*2)!=0)])
+              stop()
             }
             df@samples<-df@size/(df@nChannels*2)
             return(df)                        
