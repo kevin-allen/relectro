@@ -1,3 +1,69 @@
+#' Plot a spikes on the animal path
+#' 
+#' Plot the animal path from a Positrack object and the spikes in space from a SpatialProperties2d object
+#' 
+#' @param pt Positrack object with the path of the animal in slot x and y
+#' @param sp SpatialProperties2d object with the spike position in slot xSpikes and ySpikes
+#' @param clu Clu number of the cell of interest.
+#' @param name String with the name of the cell
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param cex.name Size of the font use for the name of the map
+#' @param plotxlim Limits of the x axis
+#' @param plotylim Limits of the y axis
+#' @param mgp.x mgp for the x axis
+#' @param mgp.y mgp for the y axis
+#' @param axis.x.pos Y position of the x axis
+#' @param axis.y.pos X position of the y axis
+#' @param plot.axis Whether to plot the axes or not (TRUE or FALSE)
+#' @param xlab Name to display under the x axis
+#' @param ylab Name to display at the left of the y axis
+#' @param main.title A title for the figure
+spikeOnPath <- function(pt,sp,clu,name="",
+                        outma=c(2.0,2.0,2.0,2.0),margin=c(1.5,1.5,1,1),
+                        cex.name=0.6,
+                        plotxlim=c(0,80),plotylim=c(0,80),
+                        mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),
+                        axis.x.pos=0,axis.y.pos=0,
+                        plot.axis=TRUE,
+                        xlab="",ylab="")
+{
+  par(oma=outma,mar=margin)
+  xpt<-pt@x[!is.na(pt@x)]
+  ypt<-pt@y[!is.na(pt@x)]
+  
+  ## the position data is manipulate before getting the xSpikes and ySpikes values
+  ## we apply the same to position data here so that spikes match path
+  if(sp@reduceSize==T){
+    xpt<-xpt-min(xpt)+sp@cmPerBin
+    ypt<-ypt-min(ypt)+sp@cmPerBin
+  }
+  par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
+  plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
+  lines(xpt,ypt,type='l',xlab=xlab,ylab=ylab)
+  points(sp@xSpikes[which(st@clu==clu&sp@xSpikes!=-1.0)],sp@ySpikes[which(st@clu==clu&sp@xSpikes!=-1.0)],col="red")
+  if(plot.axis){
+    axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=0.60,mgp=mgp.x)
+    axis(side = 2, las=2, pos=axis.y.pos, tck=-0.05,cex.axis=0.60,mgp=mgp.y)
+  }
+  title(xlab=xlab,mgp=mgp.x)
+  title(ylab=ylab,mgp=mgp.y)
+  if(name!="")
+  {
+    mtext(name,side=3,line=0.3,cex=cex.name)
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 #' Plot a single firing rate map
 #' 
 #' Plot a 2-dimensional representation of firing rate using the image function included in the graphics package

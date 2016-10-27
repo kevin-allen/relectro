@@ -88,9 +88,10 @@ setMethod(f="datFilesSamples",
             
             ## check that the files exist
             if(any(!file.exists(paste(df@path,df@fileNames,sep="/")))){
-              print("A dat file is missing")
-              print(paste(df@path,df@fileNames,sep="/")[which(!file.exists(paste(df@path,df@fileNames,sep="/")))])
-              stop()
+              stop(paste("A dat file is missing",
+                         paste(df@path,df@fileNames,sep="/")[which(!file.exists(paste(df@path,df@fileNames,sep="/")))],"\n"))
+              ?paste
+              
             }
             
             ## get the number of channels in each file
@@ -98,10 +99,9 @@ setMethod(f="datFilesSamples",
             
             ## check that the file size can be divided by nChannels
             if(any(df@size%%(df@nChannels*2)!=0)){
-              print(paste("size of a .dat file can't be divided by",df@nChannels*2))
               index<-which(df@size%%(df@nChannels*2)!=0)
-              print(paste(paste(df@path,df@fileNames[index],sep="/"),"size:",df@size[index],"remainder:",df@size[index]%%(df@nChannels*2)))
-              stop()
+              stop(paste(paste("size of can't be divided by",df@nChannels*2), 
+                         paste(paste(df@path,df@fileNames[index],sep="/"),"size:",df@size[index],"remainder:",df@size[index]%%df@nChannels*2),"\n"))
             }
             df@samples<-df@size/(df@nChannels*2)
             return(df)                        

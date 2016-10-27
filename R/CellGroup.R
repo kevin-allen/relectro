@@ -17,7 +17,7 @@
 #' @slot brainRegion region in which the cell was recorded
 #' @examples
 #' df<-new("CellGroup")
-#' @
+#'
 CellGroup <- setClass(
   "CellGroup", ## name of the class
   slots=c(session="character",

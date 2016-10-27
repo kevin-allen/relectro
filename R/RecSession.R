@@ -143,17 +143,22 @@ setMethod(f="loadRecSession",
                 rs@sessionDurationSec<-sum(rs@trialDurationSec)
               }
             }else
-            { ## try to get information from dat files
+            { 
+              # try to get the info from DatFiles object, but don't return error if not there 
               df<-new("DatFiles")
-              df<-datFilesSet(df,
+              try(
+                df<-datFilesSet(df,
                               fileNames=paste(rs@trialNames,"dat",sep="."),
                               path=rs@path,
-                              nChannels=rs@nChannels)
-              rs@trialStartRes<-c(0,cumsum(df@samples[1:(length(df@samples)-1)]))
-              rs@trialEndRes<-cumsum(df@samples[1:(length(df@samples))])-1  # -1 because we want the index
-              if(length(rs@samplingRate)!=0){
-                rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
-                rs@sessionDurationSec<-sum(rs@trialDurationSec)
+                              nChannels=rs@nChannels),
+                silent=TRUE)
+              if(df@path!=""){
+                rs@trialStartRes<-c(0,cumsum(df@samples[1:(length(df@samples)-1)]))
+                rs@trialEndRes<-cumsum(df@samples[1:(length(df@samples))])-1  # -1 because we want the index
+                if(length(rs@samplingRate)!=0){
+                  rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
+                  rs@sessionDurationSec<-sum(rs@trialDurationSec)
+                }  
               }
             }
             if(file.exists(paste(rs@fileBase,"clu",sep="."))&
