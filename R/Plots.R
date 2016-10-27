@@ -2,8 +2,7 @@
 #' 
 #' Plot the animal path from a Positrack object and the spikes in space from a SpatialProperties2d object
 #' 
-#' @param pt Positrack object with the path of the animal in slot x and y
-#' @param sp SpatialProperties2d object with the spike position in slot xSpikes and ySpikes
+#' @param sop List containing the data to plot the spike on path, you can get this list with the function spikeOnPath
 #' @param clu Clu number of the cell of interest.
 #' @param name String with the name of the cell
 #' @param outma Outer margins of the figure
@@ -19,7 +18,7 @@
 #' @param xlab Name to display under the x axis
 #' @param ylab Name to display at the left of the y axis
 #' @param main.title A title for the figure
-spikeOnPath <- function(pt,sp,clu,name="",
+spikeOnPathPlot <- function(sop,clu,name="",
                         outma=c(2.0,2.0,2.0,2.0),margin=c(1.5,1.5,1,1),
                         cex.name=0.6,
                         plotxlim=c(0,80),plotylim=c(0,80),
@@ -29,19 +28,12 @@ spikeOnPath <- function(pt,sp,clu,name="",
                         xlab="",ylab="")
 {
   par(oma=outma,mar=margin)
-  xpt<-pt@x[!is.na(pt@x)]
-  ypt<-pt@y[!is.na(pt@x)]
-  
-  ## the position data is manipulate before getting the xSpikes and ySpikes values
-  ## we apply the same to position data here so that spikes match path
-  if(sp@reduceSize==T){
-    xpt<-xpt-min(xpt)+sp@cmPerBin
-    ypt<-ypt-min(ypt)+sp@cmPerBin
-  }
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
+  
+
   plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
-  lines(xpt,ypt,type='l',xlab=xlab,ylab=ylab)
-  points(sp@xSpikes[which(st@clu==clu&sp@xSpikes!=-1.0)],sp@ySpikes[which(st@clu==clu&sp@xSpikes!=-1.0)],col="red")
+  lines(sop$xPath,sop$yPath,type='l',xlab=xlab,ylab=ylab)
+  points(sop$xSpike[which(sop$cluSpike==clu)],sop$ySpike[which(sop$cluSpike==clu)],col="red")
   if(plot.axis){
     axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=0.60,mgp=mgp.x)
     axis(side = 2, las=2, pos=axis.y.pos, tck=-0.05,cex.axis=0.60,mgp=mgp.y)

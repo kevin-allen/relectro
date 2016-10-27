@@ -172,6 +172,72 @@ setMethod("show", "SpatialProperties2d",
               
           })
 
+#' Return the data to plot spikes on the path of the animal
+#' 
+#' @param pt Positrack object
+#' @param st SpikeTrain object
+#' @param sp SpatialProperties2d
+#' 
+#' @return List containing xPath, yPath, xSpike, ySpike, cluSpike
+#' 
+#' @docType methods
+#' @rdname spikeOnPath-methods
+setGeneric(name="spikeOnPath",
+           def=function(sp,st,pt)
+           {standardGeneric("spikeOnPath")}
+)
+#' @rdname spikeOnPath-methods
+#' @aliases spikeOnPath,ANY,ANY-method
+setMethod(f="spikeOnPath",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt)
+          {
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in firingRateMap2d",st@session))
+            if(st@nSpikes==0)
+              stop(paste("st@nSpikes==0 in firingRateMap2d",st@session))
+            
+            sp@cellList<-st@cellList
+            ## move data closer to 0, like done for firing rate maps
+            if(sp@reduceSize==T){
+              x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
+              y<-pt@y-min(pt@y,na.rm=T)+sp@cmPerBin
+            }else{
+              x<-pt@x
+              y<-pt@y
+            }
+            
+            ## use -1 as invalid values in c functions
+            x[is.na(x)]<- -1.0
+            y[is.na(y)]<- -1.0
+            
+            ## get spike position
+            results<-.Call("spike_position_cwrap",
+                           x,
+                           y,
+                           length(x),
+                           as.integer(st@res),
+                           as.integer(st@nSpikes),
+                           as.integer(pt@resSamplesPerWhlSample),
+                           as.integer(st@startInterval),
+                           as.integer(st@endInterval),
+                           length(st@startInterval))
+            sp@xSpikes<-results[1,]
+            sp@ySpikes<-results[2,]
+            
+            ## return all the data
+            xPath<-x[which(x!=-1.0)]
+            yPath<-y[which(y!=-1.0)]
+            xSpike<-sp@xSpikes[which(sp@xSpikes!=-1.0&st@clu%in%st@cellList)]
+            ySpike<-sp@ySpikes[which(sp@xSpikes!=-1.0&st@clu%in%st@cellList)]
+            cluSpike<-st@clu[which(sp@xSpikes!=-1.0&st@clu%in%st@cellList)]
+            
+            
+            return(list(xPath=xPath,yPath=yPath,xSpike=xSpike,ySpike=ySpike,cluSpike=cluSpike))
+          }
+)
+
+
 
 #' Calculate the firing rate maps of neurons using a SpikeTrain and Positrack objects
 #'

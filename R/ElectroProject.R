@@ -252,7 +252,8 @@ setMethod(f="getSessionList",
 #' The function applied to single recording sessions should return the results in a list. 
 #' The results are saved in the resultsDirectory of the ElectroProject object.
 #' The names of the files saved will be the name of the elements in the list returned by the function
-#' The data from each recording session will be bound togheter using rbind. If the element is an array, they will be bound with abind.
+#' If the element is an array or matrix, they will be bound with abind.
+#' If not a array or matrix, the data from each recording session will be bound togheter using rbind.
 #' You can use snow::parLapply instead of lapply by setting parallel to TRUE and passing a valid cluster to the function
 #' If save is set to FALSE, the data returned by the lapply function will not be saved but retured.
 #' If overwrite is set to TRUE, previous data will be overwrite when saving the data.
@@ -313,19 +314,22 @@ setMethod(f="runOnSessionList",
                stop("runOnSessionList, list.res is not a list")
              if(!is.list(list.res[[1]]))
                stop(paste("runOnSessionList, first item of the list list.res is not a list, fnct should return a list"))
-             
+           
              ## list of objects to merge and save
              objectNames<-names(list.res[[1]])
+             if(any(objectNames==""))
+               stop(paste("runOnSessionList, not all elements of the list returned by the function have a name"))
+
              for(n in objectNames){
                obj<-list.res[[1]]
                if(overwrite==T){
-                 if(class(obj[[n]])=="array"){
+                 if(class(obj[[n]])=="array"| class(obj[[n]])=="matrix"){
                   assign(n,do.call(abind::abind,sapply(list.res,function(x){x[n]})))  ## bind along the last dimension
                  }else{
                   assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
                  }
                }else{## concatonate to existing data
-                 if(class(obj[[n]])=="array"){
+                 if(class(obj[[n]])=="array"|class(obj[[n]])=="matrix"){
                    assign(paste(n,"new",sep="."),do.call(abind::abind, sapply(list.res,function(x){x[n]}))) ## bind along the last dimension
                    load(file=paste(ep@resultsDirectory,n,sep="/"))
                    assign(n,abind::abind(get(n),get(paste(n,"new",sep="."))))
