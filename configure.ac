@@ -1,5 +1,6 @@
 AC_PREREQ(2.62)
 AC_INIT([relectro],[0.01])
+AC_CONFIG_AUX_DIR([tools])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/dat_files.c])
 AC_PROG_CC
