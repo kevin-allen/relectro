@@ -90,8 +90,7 @@ setMethod(f="datFilesSamples",
             if(any(!file.exists(paste(df@path,df@fileNames,sep="/")))){
               stop(paste("A dat file is missing",
                          paste(df@path,df@fileNames,sep="/")[which(!file.exists(paste(df@path,df@fileNames,sep="/")))],"\n"))
-              ?paste
-              
+            
             }
             
             ## get the number of channels in each file

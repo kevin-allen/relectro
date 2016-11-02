@@ -3,11 +3,13 @@
 #' Plot the animal path from a Positrack object and the spikes in space from a SpatialProperties2d object
 #' 
 #' @param sop List containing the data to plot the spike on path, you can get this list with the function spikeOnPath
+#' It contains 4 objects: xSpike, ySpike, cluSpike, xPath and yPath 
 #' @param clu Clu number of the cell of interest.
 #' @param name String with the name of the cell
 #' @param outma Outer margins of the figure
 #' @param margin Inner margins of the figure
 #' @param cex.name Size of the font use for the name of the map
+#' @param cex.point Size of the spike points
 #' @param plotxlim Limits of the x axis
 #' @param plotylim Limits of the y axis
 #' @param mgp.x mgp for the x axis
@@ -17,10 +19,9 @@
 #' @param plot.axis Whether to plot the axes or not (TRUE or FALSE)
 #' @param xlab Name to display under the x axis
 #' @param ylab Name to display at the left of the y axis
-#' @param main.title A title for the figure
 spikeOnPathPlot <- function(sop,clu,name="",
                         outma=c(2.0,2.0,2.0,2.0),margin=c(1.5,1.5,1,1),
-                        cex.name=0.6,
+                        cex.name=0.6,cex.point=0.5,
                         plotxlim=c(0,80),plotylim=c(0,80),
                         mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),
                         axis.x.pos=0,axis.y.pos=0,
@@ -33,7 +34,8 @@ spikeOnPathPlot <- function(sop,clu,name="",
 
   plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
   lines(sop$xPath,sop$yPath,type='l',xlab=xlab,ylab=ylab)
-  points(sop$xSpike[which(sop$cluSpike==clu)],sop$ySpike[which(sop$cluSpike==clu)],col="red")
+  points(sop$xSpike[which(sop$cluSpike==clu)],sop$ySpike[which(sop$cluSpike==clu)],col="red",
+         pch=20,cex=cex.point)
   if(plot.axis){
     axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=0.60,mgp=mgp.x)
     axis(side = 2, las=2, pos=axis.y.pos, tck=-0.05,cex.axis=0.60,mgp=mgp.y)
@@ -45,15 +47,6 @@ spikeOnPathPlot <- function(sop,clu,name="",
     mtext(name,side=3,line=0.3,cex=cex.name)
   }
 }
-
-
-
-
-
-
-
-
-
 
 
 #' Plot a single firing rate map
@@ -72,7 +65,7 @@ spikeOnPathPlot <- function(sop,clu,name="",
 #' @param peak.rate.prefix Additional information to display before the peak firing rate.
 firingRateMapPlot <- function(m,name="",
                               outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
-                              cex.title=0.4,cex.name=0.4,
+                              cex.title=0.5,cex.name=0.5,
                               xlab="",ylab="",main.title="",peak.rate.prefix="")
 {
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
@@ -223,7 +216,10 @@ headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.
                                    xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="")
 {
   radlim=max(df$rate)   
-  par(oma=outma,cex.lab=cex.lab,cex.axis=cex.x.axis)
+  par(oma=outma,
+      mar=margin,
+      cex.lab=cex.lab,cex.axis=cex.x.axis,cex.lab=cex.lab)
+  
   oldpar <- plotrix::polar.plot(df$rate,
                        polar.pos=df$deg,
                        labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
@@ -233,7 +229,7 @@ headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.
                        show.grid=T,show.radial.grid=T,
                        radial.lim=c(0,radlim),show.grid.labels=0,
                        xlab="",ylab="",line.col=4,mar=margin)
-  mtext(paste(peak.rate.prefix,round(radlim,digits=2),"Hz"),side=3,at=0,line=-0.1,cex=0.5)
+  mtext(paste(peak.rate.prefix,round(radlim,digits=2),"Hz"),side=3,at=0,line=0.1,cex=0.5)
   if(main.title!="")
   {
     mtext(main.title,side=3,at=0,line=0.3,cex=0.5)

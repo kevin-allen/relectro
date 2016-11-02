@@ -40,7 +40,8 @@ If save is set to TRUE, the results returned by the function will be saved.
 The function applied to single recording sessions should return the results in a list. 
 The results are saved in the resultsDirectory of the ElectroProject object.
 The names of the files saved will be the name of the elements in the list returned by the function
-The data from each recording session will be bound togheter using rbind. If the element is an array, they will be bound with abind.
+If the element is an array or matrix, they will be bound with abind.
+If not a array or matrix, the data from each recording session will be bound togheter using rbind.
 You can use snow::parLapply instead of lapply by setting parallel to TRUE and passing a valid cluster to the function
 If save is set to FALSE, the data returned by the lapply function will not be saved but retured.
 If overwrite is set to TRUE, previous data will be overwrite when saving the data.

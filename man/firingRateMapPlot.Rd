@@ -5,7 +5,7 @@
 \title{Plot a single firing rate map}
 \usage{
 firingRateMapPlot(m, name = "", outma = c(2, 2, 2, 2), margin = c(1, 1, 1,
-  1), cex.title = 0.4, cex.name = 0.4, xlab = "", ylab = "",
+  1), cex.title = 0.5, cex.name = 0.5, xlab = "", ylab = "",
   main.title = "", peak.rate.prefix = "")
 }
 \arguments{
