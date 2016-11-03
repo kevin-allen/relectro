@@ -70,7 +70,6 @@ setMethod(f="setSessionList",
             
             ## only keep the directories with a hyphen in the name
             ep@sessionPathList<-dirs<-dirs[grepl(pattern="-",dirs)]
-            ep@sessionPathList
             ep@nSessions<-length(dirs)
             
             ## make sure all directories have the same depth
