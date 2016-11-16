@@ -131,6 +131,8 @@ setMethod(f="loadRecSession",
             if(file.exists(paste(rs@fileBase,"sampling_rate_dat",sep="."))){
               try(rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1,
                   silent=F)
+              if(length(rs@samplingRate)>1)
+                stop(paste("loadRecSession, samplingRate has a length > 1, check",paste(rs@fileBase,"sampling_rate_dat",sep=".")))
               if(rs@samplingRate<1 | rs@samplingRate > 100000)
                 stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }

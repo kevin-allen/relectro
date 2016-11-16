@@ -6,6 +6,18 @@
 #' @return Numeric, standard error of the mean
 sem<-function(x){sd(x,na.rm=T)/sqrt(length(x))}
 
+
+#' Get the mode of a distribution
+#' 
+#' This get you the value with the highest frequency in a vector 
+#' 
+#' @param x Numeric vector
+#' @return The value in the vector with the highest frequency
+Mode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
 #' Returns possible pairs from one or two vectors of values
 #' 
 #' If only on vector of values is given, all possible pairs within these values are returned.

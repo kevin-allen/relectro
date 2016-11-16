@@ -35,6 +35,7 @@ ElectroProject <- setClass(
 #'
 #' Will list directories in the project directories.
 #' Only directories with an hyphen in their names are considered recSession directories.
+#' So only recording session directories should have a hyphen in their names
 #'
 #' @param ep ElectroProject object
 #' @param loadSessions logical, whether the RecSession object should be created
@@ -66,6 +67,7 @@ setMethod(f="setSessionList",
             }
             
             ## list all directories in the project path
+            ## this is really slow if over nfs.
             dirs<-list.dirs(path=ep@directory)
             
             ## only keep the directories with a hyphen in the name
@@ -74,14 +76,23 @@ setMethod(f="setSessionList",
             
             ## make sure all directories have the same depth
             x<-sapply(ep@sessionPathList,function(x){length(unlist(strsplit(x,split="/")))})
-            if(any(x!=x[1])){
-              stop("the depth of some session directories differs")
-            }
-            
-            dirDepth<-as.numeric(x[1])
-            ep@sessionNameList<-unlist(strsplit(dirs,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
-          
-            if(loadSessions==TRUE){ep<-loadSessionsInList(ep)}
+            xMode<-Mode(as.numeric(x))
+            if(any(x!=xMode)){
+              print(paste("The depth of some directories differs"))
+              print(paste("Most directories have a depth of",xMode))
+              print(paste("For example,",head(ep@sessionPathList[which(x==xMode)],n=1)))
+              print("The following directories will not be included")
+              print(ep@sessionPathList[which(x!=xMode)])
+              ep@sessionPathList<-ep@sessionPathList[which(x==xMode)]
+              ep@nSessions<-length(ep@sessionPathList)
+            }    
+            dirDepth<-xMode
+            ep@sessionNameList<-
+              unlist(strsplit(ep@sessionPathList,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
+              
+            if(loadSessions==TRUE){
+              ep<-loadSessionsInList(ep)
+              }
           return(ep)
           })
 
