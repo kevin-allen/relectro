@@ -29,8 +29,6 @@ ElectroProject <- setClass(
   prototype = list(directory=""))
 
 
-
-
 #' Create a list of RecSession objects for the ElectroProject
 #'
 #' Will list directories in the project directories.
@@ -123,14 +121,10 @@ setMethod(f="loadSessionsInList",
               stop("ep@sessionNameList has length of 0")
             if(length(ep@sessionPathList)==0)
               stop("ep@sessionPathList has length of 0")
-          
             
             for (i in 1:length(ep@sessionNameList))
-            {
-              ep@sessionList[[i]]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])
-            }
+            {ep@sessionList[[i]]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])}
             ep@sessionList<-lapply(ep@sessionList,loadRecSession)     
-            
             return(ep)
           })
 

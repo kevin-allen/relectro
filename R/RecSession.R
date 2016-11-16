@@ -296,14 +296,6 @@ setMethod(f="fileExists",
           })
 
 
-
-
-
-
-
-
-
-
 #' Get the recording date of a recSession, taken from session name
 #'
 #' @param rs A RecSession object
@@ -403,6 +395,17 @@ setMethod(f="getRecSessionObjects",
             sp<-new("SpatialProperties2d",session=rs@session)
             sp1<-new("SpatialProperties1d",session=rs@session)
             hd<-new("HeadDirection",session=rs@session)
+            
+            if(st@nCells!=cg@nCells){
+              print(paste("st@nCells is not equal to cg@nCells for",rs@session))
+              print("There is probably a cluster with no spike that was not removed at clustering time")
+              print("cg object")
+              print(cg)
+              print("st object")
+              print(st)
+              stop()
+            }
+            
             return(list(st=st,pt=pt,df=df,cg=cg,sp=sp,sp1=sp1,hd=hd))
           })
 
