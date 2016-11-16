@@ -269,6 +269,41 @@ setMethod(f="containsEnvironment",
             return(any(rs@env==environment))
           })
 
+
+
+
+#' Check if the session directory contains a file ending with the value of the argument extension
+#'
+#' By default test whether paste(rs@fileBase,extension,sep=".") exists
+#'
+#' @param rs A RecSession object
+#' @param extension The extension of the file you are looking for.
+#' @return TRUE or FALSE
+#' 
+#' @docType methods
+#' @rdname fileExists-methods
+setGeneric(name="fileExists",
+           def=function(rs,extension="")
+           {standardGeneric("fileExists")}
+)
+#' @rdname fileExists-methods
+#' @aliases fileExists,ANY,ANY-method
+setMethod(f="fileExists",
+          signature="RecSession",
+          definition=function(rs,extension="")
+          {
+            return(file.exists(paste(rs@fileBase,extension,sep=".")))
+          })
+
+
+
+
+
+
+
+
+
+
 #' Get the recording date of a recSession, taken from session name
 #'
 #' @param rs A RecSession object

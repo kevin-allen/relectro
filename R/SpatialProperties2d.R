@@ -241,9 +241,9 @@ setMethod(f="spikeOnPath",
 
 #' Calculate the firing rate maps of neurons using a SpikeTrain and Positrack objects
 #'
-#' The occupancy map and the firing rate maps are smoothed with a Gaussian kernel
-#' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp
-#' You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size
+#' The occupancy map and the firing rate maps are smoothed with a Gaussian kernel.
+#' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp.
+#' You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size.
 #' 
 #' @param sp SpatialProperties1d object
 #' @param st SpikeTrain object
@@ -365,8 +365,7 @@ setMethod(f="firingRateMap2d",
                             as.numeric(sp@occupancy),
                             sp@smoothRateMapSd/sp@cmPerBin)
             sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
-            #firingRateMapPlot(m=sp@maps[,,5])
-            
+           
             return(sp)
           }
 )
@@ -472,7 +471,7 @@ setMethod(f="spikeTriggeredFiringRateMap2d",
 #' @param sp SpatialProperties2d object
 #' @param st SpikeTrain object
 #' @param pt Positrack object
-#' @param border Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular. 
+#' @param border Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular". 
 #' Default value is "rectangular"
 #' @param triggered Logical indicating whether to calculate a spike-triggered firing rate map instead of conventional map
 #' Default value is FALSE
