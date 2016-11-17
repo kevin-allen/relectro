@@ -193,12 +193,11 @@ firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
   #  dev.off()
 }
 
-
 #' Polar plot of firing rate as a function of head direction
 #' 
 #' Polar representation of firing rate using the polar.plot function of the plotrix package
 #' 
-#' @param df A data.frame with columns deg and rate
+#' @param histo A data.frame with columns deg and rate, or a numeric vector containing rate values
 #' @param outma Outer margins of the figure
 #' @param margin Inner margins of the figure
 #' @param axis.x.mgp mgp for x axis
@@ -211,31 +210,100 @@ firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
 #' @param show.xlab Wether of not the xlabel is shown
 #' @param main.title A title for the figure
 #' @param peak.rate.prefix Additional information to display before the peak firing rate.
-headDirectionPolarPlot <- function(df,outma=c(0,0,0.5,0),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),
+headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),
                                    axis.y.mgp=c(2.2,0.6,0),cex.x.axis=0.5,cex.y.axis=0.5,cex.lab=0.5,
                                    xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="")
 {
-  radlim=max(df$rate)   
   par(oma=outma,
       mar=margin,
       cex.lab=cex.lab,cex.axis=cex.x.axis,cex.lab=cex.lab)
-  
-  oldpar <- plotrix::polar.plot(df$rate,
-                       polar.pos=df$deg,
-                       labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
-                       #                       labels="",
-                       clockwise=F,
-                       rp.type="p",
-                       show.grid=T,show.radial.grid=T,
-                       radial.lim=c(0,radlim),show.grid.labels=0,
-                       xlab="",ylab="",line.col=4,mar=margin)
-  mtext(paste(peak.rate.prefix,round(radlim,digits=2),"Hz"),side=3,at=0,line=0.1,cex=0.5)
-  if(main.title!="")
-  {
-    mtext(main.title,side=3,at=0,line=0.3,cex=0.5)
+  if(class(histo)=="numeric"){
+    int<-360/length(histo)
+    deg<-seq(0,360-int,int)
+    radlim=max(histo)   
+    oldpar <- plotrix::polar.plot(histo,
+                                  polar.pos=deg,
+                                  labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
+                                  #                       labels="",
+                                  clockwise=F,
+                                  rp.type="p",
+                                  show.grid=T,show.radial.grid=T,
+                                  radial.lim=c(0,radlim),show.grid.labels=0,
+                                  xlab="",ylab="",line.col=4,mar=margin)
   }
+  if(class(histo)=="data.frame"){
+    if(!"rate" %in% names(histo))
+      stop("headDirectionPolarPlot needs a data.frame with rate column")
+    if(!"deg" %in% names(histo))
+      stop("headDirectionPolarPlot needs a data.frame with deg column")
+    radlim=max(histo$rate)   
+    oldpar <- plotrix::polar.plot(histo$rate,
+                                  polar.pos=histo$deg,
+                                  labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
+                                  #                       labels="",
+                                  clockwise=F,
+                                  rp.type="p",
+                                  show.grid=T,show.radial.grid=T,
+                                  radial.lim=c(0,radlim),show.grid.labels=0,
+                                  xlab="",ylab="",line.col=4,mar=margin)
+  }
+  mtext(paste(peak.rate.prefix,round(radlim,digits=2),"Hz"),side=3,at=0,line=0.1,cex=0.5)  
+  if(main.title!="")
+    mtext(main.title,side=3,at=0,line=0.3,cex=0.5)
   par(oldpar)
 }
+
+
+#' Plot a several firing rate maps on the same page
+#' 
+#' Plot 2-dimensional representation of firing rate for several maps
+#' This is not currently being developed.
+#' 
+#' @param maps A 3d array containing maps (x,y,clu)
+#' @param names A character vector containing the name of each map in the array
+#' @param fn Character vector containing the file name for the plot
+HeadDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
+  num.cols<-5
+  num.rows<-6
+  plot.per.page=num.cols*num.rows
+  m<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
+              rep(seq(1/num.cols,1,1/num.cols),num.rows),
+              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
+              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
+  #  pdf(file=fn,onefile=TRUE,paper="a4",width=8,height=10)
+  index=1
+  nCells<-dim(maps)[3]
+  for (i in 1:nCells){
+    if(index==1)
+    {
+      split.screen(m)  
+    }
+    screen(index)
+    ## insert your plot function here
+    firingRateMapPlot(maps[,,i],name=names[i])
+    if(index==plot.per.page)
+    {
+      close.screen( all.screens = TRUE )
+      index=0
+    }
+    index=index+1
+  }
+  close.screen(all.screens = TRUE)
+  #  dev.off()
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
