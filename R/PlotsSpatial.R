@@ -154,8 +154,6 @@ firingRateMapAutoPlot <- function(m,name="",
   }
 }
 
-
-
 #' Plot a several spatial autocorrelation maps on the same page
 #' 
 #' This is not currently being developed.
@@ -298,21 +296,6 @@ headDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
   #  dev.off()
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #' Plot a linear rate histogram from a SpatialProperties1D object
 #' 
 #' In development
@@ -352,8 +335,6 @@ linearRatePlot<-function(sp1,n=1,
   title(ylab=ylab,mgp=mgp.y)
 }
 
-
-
 #' Plot several linear rate histograms from a SpatialProperties1D object
 #' 
 #' In development
@@ -388,4 +369,3 @@ linearRatePlots<-function(sp1,fn="page.full.plot.pdf"){
   close.screen(all.screens = TRUE)
   #  dev.off()
 }
-
