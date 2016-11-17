@@ -20,7 +20,7 @@ getMapStats(sp, st, pt, border = "rectangular", triggered = F,
 
 \item{pt}{Positrack object}
 
-\item{border}{Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular. 
+\item{border}{Set how the border of the environment will be detected. Value can be set to "rectangular" or "circular". 
 Default value is "rectangular"}
 
 \item{triggered}{Logical indicating whether to calculate a spike-triggered firing rate map instead of conventional map

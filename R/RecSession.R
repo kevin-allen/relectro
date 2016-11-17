@@ -522,11 +522,21 @@ animalNameFromSessionName<-function(sessionName=NULL){
 
 #' Get session name from cluId
 #' 
-#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluId
+#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluNo
 #' 
 #' @param cluId Character vector with the session name
 #' @return Character vector with session name
 sessionNameFromCluId<-function(cluId=NULL){
   return(unlist(lapply(strsplit(as.character(cluId),split="_"),function(x){return(x[[1]])})))
+}
+
+#' Get cluNo from cluId
+#' 
+#' Assumes the cluId is in the format name-date-rest_cluNo
+#' 
+#' @param cluId Character vector with the cluIds
+#' @return Numeric vectors with cluNo
+cluNoFromCluId<-function(cluId=NULL){
+  return(as.numeric(unlist(lapply(strsplit(as.character(cluId),split="_"),function(x){return(x[[2]])}))))
 }
 
