@@ -254,15 +254,13 @@ headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0
 }
 
 
-#' Plot a several firing rate maps on the same page
+#' Plot several polar plot with firing rate as a function of head direction
 #' 
-#' Plot 2-dimensional representation of firing rate for several maps
-#' This is not currently being developed.
 #' 
-#' @param maps A 3d array containing maps (x,y,clu)
-#' @param names A character vector containing the name of each map in the array
+#' @param histo A matrix [deg,clu], or numeric if there is only one cell, containing the data for the polar plots.
+#' @param names A character vector containing the name of each plot
 #' @param fn Character vector containing the file name for the plot
-HeadDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
+headDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
   num.cols<-5
   num.rows<-6
   plot.per.page=num.cols*num.rows
@@ -272,7 +270,12 @@ HeadDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
               rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
   #  pdf(file=fn,onefile=TRUE,paper="a4",width=8,height=10)
   index=1
-  nCells<-dim(maps)[3]
+  
+  if(class(histo)=="numeric")
+    nCells<-1
+  if(class(histo)=="matrix")
+    nCells<-dim(histo)[2]
+  
   for (i in 1:nCells){
     if(index==1)
     {
@@ -280,7 +283,10 @@ HeadDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
     }
     screen(index)
     ## insert your plot function here
-    firingRateMapPlot(maps[,,i],name=names[i])
+    if(nCells==1)
+      headDirectionPolarPlot(histo,peak.rate.prefix=names[i])
+    else
+      headDirectionPolarPlot(histo[,i],peak.rate.prefix=names[i])
     if(index==plot.per.page)
     {
       close.screen( all.screens = TRUE )
