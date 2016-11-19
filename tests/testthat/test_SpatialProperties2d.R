@@ -226,7 +226,7 @@ test_that("border score, CM and DM in circular environments",
           sp@smoothRateMapSd=0
           sp@smoothOccupancySd=0
           sp<-firingRateMap2d(sp,st,pt)   
-          firingRateMapPlot(m=sp@maps[,,1])
+          #firingRateMapPlot(m=sp@maps[,,1])
           
           ## number of bins at the border
           b<-borderDetection(sp,border="circular")
@@ -314,7 +314,7 @@ test_that("spike triggered firing maps",
             sp@smoothRateMapSd=0
             sp@smoothOccupancySd=0
             sp<-firingRateMap2d(sp,st,pt)   
-            firingRateMapPlot(m=sp@maps[,,1])
+           # firingRateMapPlot(m=sp@maps[,,1])
             sp<-spikeTriggeredFiringRateMap2d(sp,st,pt,0,60)
             firingRateMapPlot(m=sp@maps[,,1])
             m<-sp@maps[,,1]
