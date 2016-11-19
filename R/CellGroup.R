@@ -97,6 +97,46 @@ setMethod(f="loadCellGroup",
           }
 )
 
+
+
+
+
+#' Get the brain region from a list of cluNo
+#'
+#'
+#' @param cg A CellGroup object
+#' @param cluNo Numeric containing the cluNo of the cluster for which you want the brain region.
+#' @return Character vector with be name of the brain region for each cluNo
+#' 
+#' @docType methods
+#' @rdname brainRegionFromCluNo-methods
+setGeneric(name="brainRegionFromCluNo",
+           def=function(cg,cluNo)
+           {standardGeneric("brainRegionFromCluNo")}
+)
+#' @rdname brainRegionFromCluNo-methods
+#' @aliases brainRegionFromCluNo,ANY,ANY-method
+setMethod(f="brainRegionFromCluNo",
+          signature="CellGroup",
+          definition=function(cg,cluNo)
+          {
+            if(cg@session=="")
+              stop("cg@session is empty")
+            if(length(cluNo)==0)
+              return()
+            if(any(!cluNo%in%cg@clu)){
+              stop("cluNo contains clusters that are not in cg object")
+            }
+            ## use merge to match the brainRegion based on cluNo
+            df1<-data.frame(clu=cg@clu,brainRegion=cg@brainRegion)
+            df2<-data.frame(clu=cluNo)
+            df3<-merge(df1,df2,by="clu")
+            return(as.character(df3$brainRegion))
+          }
+)
+
+
+
 ### show ###
 setMethod("show", "CellGroup",
           function(object){

@@ -29,8 +29,8 @@ position data in the Positrack object. Use this argument to have maps of a fixed
 SpatialProperties2d object with the firing rate maps
 }
 \description{
-The occupancy map and the firing rate maps are smoothed with a Gaussian kernel
-The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp
-You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size
+The occupancy map and the firing rate maps are smoothed with a Gaussian kernel.
+The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp.
+You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size.
 }
 

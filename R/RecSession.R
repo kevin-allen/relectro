@@ -131,6 +131,8 @@ setMethod(f="loadRecSession",
             if(file.exists(paste(rs@fileBase,"sampling_rate_dat",sep="."))){
               try(rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1,
                   silent=F)
+              if(length(rs@samplingRate)>1)
+                stop(paste("loadRecSession, samplingRate has a length > 1, check",paste(rs@fileBase,"sampling_rate_dat",sep=".")))
               if(rs@samplingRate<1 | rs@samplingRate > 100000)
                 stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }
@@ -267,6 +269,33 @@ setMethod(f="containsEnvironment",
             return(any(rs@env==environment))
           })
 
+
+
+
+#' Check if the session directory contains a file ending with the value of the argument extension
+#'
+#' By default test whether paste(rs@fileBase,extension,sep=".") exists
+#'
+#' @param rs A RecSession object
+#' @param extension The extension of the file you are looking for.
+#' @return TRUE or FALSE
+#' 
+#' @docType methods
+#' @rdname fileExists-methods
+setGeneric(name="fileExists",
+           def=function(rs,extension="")
+           {standardGeneric("fileExists")}
+)
+#' @rdname fileExists-methods
+#' @aliases fileExists,ANY,ANY-method
+setMethod(f="fileExists",
+          signature="RecSession",
+          definition=function(rs,extension="")
+          {
+            return(file.exists(paste(rs@fileBase,extension,sep=".")))
+          })
+
+
 #' Get the recording date of a recSession, taken from session name
 #'
 #' @param rs A RecSession object
@@ -366,6 +395,17 @@ setMethod(f="getRecSessionObjects",
             sp<-new("SpatialProperties2d",session=rs@session)
             sp1<-new("SpatialProperties1d",session=rs@session)
             hd<-new("HeadDirection",session=rs@session)
+            
+            if(st@nCells!=cg@nCells){
+              print(paste("st@nCells is not equal to cg@nCells for",rs@session))
+              print("There is probably a cluster with no spike that was not removed at clustering time")
+              print("cg object")
+              print(cg)
+              print("st object")
+              print(st)
+              stop()
+            }
+            
             return(list(st=st,pt=pt,df=df,cg=cg,sp=sp,sp1=sp1,hd=hd))
           })
 
@@ -482,11 +522,21 @@ animalNameFromSessionName<-function(sessionName=NULL){
 
 #' Get session name from cluId
 #' 
-#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluId
+#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluNo
 #' 
 #' @param cluId Character vector with the session name
 #' @return Character vector with session name
 sessionNameFromCluId<-function(cluId=NULL){
   return(unlist(lapply(strsplit(as.character(cluId),split="_"),function(x){return(x[[1]])})))
+}
+
+#' Get cluNo from cluId
+#' 
+#' Assumes the cluId is in the format name-date-rest_cluNo
+#' 
+#' @param cluId Character vector with the cluIds
+#' @return Numeric vectors with cluNo
+cluNoFromCluId<-function(cluId=NULL){
+  return(as.numeric(unlist(lapply(strsplit(as.character(cluId),split="_"),function(x){return(x[[2]])}))))
 }
 

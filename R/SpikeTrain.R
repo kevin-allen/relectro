@@ -231,6 +231,7 @@ setMethod(f="loadSpikeTrain",
             st@samplingRate<-as.numeric(readLines(paste(pathSession,"sampling_rate_dat",sep=".")))
             if(st@samplingRate<1 | st@samplingRate > 100000)
               stop(paste("samplingRate is out of range:",st@samplingRate,st@session))
+            cluNoFromCluFile=st@clu[1]
             st@clu<-st@clu[-1] ## remove first number
             if(length(st@res)!=length(st@clu))
               stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu),st@session))
@@ -245,6 +246,14 @@ setMethod(f="loadSpikeTrain",
             st@time<-st@res/st@samplingRate
             st@nSpikes<-length(st@res)
             st@nCells<-length(unique(st@clu))
+            if(st@nCells!=cluNoFromCluFile-1){
+              stop(paste(st@session,"
+                         There are fewer unique clusters in the spike train than 
+                         it should based on the first line of the clu file.
+                         Could affect how tetrode_id are assigned to cluster if using cellGroup object.
+                         Consider reclustering and deleting cluster without spikes."))              
+            }
+            
             st@nSpikesPerCell<-as.numeric(table(st@clu))
             # by default analysis on all cells and all recording period
             st@cellList<-sort(unique(st@clu))

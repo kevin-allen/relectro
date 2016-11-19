@@ -22,5 +22,6 @@ ElectroProject object with a list of session names and directories
 \description{
 Will list directories in the project directories.
 Only directories with an hyphen in their names are considered recSession directories.
+So only recording session directories should have a hyphen in their names
 }
 
