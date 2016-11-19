@@ -28,10 +28,7 @@ spikeOnPathPlot <- function(sop,clu,name="",
                         plot.axis=TRUE,
                         xlab="",ylab="")
 {
-  par(oma=outma,mar=margin)
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
-  
-
   plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
   lines(sop$xPath,sop$yPath,type='l',xlab=xlab,ylab=ylab)
   points(sop$xSpike[which(sop$cluSpike==clu)],sop$ySpike[which(sop$cluSpike==clu)],col="red",
