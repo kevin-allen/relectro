@@ -201,6 +201,22 @@ SEXP maps_rotate_cwrap(SEXP maps, SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP num
 SEXP detect_firing_fields_cwrap(SEXP maps_r,SEXP num_bins_x_r,SEXP num_bins_y_r, SEXP num_cells_r,SEXP cell_list_r,SEXP min_bins_r,SEXP rate_thresholds_r);
 SEXP spike_distance_metric_cwrap(SEXP x_spikes_r, SEXP y_spikes_r, SEXP res_r,SEXP clu_r, SEXP res_lines_r, SEXP clu_fields_r, SEXP x_com_r, SEXP y_com_r,
                             SEXP field_lines_r, SEXP start_intervals_r, SEXP end_intervals_r, SEXP interval_lines_r, SEXP cells_r,SEXP cells_lines_r);
+SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r, SEXP degrees_per_bin_r, SEXP cells_r, SEXP num_cells_r, SEXP hd_whd_r, SEXP whl_lines_r, SEXP res_r, SEXP clu_r,
+                                                SEXP res_lines_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r, SEXP ms_per_sample_r,
+                                                SEXP res_samples_per_whl_sample_r, SEXP smoothing_factor_occ_r, SEXP smoothing_factor_rate_r, SEXP min_isi_ms_r,
+                                                SEXP max_isi_ms_r, SEXP res_sampling_rate_r);
+void create_hd_firing_histo_spike_triggered(int num_bins, int degrees_per_bin, int* cells,int num_cells, double* hd_whd, int whd_lines, int* res, int* clu, int res_lines, 
+                                            double* hd_spike, int* num_valid_spikes, int* start_interval, int* end_interval, int interval_lines, 
+                                            double* all_occ_histo, double* all_hd_histo,double ms_per_sample,  int res_samples_per_whd_sample, 
+                                            double smoothing_factor_occ,double smoothing_factor_rate, double min_isi_ms, double max_isi_ms, int res_sampling_rate);
+void spike_triggered_occupancy_hd_histo(int num_bins, double degrees_per_bin, double *hd_whl, int whl_lines, double *histo, double ms_per_sample,
+                                        int *start_interval, int *end_interval, int interval_lines, int res_samples_per_whl_sample,
+                                        int* res, int* clu, int res_lines, int target_cell,
+                                        double min_isi_ms, double max_isi_ms, int res_sampling_rate, double* hd_spike);
+void spike_triggered_hd_histo(int num_bins,double degrees_per_bin, double *hd_spike,int* num_valid_spikes, 
+                              int* res, int *clu, int res_lines, int target_cell,double *occupancy_map, double *histo, 
+                              double min_isi_ms, double max_isi_ms ,int res_sampling_rate);
+
 
 
 // interval.c

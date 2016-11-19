@@ -154,6 +154,101 @@ setMethod(f="headDirectionHisto",
           }
 )
 
+
+#' Calculate the spike-triggered head-direction histogram using a HeadDirection, SpikeTrain and Positrack objects
+#'
+#' Each spike is treated as a reference spike in turn, and set to phase 180 degree. 
+#' The histogram is constructed from the data following the reference spikes 
+#' by shifting the head direction data so that the head direction of the 
+#' agent at the time of the reference spike is 180 degree.
+#' 
+#' The occupancy histogram and the firing rate histogram are smoothed with a Gaussian kernel.
+#' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateHistoSd of the HeadDirection object.
+#' 
+#' You can set the temporal limit for the data used to construct the histogram with minIsiMs and maxIsiMs
+#' 
+#' 
+#' @param hd HeadDirection object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @param minIsiMs Minimal interspike interval to consider in ms
+#' @param maxIsiMs Maximal interspike interval to consider in ms
+#' @return HeadDirection object with the spike-triggered firing rate maps
+#' 
+#' @docType methods
+#' @rdname spikeTriggeredHeadDirectionHisto-methods
+setGeneric(name="spikeTriggeredHeadDirectionHisto",
+           def=function(hd,st,pt,minIsiMs,maxIsiMs)
+           {standardGeneric("spikeTriggeredHeadDirectionHisto")}
+)
+#' @rdname spikeTriggeredHeadDirectionHisto-methods
+#' @aliases spikeTriggeredHeadDirectionHisto,ANY,ANY-method
+setMethod(f="spikeTriggeredHeadDirectionHisto",
+          signature="HeadDirection",
+          definition=function(hd,st,pt,minIsiMs,maxIsiMs)
+          {
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in firingRateMap2d",st@session))
+            if(st@nSpikes==0)
+              stop(paste("st@nSpikes==0 in firingRateMap2d",st@session))
+            if(minIsiMs<0)
+              stop(paste("minIsiMs should be 0 or larger than 0"))
+            if(maxIsiMs<0)
+              stop(paste("maxIsiMs should larger than 0"))
+            if(maxIsiMs<=minIsiMs)
+              stop(paste("maxIsiMs should be larger than minIsiMs"))
+            
+            hd@cellList<-st@cellList
+            
+            
+            ## use -1 as invalid values in c functions
+            hdir<-pt@hd
+            hdir[is.na(hdir)]<- -1.0
+            
+            hd@nBinHisto<-as.integer(ceiling(360/hd@degPerBin))
+            
+            results<- .Call("spike_triggered_head_direction_histo_cwrap",
+                            as.integer(hd@nBinHisto),
+                            hd@degPerBin,
+                            as.integer(hd@cellList),
+                            length(hd@cellList),
+                            hdir,
+                            length(pt@hd),
+                            as.integer(st@res),
+                            as.integer(st@clu),
+                            st@nSpikes,
+                            as.integer(st@startInterval),
+                            as.integer(st@endInterval),
+                            length(st@startInterval),
+                            pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                            as.integer(pt@resSamplesPerWhlSample),
+                            hd@smoothOccupancySd,
+                            hd@smoothRateHistoSd,
+                            minIsiMs,
+                            maxIsiMs,
+                            as.integer(st@samplingRate))
+            
+            #hd@histo<-array(data=results,dim=(c(hd@nBinHisto,length(sp@cellList))))
+            return(hd)
+          }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Calculate the head direction statistics for the head direction rate histograms with a HeadDirection, SpikeTrain and Positrack objects
 #'
 #' @param hd HeadDirection object

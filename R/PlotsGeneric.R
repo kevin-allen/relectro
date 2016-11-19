@@ -40,7 +40,7 @@ boxplotTwoFactors <- function(data,
   par(mgp=mgp)
   axis(side = 2,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
   title(ylab=ylab,mgp=mgp,cex=0.6)
-  if(legend.text!=""){
+  if(legend.text[1]!=""){
     par(xpd=T) # remove clipping so part of the legend can be outside the plot
     legend(legend.xy[1], legend.xy[2], legend=legend.text,col=legend.color, lty=1, lwd = 2, cex=0.6,bty = "n")
   }

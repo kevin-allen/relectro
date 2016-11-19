@@ -5517,15 +5517,12 @@ SEXP spike_distance_metric_cwrap(SEXP x_spikes_r,
   SEXP out = PROTECT(allocMatrix(REALSXP,row_out,
                                   valid_spikes));
   double* o = REAL(out);
-  
   for(int i = 0; i < valid_spikes; i++){
     o[i*row_out+0]=c[i];
     o[i*row_out+1]=trial[i];
     o[i*row_out+2]=time_res[i];
     o[i*row_out+3]=field_distance[i];
   }
-
-    
   free(field_distance);
   free(c);
   free(trial);
@@ -5533,4 +5530,374 @@ SEXP spike_distance_metric_cwrap(SEXP x_spikes_r,
   UNPROTECT(1);
   return(out);
 }
-                              
+
+SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r,
+                                                SEXP degrees_per_bin_r,
+                                                SEXP cells_r,
+                                                SEXP num_cells_r,
+                                                SEXP hd_whd_r,
+                                                SEXP whl_lines_r,
+                                                SEXP res_r,
+                                                SEXP clu_r,
+                                                SEXP res_lines_r,
+                                                SEXP start_interval_r,
+                                                SEXP end_interval_r,
+                                                SEXP interval_lines_r,
+                                                SEXP ms_per_sample_r,
+                                                SEXP res_samples_per_whl_sample_r,
+                                                SEXP smoothing_factor_occ_r,
+                                                SEXP smoothing_factor_rate_r,
+                                                SEXP min_isi_ms_r,
+                                                SEXP max_isi_ms_r,
+                                                SEXP res_sampling_rate_r)
+
+  
+{
+  
+  Rprintf("from c, hello\n");
+  int num_bins = INTEGER_VALUE(num_bins_r);
+  int cell_lines = INTEGER_VALUE(num_cells_r);
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  
+  
+  double* all_occ_histo = (double*)malloc(num_bins*cell_lines*sizeof(double));
+  double* all_hd_histo = (double*)malloc(num_bins*cell_lines*sizeof(double));
+  double* hd_spike = (double*)malloc(res_lines*sizeof(double));
+  int* num_valid_spikes = (int*)malloc(cell_lines*sizeof(int));
+  
+  SEXP out = PROTECT(allocVector(REALSXP,num_bins*cell_lines));
+  
+  create_hd_firing_histo_spike_triggered(num_bins, REAL(degrees_per_bin_r)[0],
+                                         INTEGER_POINTER(cells_r),cell_lines,
+                                         REAL(hd_whd_r), INTEGER_VALUE(whl_lines_r),
+                                         INTEGER_POINTER(res_r), INTEGER_POINTER(clu_r),res_lines, 
+                                         hd_spike, 
+                                         num_valid_spikes,
+                                         INTEGER_POINTER(start_interval_r),INTEGER_POINTER(end_interval_r), INTEGER_VALUE(interval_lines_r), 
+                                         all_occ_histo, REAL(out), 
+                                         REAL(ms_per_sample_r)[0], INTEGER_VALUE(res_samples_per_whl_sample_r), 
+                                         REAL(smoothing_factor_occ_r)[0],REAL(smoothing_factor_rate_r)[0],
+                                                                     REAL(min_isi_ms_r)[0], REAL(max_isi_ms_r)[0], INTEGER_VALUE(res_sampling_rate_r));
+  
+  
+  
+  free(all_occ_histo);
+  free(all_hd_histo);
+  free(hd_spike);
+  free(num_valid_spikes);
+  UNPROTECT(1);
+  return out;
+  
+  
+}
+
+void create_hd_firing_histo_spike_triggered(int num_bins, int degrees_per_bin, 
+                                            int* cells,int num_cells,
+                                            double* hd_whd, int whd_lines,
+                                            int* res, int* clu, int res_lines, 
+                                            double* hd_spike, 
+                                            int* num_valid_spikes,
+                                            int* start_interval, int* end_interval, int interval_lines, 
+                                            double* all_occ_histo, double* all_hd_histo, 
+                                            double ms_per_sample, 
+                                            int res_samples_per_whd_sample, 
+                                            double smoothing_factor_occ,
+                                            double smoothing_factor_rate,
+                                            double min_isi_ms,
+                                            double max_isi_ms,
+                                            int res_sampling_rate)
+{
+  /*This function to do spike triggered rate x hd histogram of single cells */
+  int target_cell;
+  double* one_hd_histo; // pointer
+  double* one_occ_histo; // pointer
+  
+  // outside intervals is set to -1 //
+  spike_head_direction(hd_whd,
+                       whd_lines,
+                       res,
+                       res_lines,
+                       hd_spike,
+                       res_samples_per_whd_sample,
+                       start_interval,
+                       end_interval,
+                       interval_lines);
+  
+  for(int i = 0; i < num_cells; i++)
+  {
+    // occupancy map is relative to spikes of first cell
+    target_cell = cells[i];
+    // use a pointer to place give the address for each cell
+    one_occ_histo = all_occ_histo + (i*num_bins);
+    spike_triggered_occupancy_hd_histo(num_bins,
+                                       degrees_per_bin,
+                                       hd_whd,
+                                       whd_lines,
+                                       one_occ_histo,
+                                       ms_per_sample,
+                                       start_interval,
+                                       end_interval,
+                                       interval_lines,
+                                       res_samples_per_whd_sample,
+                                       res,
+                                       clu,
+                                       res_lines,
+                                       target_cell,
+                                       min_isi_ms,
+                                       max_isi_ms,
+                                       res_sampling_rate,
+                                       hd_spike);
+    
+    
+    // smooth the occupancy histogram
+    smooth_double_gaussian(one_occ_histo,num_bins, smoothing_factor_occ,-1.0);
+  }
+  
+  
+  for(int i = 0; i < num_cells; i++)
+  {     
+    target_cell = cells[i];
+    
+    // use a pointer to place give the address for each cell
+    one_hd_histo = all_hd_histo + (i*num_bins);
+    one_occ_histo = all_occ_histo + (i*num_bins);
+    
+    spike_triggered_hd_histo(num_bins,degrees_per_bin, 
+                             hd_spike,
+                             num_valid_spikes+i,
+                             res, clu, res_lines, 
+                             target_cell, 
+                             one_occ_histo,one_hd_histo,
+                             min_isi_ms,max_isi_ms,res_sampling_rate);
+    
+    /// smooth the hd histo
+    smooth_double_gaussian(one_hd_histo,num_bins,smoothing_factor_rate,-1.0);
+  }
+  return;
+}
+
+void spike_triggered_occupancy_hd_histo(int num_bins, 
+                                        double degrees_per_bin, 
+                                        double *hd_whl,
+                                        int whl_lines, 
+                                        double *histo,
+                                        double ms_per_sample,
+                                        int *start_interval, 
+                                        int *end_interval, 
+                                        int interval_lines, 
+                                        int res_samples_per_whl_sample,
+                                        int* res, int* clu, int res_lines, 
+                                        int target_cell,
+                                        double min_isi_ms, double max_isi_ms,
+                                        int res_sampling_rate,
+                                        double* hd_spike)
+{
+  
+  /*****************************************************************************
+  Create the occupancy histogram for spike triggered hd maps
+  
+  This add ms_per_sample for every valid hd_whd value that is in 
+  the intervals given valid whl values 
+  
+  outside the intervals will not be added to occupancy map.
+  
+  If a valid whl value is for a period outside intervals,
+  the right proportion of time will be removed
+  
+  There is a minimum time that the animal has to 
+  spend in a bin for it to be valid; see variable min_occ
+  
+  ********************************************************************************/
+  int min_occ = 1000; // minimum time spent in a bin
+  // variable to deal with the intervals
+  int res_value_for_whl_sample; // time in res associated with a whl sample
+  int start_res_value; // starting time of a whl sample in res value
+  int end_res_value; // end time of a whl sample
+  int res_value_to_add; // number of res inside the interval
+  int interval_index=0;
+  double time_to_add;
+  int bin; // where to add the time in the map
+  int res_start_window; // start of window around the spike
+  int res_end_window; // end of window around the spike
+  int whl_index_start_window; // index in whl array of the start of window around the spike
+  int whl_index_end_window; // index in whl array of the end of window around the spike
+  double relative_hd_whl;
+  int min_isi_res=(int)(min_isi_ms*res_sampling_rate/1000);
+  int max_isi_res=(int)(max_isi_ms*res_sampling_rate/1000);
+  int total_spikes=0;
+  
+  // set the map to 0
+  for(int x = 0; x < num_bins; x++)
+    histo[x] = 0;
+  
+  // loop for each valid spike of the target cell (hd_spike != -1)
+  for (int i = 0; i < res_lines; i++)
+  {
+    if(clu[i]==target_cell&&res[i]!=-1&&hd_spike[i]!=-1)
+    {
+      total_spikes++;
+      // find the beginning and end of res values that we may add around the spike
+      res_start_window=res[i]+min_isi_res;
+      res_end_window=res[i]+max_isi_res;
+      if(res_start_window<0) res_start_window=0; // make sure this is not set to negative value
+      
+      // get index of whl for the start and end of window
+      whl_index_start_window=(res_start_window/res_samples_per_whl_sample)-1;
+      whl_index_end_window=(res_end_window/res_samples_per_whl_sample)-1;
+      if (whl_index_start_window>= whl_lines) whl_index_start_window=whl_lines-1;
+      if (whl_index_start_window<0) whl_index_start_window=0;
+      if (whl_index_end_window>=whl_lines) whl_index_end_window=whl_lines-1;
+      if (whl_index_end_window<0) whl_index_end_window=0;
+      
+      
+      // cerr << res[i] << " " 
+      //      << res_start_window << " "
+      //      << res_end_window << " "
+      //      << whl_index_start_window << " " 
+      //      << whl_index_end_window << '\n';
+      // add the time of the window around this spike
+      for(int j = whl_index_start_window; j < whl_index_end_window; j++)
+      {
+        if (hd_whl[j] != -1.0)
+        {
+          // get the begining of the period cover by this whl sample, in res value
+          res_value_for_whl_sample=(res_samples_per_whl_sample*j)+res_samples_per_whl_sample;
+          start_res_value=res_value_for_whl_sample-(res_samples_per_whl_sample/2); // start of whl sample
+          end_res_value=res_value_for_whl_sample+(res_samples_per_whl_sample/2); // end of whl sample
+          
+          // start with the assumption that time to add is  = 0; as if outside the valid intervals
+          res_value_to_add=0;
+          
+          // then add res_time if there are intervals around start_res_value and end_res_value
+          while(start_interval[interval_index]<end_res_value && interval_index<interval_lines)
+          {
+            if(end_interval[interval_index]>start_res_value) // need to add some time
+            {
+              // add the total interval time, and then remove what is not overlapping the whl sample
+              res_value_to_add=end_interval[interval_index]-start_interval[interval_index]; 
+              
+              if (start_interval[interval_index]<start_res_value)
+              {
+                res_value_to_add=res_value_to_add-(start_res_value-start_interval[interval_index]);
+              }
+              if (end_interval[interval_index]>end_res_value)
+              {
+                res_value_to_add=res_value_to_add-(end_interval[interval_index]-end_res_value);
+              }
+            }
+            interval_index++; // go to the next interval
+          }
+          interval_index--;
+          
+          if(res_value_to_add>0)
+          {
+            // calculate the time in ms, and add it to the right bin of the occ map
+            time_to_add=ms_per_sample*((double)res_value_to_add/res_samples_per_whl_sample);
+            
+            
+            
+            // get the relative hd of whl for this sample
+            relative_hd_whl=hd_whl[j]-hd_spike[i]; // varies between -360 and 360
+            // adjust so that it varies from -180 to 179.99
+            if(relative_hd_whl < -180) 
+            {
+              relative_hd_whl=relative_hd_whl+360;
+            }
+            if(relative_hd_whl>=180)
+            {
+              relative_hd_whl=relative_hd_whl-360;
+            }
+            
+            bin = (int)((num_bins/2)+(relative_hd_whl/degrees_per_bin));
+            // check if it falls in the map
+            if (bin<num_bins)
+            {
+              histo[bin]= histo[bin] + time_to_add;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // set the bins that have less then min_occ ms
+  for(int x = 0; x < num_bins; x++)
+    if (histo[x] <= min_occ)
+      histo[x] = -1.0;
+}
+
+void spike_triggered_hd_histo(int num_bins,double degrees_per_bin, double *hd_spike,int* num_valid_spikes, 
+                              int* res, int *clu, int res_lines, int target_cell,double *occupancy_map, double *histo, 
+                              double min_isi_ms, double max_isi_ms ,int res_sampling_rate)
+{
+  /*******************************************************
+  function to calculate the hd firing rate histo of one cell
+  around the spikes of same cell
+  *********************************************************/
+  int bin;
+  int j;
+  double relative_hd;
+  int res_start_window, res_end_window;
+  int num_reference_spikes;
+  int min_isi_res=(int)(min_isi_ms*res_sampling_rate/1000);
+  int max_isi_res=(int)(max_isi_ms*res_sampling_rate/1000);
+  
+  
+  // set the histogram to 0
+  for (int i = 0; i < num_bins ; i++)
+    histo[i] = 0;
+  *num_valid_spikes=0;
+  num_reference_spikes=0;
+  // add the spikes to the histogram
+  for(int i = 0; i < res_lines; i++)
+  {
+    if (clu[i]==target_cell&& res[i]!=-1&&hd_spike[i]!=-1.0)
+    {
+      num_reference_spikes++;
+      // add the spikes around this one that are within the time period
+      res_start_window=res[i]+min_isi_res;
+      res_end_window=res[i]+max_isi_res;
+      // check for spikes that occurred after
+      j=i+1;
+      while(res[j]<res_end_window&&j<res_lines) // for all spikes that come after res[i] and are smaller than res_end_window
+      {
+        // if spike of the same cell and res and position are valid
+        if(clu[j]==target_cell&&res[j]>res_start_window&&res[j]!=-1.0&&hd_spike[j]!=-1.0)
+        {
+          // get the relative position of the spike
+          relative_hd=hd_spike[j]-hd_spike[i];
+          if(relative_hd < -180) 
+            relative_hd=relative_hd+360;
+          if(relative_hd>=180)
+            relative_hd=relative_hd-360;
+          bin = (int)((num_bins/2)+(relative_hd/degrees_per_bin));
+          
+          // check if it falls in the map
+          if (bin<num_bins)
+          {
+            *num_valid_spikes++;
+            histo[bin]++;
+          }
+        }
+        j++;
+      }
+    }
+  }
+  ////////////// get the firing rate for every bin////////////////
+  for (int i = 0; i < num_bins; i++)
+  {
+    if (occupancy_map[i] == -1.0)
+    {
+      histo[i] = -1.0;
+    }
+    
+    if (occupancy_map[i] != -1.0)
+    {
+      if (histo[i] != 0) // 
+      {
+        histo[i] = (double)histo[i]/((double)occupancy_map[i]/1000);
+      }
+    }
+  }
+  
+}
