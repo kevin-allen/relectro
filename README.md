@@ -35,3 +35,8 @@ You might need to add a few R packages to be able to build relectro. Here is a l
 ## Feedback
 
 Please report any issues or suggestions at http://github.com/kevin-allen/relectro/issues.
+
+## Warning
+
+There is no warranty that the code is bug-free.
+The tests run on the functions can be found in the `tests` directory.
