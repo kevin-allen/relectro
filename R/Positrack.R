@@ -200,7 +200,7 @@ setMethod(f="setPositrack",
             
             ## check that things add up
             if(length(pt@xWhl)!=length(pt@hdWhd))
-              stop("Problem with length of whl and whd files")
+              stop("Problem with length of xWhl and hdWhd")
             if(pt@samplingRateDat<1|pt@samplingRateDat>100000)
               stop(paste("pt@sampingRateDat is out of bound:",pt@samplingRateDat))
             if(pt@pxPerCm<1|pt@pxPerCm>10000)

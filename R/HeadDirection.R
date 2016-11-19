@@ -41,7 +41,7 @@ HeadDirection<- setClass(
           peakRatesShuffle="numeric",
           vectorLengthShuffle="numeric"
   ),
-  prototype = list(session="",degPerBin=10,smoothOccupancySd=10,smoothRateHistoSd=10,nShufflings=100,
+  prototype = list(session="",degPerBin=10,nBinHisto=as.integer(36),smoothOccupancySd=10,smoothRateHistoSd=10,nShufflings=100,
                    minShiftMs=20000,histoRepetitions=0))
 
 

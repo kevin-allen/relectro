@@ -7,7 +7,7 @@
 #' @param dv Dependent variable. The one you want on the y-axis
 #' @param iv1 First independent variable
 #' @param iv2 Second independent variable
-#' @param color Color of the bars of the boxplot
+#' @param colors Colors of the bars of the boxplot
 #' @param ylim Limit of y axis
 #' @param ylab Label of y axis
 #' @param outma outma for setting par
@@ -16,6 +16,7 @@
 #' @param legend.text Text for the legend
 #' @param legend.color List of color for the legend
 #' @param legend.xy x and y position of the legend
+#' @param ... passed to graphics::boxplot function
 boxplotTwoFactors <- function(data,
                               dv="vd",
                               iv1="vi1",
@@ -32,17 +33,17 @@ boxplotTwoFactors <- function(data,
                               ...)
 {
   par(oma=outma,mar=margin,mgp=mgp)
-  boxplot(data[,dv]~data[,iv1]*data[,iv2],las=1,
+  graphics::boxplot(data[,dv]~data[,iv1]*data[,iv2],las=1,
           frame.plot=FALSE,axes=FALSE,outline=FALSE,
           col=colors,
           at=c(1,2,4,5),ylim=ylim,...)
   # axis(side = 1, at=0:2,pos=0, tck=-0.05,cex.axis=0.6,labels=c("","",""))
   par(mgp=mgp)
-  axis(side = 2,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
-  title(ylab=ylab,mgp=mgp,cex=0.6)
+  graphics::axis(side = 2,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
+  graphics::title(ylab=ylab,mgp=mgp,cex=0.6)
   if(legend.text[1]!=""){
     par(xpd=T) # remove clipping so part of the legend can be outside the plot
-    legend(legend.xy[1], legend.xy[2], legend=legend.text,col=legend.color, lty=1, lwd = 2, cex=0.6,bty = "n")
+    graphics::legend(legend.xy[1], legend.xy[2], legend=legend.text,col=legend.color, lty=1, lwd = 2, cex=0.6,bty = "n")
   }
 }
 
@@ -70,7 +71,8 @@ boxplotTwoFactors <- function(data,
 #' @param cex.point cex for the size of the points
 #' @param add.text Text to add to the plot
 #' @param add.text.pos Position of the text to add, format (x,y)
-plot.points <- function(data,v1="v1",v2="v2",axis.y.pos=-.2,axis.x.pos=-.2,axis.y.las=2,
+#' @param ... Passed to the graphics::plot function
+plotPoints <- function(data,v1="v1",v2="v2",axis.y.pos=-.2,axis.x.pos=-.2,axis.y.las=2,
                         main.title="",mgp.x=c(0.5,0.1,0.1),mgp.y=c(0.9,0.2,0.1),xlab="",ylab="",
                         plotxlim=c(-.2,0.6),plotylim=c(-0.2,0.6),outma=c(0.5,0.5,0.5,0.5),margin=c(1.5,1.5,1,0.3),
                         xaxis.at=seq(-0.2,0.7,.2),yaxis.at=seq(-0.2,0.7,.2),cex.point=0.1,
@@ -78,18 +80,18 @@ plot.points <- function(data,v1="v1",v2="v2",axis.y.pos=-.2,axis.x.pos=-.2,axis.
                         add.text.pos=c(0,0.5),...)
 {
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
-  plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="",...)
+  graphics::plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="",...)
   points(data[,v1],data[,v2],pch=20,cex=cex.point)
   par(mgp=mgp.x)
-  axis(side = 1, at=xaxis.at, pos=axis.x.pos,tck=-0.05,cex.axis=0.6)
+  graphics::axis(side = 1, at=xaxis.at, pos=axis.x.pos,tck=-0.05,cex.axis=0.6)
   par(mgp=mgp.y)
-  axis(side = 2, at=yaxis.at, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
-  title(xlab=xlab,mgp=mgp.x)
-  title(ylab=ylab,mgp=mgp.y)
+  graphics::axis(side = 2, at=yaxis.at, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
+  graphics::title(xlab=xlab,mgp=mgp.x)
+  graphics::title(ylab=ylab,mgp=mgp.y)
   if(main.title!=""){
-    title(main=main.title,cex.main=0.4)
+    graphics::title(main=main.title,cex.main=0.4)
   }
   if(add.text!=""){
-    text(labels=add.text,x=add.text.pos[1],y=add.text.pos[2],cex=0.6)
+    graphics::text(labels=add.text,x=add.text.pos[1],y=add.text.pos[2],cex=0.6)
   }
 }

@@ -3850,97 +3850,96 @@ void spike_head_direction(double *hd_whl,
   // get the res index for the intervals
   int* start_interval_index;
   int* end_interval_index;
-
+  
   start_interval_index = (int*) malloc(interval_lines*sizeof(int));
   end_interval_index =  (int*) malloc(interval_lines*sizeof(int));
   res_index_for_intervals(&interval_lines,
-			  start_interval,
-			  end_interval, 
-			  res_lines, 
-			  res,
-			  start_interval_index,
-			  end_interval_index,1);
+                          start_interval,
+                          end_interval, 
+                          res_lines, 
+                          res,
+                          start_interval_index,
+                          end_interval_index,1);
   // set all the spike position to -1
   set_array_to_value_double(hd_spike,res_lines,-1.0);
-
+  
   //loop for each interval and set the position when valid//
   int whl_index;
   int residual;
   double deg_diff,corr_hd;
   for (int k = 0; k < interval_lines; k++)
+  {
+    for (int i = start_interval_index[k]; i <= end_interval_index[k]; i++)
     {
-      for (int i = start_interval_index[k]; i < end_interval_index[k]; i++)
-	{
-	  
-	  if (res[i] != -1.0)
-	    {
-	      whl_index = (res[i] / res_samples_per_whl_sample) - 1;
-	      if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
-		{
-		  Rprintf("whl file is too small for some res value\n");
-		}
-	      residual = res[i] % res_samples_per_whl_sample;
-	      // spikes before the first frame capture
-	      if (whl_index == -1)
-		{hd_spike[i] = hd_whl[0];}
-	      
-	      // spikes between the first and last frame capture
-	      if ((whl_index < whl_lines -1) && 
-		  (whl_index != -1) && 
-		  (hd_whl[whl_index] != -1.0) &&
-		  (hd_whl[whl_index+1]!= -2))
-		{
-		  // circular data
-		  deg_diff=sqrt((hd_whl[whl_index+1]-hd_whl[whl_index])*
-				(hd_whl[whl_index+1]-hd_whl[whl_index]));
-		  if (deg_diff <= 180)
-		    {
-		      hd_spike[i] =
-			hd_whl[whl_index] +
-			((hd_whl[whl_index+1]- hd_whl[whl_index])
-			 /res_samples_per_whl_sample * residual);
-		    }
-		  else // the difference is larger than 180
-		    {
-		      if ( hd_whl[whl_index+1] >= hd_whl[whl_index])
-			{
-			  corr_hd=hd_whl[whl_index]+360;
-			  hd_spike[i] =  corr_hd +
-			    ((hd_whl[whl_index+1]- corr_hd)
-			     /res_samples_per_whl_sample * residual);
-			}
-		      
-		      if ( hd_whl[whl_index+1] < hd_whl[whl_index])
-			{
-			  corr_hd=hd_whl[whl_index+1]+360;
-			  hd_spike[i] = hd_whl[whl_index] +
-			    ((corr_hd- hd_whl[whl_index])
-			     /res_samples_per_whl_sample * residual);
-			}
-		      if ( hd_spike[i] >= 360)
-			{
-			  hd_spike[i]= hd_spike[i]-360;
-			}
-		    }
-		}
-	      // if spikes after the last frame capture
-	      if (whl_index == whl_lines -1)
-		{
-		  hd_spike[i] = hd_whl[whl_index];
-		}
-	       
-	      // cope with the -1 in whl
-	      if (hd_whl[whl_index] == -1.0 || hd_whl[whl_index+1]==-1.0)
-		{
-		  hd_spike[i] = -1.0;
-		}
-	    }
-	  else // the res value was set at -1
-	    {
-	      hd_spike[i] = -1.0;
-	    }
-	}
+      if (res[i] != -1.0)
+      {
+        whl_index = (res[i] / res_samples_per_whl_sample) - 1;
+        if (whl_index >=  whl_lines || (whl_index < 0 && whl_index != -1))
+        {
+          Rprintf("whl file is too small for some res value\n");
+        }
+        residual = res[i] % res_samples_per_whl_sample;
+        // spikes before the first frame capture
+        if (whl_index == -1)
+        {hd_spike[i] = hd_whl[0];}
+        
+        // spikes between the first and last frame capture
+        if ((whl_index < whl_lines -1) && 
+            (whl_index != -1) && 
+            (hd_whl[whl_index] != -1.0) &&
+            (hd_whl[whl_index+1]!= -2))
+        {
+          // circular data
+          deg_diff=sqrt((hd_whl[whl_index+1]-hd_whl[whl_index])*
+            (hd_whl[whl_index+1]-hd_whl[whl_index]));
+          if (deg_diff <= 180)
+          {
+            hd_spike[i] =
+              hd_whl[whl_index] +
+              ((hd_whl[whl_index+1]- hd_whl[whl_index])
+                 /res_samples_per_whl_sample * residual);
+          }
+          else // the difference is larger than 180
+          {
+            if ( hd_whl[whl_index+1] >= hd_whl[whl_index])
+            {
+              corr_hd=hd_whl[whl_index]+360;
+              hd_spike[i] =  corr_hd +
+                ((hd_whl[whl_index+1]- corr_hd)
+                   /res_samples_per_whl_sample * residual);
+            }
+            
+            if ( hd_whl[whl_index+1] < hd_whl[whl_index])
+            {
+              corr_hd=hd_whl[whl_index+1]+360;
+              hd_spike[i] = hd_whl[whl_index] +
+                ((corr_hd- hd_whl[whl_index])
+                   /res_samples_per_whl_sample * residual);
+            }
+            if ( hd_spike[i] >= 360)
+            {
+              hd_spike[i]= hd_spike[i]-360;
+            }
+          }
+        }
+        // if spikes after the last frame capture
+        if (whl_index == whl_lines -1)
+        {
+          hd_spike[i] = hd_whl[whl_index];
+        }
+        
+        // cope with the -1 in whl
+        if (hd_whl[whl_index] == -1.0 || hd_whl[whl_index+1]==-1.0)
+        {
+          hd_spike[i] = -1.0;
+        }
+      }
+      else // the res value was set at -1
+      {
+        hd_spike[i] = -1.0;
+      }
     }
+  }
   free(start_interval_index);
   free(end_interval_index);
   return ;

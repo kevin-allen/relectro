@@ -7,7 +7,7 @@
 boxplotTwoFactors(data, dv = "vd", iv1 = "vi1", iv2 = "vi2",
   colors = c("red", "gray", "red", "gray"), ylim = c(0, 1), ylab = "",
   outma = c(0.5, 1, 0.5, 1), margin = c(1, 2, 1, 1), mgp = c(1, 0.2, 0),
-  ...)
+  legend.text = "", legend.color = "", legend.xy = "", ...)
 }
 \arguments{
 \item{data}{data.frame with the data}
@@ -17,6 +17,8 @@ boxplotTwoFactors(data, dv = "vd", iv1 = "vi1", iv2 = "vi2",
 \item{iv1}{First independent variable}
 
 \item{iv2}{Second independent variable}
+
+\item{colors}{Colors of the bars of the boxplot}
 
 \item{ylim}{Limit of y axis}
 
@@ -28,7 +30,13 @@ boxplotTwoFactors(data, dv = "vd", iv1 = "vi1", iv2 = "vi2",
 
 \item{mgp}{mgp for setting par}
 
-\item{color}{Color of the bars of the boxplot}
+\item{legend.text}{Text for the legend}
+
+\item{legend.color}{List of color for the legend}
+
+\item{legend.xy}{x and y position of the legend}
+
+\item{...}{passed to graphics::boxplot function}
 }
 \description{
 Just a wrapper around boxplot function.
