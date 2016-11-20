@@ -108,8 +108,6 @@ test_that("occupancy histograms",{
   rm(x,y,hd,pt,results,samplingRateDat,resSamplesPerWhlSample)
 })
 
-## test rate histo
-
 test_that("hd rate histograms",{
   resSamplesPerWhlSample=400
   samplingRateDat=20000
@@ -120,15 +118,23 @@ test_that("hd rate histograms",{
   y=rnorm(n=length(hD),mean = 40,sd=5)
   pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
                    resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
-  
+
   st<-new("SpikeTrain")
-  st<-setSpikeTrain(st,res=c(1,19999),clu=c(1,1),samplingRate=samplingRateDat)
-  st<-setIntervals(st,s=c(0),e=c(40000))
+  st<-setSpikeTrain(st,res=c(400),clu=c(1),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
   
   hd<-new("HeadDirection")
-  headDirectionHisto(hd = hd,st=st,pt = pt)
+  hd@smoothOccupancySd=0
+  hd@smoothRateHistoSd=0
+  hd<-headDirectionHisto(hd = hd,st=st,pt = pt)
+  expect_false(any(hd@occupancy!=resSamplesPerWhlSample/samplingRateDat*1000*(length(hD)/hd@nBinHisto)))
+  expect_equal(hd@histo[1],1*1000/(resSamplesPerWhlSample/samplingRateDat*1000*(length(hD)/hd@nBinHisto)))
   
-  
+  st<-setSpikeTrain(st,res=c(400,401),clu=c(1,1),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
+  hd<-headDirectionHisto(hd = hd,st=st,pt = pt)
+  expect_equal(hd@histo[1],2*1000/(resSamplesPerWhlSample/samplingRateDat*1000*(length(hD)/hd@nBinHisto)))
+  expect_true(any(hd@histo[-1]==0))
   
   rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample)
 })
