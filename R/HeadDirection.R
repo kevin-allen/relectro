@@ -89,12 +89,10 @@ setMethod(f="headDirectionHisto",
           signature="HeadDirection",
           definition=function(hd,st,pt)
           {
-            if(pt@session=="")
-              stop("pt@session is empty")
+            if(length(pt@hd)==0)
+              stop("pt@hd is empty")
             if(length(pt@x)==0)
               stop("pt@x has length of 0")
-            if(st@session=="")
-              stop("st@session is empty")
             if(st@nSpikes==0)
               stop("st@nSpikes==0")
             
