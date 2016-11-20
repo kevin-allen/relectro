@@ -5552,12 +5552,9 @@ SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r,
 
   
 {
-  
-  Rprintf("from c, hello\n");
   int num_bins = INTEGER_VALUE(num_bins_r);
   int cell_lines = INTEGER_VALUE(num_cells_r);
   int res_lines = INTEGER_VALUE(res_lines_r);
-  
   
   double* all_occ_histo = (double*)malloc(num_bins*cell_lines*sizeof(double));
   double* all_hd_histo = (double*)malloc(num_bins*cell_lines*sizeof(double));
@@ -5565,7 +5562,6 @@ SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r,
   int* num_valid_spikes = (int*)malloc(cell_lines*sizeof(int));
   
   SEXP out = PROTECT(allocVector(REALSXP,num_bins*cell_lines));
-  
   create_hd_firing_histo_spike_triggered(num_bins, REAL(degrees_per_bin_r)[0],
                                          INTEGER_POINTER(cells_r),cell_lines,
                                          REAL(hd_whd_r), INTEGER_VALUE(whl_lines_r),
@@ -5578,16 +5574,12 @@ SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r,
                                          REAL(smoothing_factor_occ_r)[0],REAL(smoothing_factor_rate_r)[0],
                                                                      REAL(min_isi_ms_r)[0], REAL(max_isi_ms_r)[0], INTEGER_VALUE(res_sampling_rate_r));
   
-  
-  
   free(all_occ_histo);
   free(all_hd_histo);
   free(hd_spike);
   free(num_valid_spikes);
   UNPROTECT(1);
   return out;
-  
-  
 }
 
 void create_hd_firing_histo_spike_triggered(int num_bins, int degrees_per_bin, 

@@ -13,6 +13,7 @@
 #' @slot histo An array holding the histograms of all neurons
 #' @slot occupancy A numeric holding the occupancy histogram
 #' @slot cellList A list of cluster id of the neurons
+#' @slot cellPairList Data frame containing pairs of cells
 #' @slot histoRepetitions Number of repetition of the 0-360 range in the histogram. Default is 0 repetition
 #' @slot peakRates Peak firing rate in Hz in each firing rate histogram
 #' @slot vectorLength Mean vector length of each firing rate histogram
@@ -21,6 +22,7 @@
 #' @slot minShiftMs Minimum time shift of the head direction data used during the shuffling procedure
 #' @slot peakRatesShuffle Numeric to hold the peak firing rates obtained during the shuffling procedure
 #' @slot vectorLengthShuffle Numeric to hold the vector length obtained during the shuffling procedure
+#' @slot crossHisto Array containing crosscorrelation rate histogram
 HeadDirection<- setClass(
   "HeadDirection", ## name of the class
   slots=c(session="character",
@@ -32,6 +34,7 @@ HeadDirection<- setClass(
           histo="array",# 2d
           occupancy="numeric",
           cellList="numeric",
+          cellPairList="data.frame",       
           histoRepetitions="numeric", # 0 is only once
           peakRates="numeric",
           vectorLength="numeric",
@@ -39,7 +42,8 @@ HeadDirection<- setClass(
           nShufflings="numeric",
           minShiftMs="numeric",
           peakRatesShuffle="numeric",
-          vectorLengthShuffle="numeric"
+          vectorLengthShuffle="numeric",
+          crossHisto="array"
   ),
   prototype = list(session="",degPerBin=10,nBinHisto=as.integer(36),smoothOccupancySd=10,smoothRateHistoSd=10,nShufflings=100,
                    minShiftMs=20000,histoRepetitions=0))
@@ -152,7 +156,6 @@ setMethod(f="headDirectionHisto",
           }
 )
 
-
 #' Calculate the spike-triggered head-direction histogram using a HeadDirection, SpikeTrain and Positrack objects
 #'
 #' Each spike is treated as a reference spike in turn, and set to phase 180 degree. 
@@ -171,7 +174,7 @@ setMethod(f="headDirectionHisto",
 #' @param pt Positrack object
 #' @param minIsiMs Minimal interspike interval to consider in ms
 #' @param maxIsiMs Maximal interspike interval to consider in ms
-#' @return HeadDirection object with the spike-triggered firing rate maps
+#' @return HeadDirection object with the spike-triggered rate histograms in the hist slot
 #' 
 #' @docType methods
 #' @rdname spikeTriggeredHeadDirectionHisto-methods
@@ -195,16 +198,11 @@ setMethod(f="spikeTriggeredHeadDirectionHisto",
               stop(paste("maxIsiMs should larger than 0"))
             if(maxIsiMs<=minIsiMs)
               stop(paste("maxIsiMs should be larger than minIsiMs"))
-            
             hd@cellList<-st@cellList
-            
-            
             ## use -1 as invalid values in c functions
             hdir<-pt@hd
             hdir[is.na(hdir)]<- -1.0
-            
             hd@nBinHisto<-as.integer(ceiling(360/hd@degPerBin))
-            
             results<- .Call("spike_triggered_head_direction_histo_cwrap",
                             as.integer(hd@nBinHisto),
                             hd@degPerBin,
@@ -225,49 +223,36 @@ setMethod(f="spikeTriggeredHeadDirectionHisto",
                             minIsiMs,
                             maxIsiMs,
                             as.integer(st@samplingRate))
-            
-            #hd@histo<-array(data=results,dim=(c(hd@nBinHisto,length(sp@cellList))))
+            hd@histo<-array(data=results,dim=(c(hd@nBinHisto,length(hd@cellList))))
             return(hd)
           }
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #' Calculate the head direction statistics for the head direction rate histograms with a HeadDirection, SpikeTrain and Positrack objects
 #'
 #' @param hd HeadDirection object
 #' @param st SpikeTrain object
 #' @param pt Positrack
+#' @param newHisto logical indicating if new rate histograms are calculated when calling the function.
+#' Default value is TRUE
 #' @return HeadDirection object with the statistics in the slots peakRates, vectorLength and meanDirection
 #' 
 #' @docType methods
 #' @rdname headDirectionStats-methods
 setGeneric(name="headDirectionStats",
-           def=function(hd,st,pt)
+           def=function(hd,st,pt,newHisto=TRUE)
            {standardGeneric("headDirectionStats")}
 )
 #' @rdname headDirectionStats-methods
 #' @aliases headDirectionStats,ANY,ANY-method
 setMethod(f="headDirectionStats",
           signature="HeadDirection",
-          definition=function(hd,st,pt)
+          definition=function(hd,st,pt,newHisto=TRUE)
           {
             ### create the histo
-            hd<-headDirectionHisto(hd,st,pt)
+            if(newHisto==TRUE)
+              hd<-headDirectionHisto(hd,st,pt)
+            
             ### get peak rates
             hd@peakRates<-apply(hd@histo,2,max)
             ### get vector length and mean direction
@@ -359,5 +344,83 @@ setMethod(f="hdHistoAsDataFrame",
             data.frame(clu.id=rep(paste(hd@session,hd@cellList,sep="_"),each=hd@nBinHisto),
                        deg=rep(seq(hd@degPerBin/2,360*(hd@histoRepetitions+1),hd@degPerBin),length(hd@cellList)),
                        rate=as.numeric(hd@histo))
+          }
+)
+
+
+
+#' Calculate the spike-triggered cross head-direction histogram using a HeadDirection, SpikeTrain and Positrack objects
+#'
+#' This works on pairs of cells listed in slot cellPairList of the st object.
+#' Each spike of cell A is treated as a reference spike in turn. 
+#' The histogram is constructed from the data following the reference spikes 
+#' by shifting the head direction data so that the head direction of the 
+#' agent at the time of the reference spike is 180 degree.
+#' The spikes of cell B are used to calculate the sampling rates
+#' The results are stored in the crossHisto slot
+#' 
+#' The occupancy histogram and the firing rate histogram are smoothed with a Gaussian kernel.
+#' The amount of smoothing is determined by slots smoothOccupancySd and smoothRateHistoSd of the HeadDirection object.
+#' 
+#' You can set the temporal limit for the data used to construct the histogram with minIsiMs and maxIsiMs
+#' 
+#' @param hd HeadDirection object
+#' @param st SpikeTrain object
+#' @param pt Positrack object
+#' @param minIsiMs Minimal interspike interval to consider in ms
+#' @param maxIsiMs Maximal interspike interval to consider in ms
+#' @return HeadDirection object with the spike-triggered cross rate histograms
+#' 
+#' @docType methods
+#' @rdname spikeTriggeredCrossHeadDirectionHisto-methods
+setGeneric(name="spikeTriggeredCrossHeadDirectionHisto",
+           def=function(hd,st,pt,minIsiMs,maxIsiMs)
+           {standardGeneric("spikeTriggeredCrossHeadDirectionHisto")}
+)
+#' @rdname spikeTriggeredCrossHeadDirectionHisto-methods
+#' @aliases spikeTriggeredCrossHeadDirectionHisto,ANY,ANY-method
+setMethod(f="spikeTriggeredCrossHeadDirectionHisto",
+          signature="HeadDirection",
+          definition=function(hd,st,pt,minIsiMs,maxIsiMs)
+          {
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in firingRateMap2d",st@session))
+            if(st@nSpikes==0)
+              stop(paste("st@nSpikes==0 in firingRateMap2d",st@session))
+            if(minIsiMs<0)
+              stop(paste("minIsiMs should be 0 or larger than 0"))
+            if(maxIsiMs<0)
+              stop(paste("maxIsiMs should larger than 0"))
+            if(maxIsiMs<=minIsiMs)
+              stop(paste("maxIsiMs should be larger than minIsiMs"))
+            if(sum(dim(st@cellPairList))==0)
+              stop(paste("st@cellPairList has 0 dimension. set the cellPairList in the st object"))
+            hd@cellPairList<-st@cellPairList
+            ## use -1 as invalid values in c functions
+            hdir<-pt@hd
+            hdir[is.na(hdir)]<- -1.0
+            hd@nBinHisto<-as.integer(ceiling(360/hd@degPerBin))
+            results<- .Call("spike_triggered_head_direction_histo_cwrap",
+                            as.integer(hd@nBinHisto),
+                            hd@degPerBin,
+                            as.integer(hd@cellList),
+                            length(hd@cellList),
+                            hdir,
+                            length(pt@hd),
+                            as.integer(st@res),
+                            as.integer(st@clu),
+                            st@nSpikes,
+                            as.integer(st@startInterval),
+                            as.integer(st@endInterval),
+                            length(st@startInterval),
+                            pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                            as.integer(pt@resSamplesPerWhlSample),
+                            hd@smoothOccupancySd,
+                            hd@smoothRateHistoSd,
+                            minIsiMs,
+                            maxIsiMs,
+                            as.integer(st@samplingRate))
+            hd@crossHisto<-array(data=results,dim=(c(hd@nBinHisto,length(hd@cellList))))
+            return(hd)
           }
 )

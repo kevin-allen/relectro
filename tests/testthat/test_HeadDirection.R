@@ -140,8 +140,6 @@ test_that("hd rate histograms",{
 })
 
 
-
-
 ## test spike trigerred rate histo
 
 
