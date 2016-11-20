@@ -5530,6 +5530,57 @@ SEXP spike_distance_metric_cwrap(SEXP x_spikes_r,
   return(out);
 }
 
+
+SEXP spike_triggered_head_direction_occupancy_histo_cwrap(SEXP num_bins_r,
+                                                SEXP degrees_per_bin_r,
+                                                SEXP cells_r,
+                                                SEXP num_cells_r,
+                                                SEXP hd_whd_r,
+                                                SEXP whl_lines_r,
+                                                SEXP res_r,
+                                                SEXP clu_r,
+                                                SEXP res_lines_r,
+                                                SEXP start_interval_r,
+                                                SEXP end_interval_r,
+                                                SEXP interval_lines_r,
+                                                SEXP ms_per_sample_r,
+                                                SEXP res_samples_per_whl_sample_r,
+                                                SEXP smoothing_factor_occ_r,
+                                                SEXP smoothing_factor_rate_r,
+                                                SEXP min_isi_ms_r,
+                                                SEXP max_isi_ms_r,
+                                                SEXP res_sampling_rate_r)
+{
+  int num_bins = INTEGER_VALUE(num_bins_r);
+  int cell_lines = INTEGER_VALUE(num_cells_r);
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  
+  double* all_hd_histo = (double*)malloc(num_bins*cell_lines*sizeof(double));
+  double* hd_spike = (double*)malloc(res_lines*sizeof(double));
+  int* num_valid_spikes = (int*)malloc(cell_lines*sizeof(int));
+  
+  SEXP out = PROTECT(allocVector(REALSXP,num_bins*cell_lines));
+  create_hd_firing_histo_spike_triggered(num_bins, REAL(degrees_per_bin_r)[0],
+                                         INTEGER_POINTER(cells_r),cell_lines,
+                                         REAL(hd_whd_r), INTEGER_VALUE(whl_lines_r),
+                                         INTEGER_POINTER(res_r), INTEGER_POINTER(clu_r),res_lines, 
+                                         hd_spike, 
+                                         num_valid_spikes,
+                                         INTEGER_POINTER(start_interval_r),INTEGER_POINTER(end_interval_r), INTEGER_VALUE(interval_lines_r), 
+                                         REAL(out), all_hd_histo, 
+                                         REAL(ms_per_sample_r)[0], INTEGER_VALUE(res_samples_per_whl_sample_r), 
+                                         REAL(smoothing_factor_occ_r)[0],REAL(smoothing_factor_rate_r)[0],
+                                         REAL(min_isi_ms_r)[0], REAL(max_isi_ms_r)[0], INTEGER_VALUE(res_sampling_rate_r));
+  
+  free(all_hd_histo);
+  free(hd_spike);
+  free(num_valid_spikes);
+  UNPROTECT(1);
+  return out;
+}
+
+
+
 SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r,
                                                 SEXP degrees_per_bin_r,
                                                 SEXP cells_r,
@@ -5557,7 +5608,6 @@ SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r,
   int res_lines = INTEGER_VALUE(res_lines_r);
   
   double* all_occ_histo = (double*)malloc(num_bins*cell_lines*sizeof(double));
-  double* all_hd_histo = (double*)malloc(num_bins*cell_lines*sizeof(double));
   double* hd_spike = (double*)malloc(res_lines*sizeof(double));
   int* num_valid_spikes = (int*)malloc(cell_lines*sizeof(int));
   
@@ -5575,7 +5625,6 @@ SEXP spike_triggered_head_direction_histo_cwrap(SEXP num_bins_r,
                                                                      REAL(min_isi_ms_r)[0], REAL(max_isi_ms_r)[0], INTEGER_VALUE(res_sampling_rate_r));
   
   free(all_occ_histo);
-  free(all_hd_histo);
   free(hd_spike);
   free(num_valid_spikes);
   UNPROTECT(1);
@@ -5890,5 +5939,211 @@ void spike_triggered_hd_histo(int num_bins,double degrees_per_bin, double *hd_sp
       }
     }
   }
+}
+
+SEXP spike_triggered_head_direction_cross_histo_cwrap(SEXP num_bins_r,
+                                                SEXP degrees_per_bin_r,
+                                                SEXP cells1_r,
+                                                SEXP cells2_r,
+                                                SEXP num_pairs_r,
+                                                SEXP hd_whd_r,
+                                                SEXP whl_lines_r,
+                                                SEXP res_r,
+                                                SEXP clu_r,
+                                                SEXP res_lines_r,
+                                                SEXP start_interval_r,
+                                                SEXP end_interval_r,
+                                                SEXP interval_lines_r,
+                                                SEXP ms_per_sample_r,
+                                                SEXP res_samples_per_whl_sample_r,
+                                                SEXP smoothing_factor_occ_r,
+                                                SEXP smoothing_factor_rate_r,
+                                                SEXP min_isi_ms_r,
+                                                SEXP max_isi_ms_r,
+                                                SEXP res_sampling_rate_r)
   
+  
+{
+  int num_bins = INTEGER_VALUE(num_bins_r);
+  int pair_lines = INTEGER_VALUE(num_pairs_r);
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  
+  double* all_occ_histo = (double*)malloc(num_bins*pair_lines*sizeof(double));
+  double* hd_spike = (double*)malloc(res_lines*sizeof(double));
+  int* num_valid_spikes = (int*)malloc(pair_lines*sizeof(int));
+  
+  SEXP out = PROTECT(allocVector(REALSXP,num_bins*pair_lines));
+  create_hd_cross_firing_histo_spike_triggered(num_bins, REAL(degrees_per_bin_r)[0],
+                                         INTEGER_POINTER(cells1_r),INTEGER_POINTER(cells2_r),pair_lines,
+                                         REAL(hd_whd_r), INTEGER_VALUE(whl_lines_r),
+                                         INTEGER_POINTER(res_r), INTEGER_POINTER(clu_r),res_lines, 
+                                         hd_spike, 
+                                         num_valid_spikes,
+                                         INTEGER_POINTER(start_interval_r),INTEGER_POINTER(end_interval_r), INTEGER_VALUE(interval_lines_r), 
+                                         all_occ_histo, REAL(out), 
+                                         REAL(ms_per_sample_r)[0], INTEGER_VALUE(res_samples_per_whl_sample_r), 
+                                         REAL(smoothing_factor_occ_r)[0],REAL(smoothing_factor_rate_r)[0],
+                                        REAL(min_isi_ms_r)[0], REAL(max_isi_ms_r)[0], INTEGER_VALUE(res_sampling_rate_r));
+  free(all_occ_histo);
+  free(hd_spike);
+  free(num_valid_spikes);
+  UNPROTECT(1);
+  return out;
+}
+void create_hd_cross_firing_histo_spike_triggered(int num_bins, int degrees_per_bin, 
+                                                  int* pair1,int* pair2,int num_pairs,
+                                                  double* hd_whd, int whd_lines,
+                                                  int* res, int* clu, int res_lines, 
+                                                  double* hd_spike, 
+                                                  int* num_valid_spikes,
+                                                  int* start_interval, int* end_interval, int interval_lines, 
+                                                  double* all_occ_histo, double* all_hd_histo, 
+                                                  double ms_per_sample, 
+                                                  int res_samples_per_whd_sample, 
+                                                  double smoothing_factor_occ,double smoothing_factor_rate,
+                                                  double min_isi_ms,
+                                                  double max_isi_ms,
+                                                  int res_sampling_rate)
+{
+  /*This function is for pair of cells, to do spike triggered cross correlations in head direction space*/
+  int target_cell1;
+  int target_cell2;
+  double* one_hd_histo; // pointer
+  double* one_occ_histo; // pointer
+  
+  // outside intervals is set to -1 //
+  spike_head_direction(hd_whd,
+                       whd_lines,
+                       res,
+                       res_lines,
+                       hd_spike,
+                       res_samples_per_whd_sample,
+                       start_interval,
+                       end_interval,
+                       interval_lines);
+  
+  for(int i = 0; i < num_pairs; i++)
+  {
+    // occupancy map is relative to spikes of first cell
+    target_cell1 = pair1[i];
+    // use a pointer to place give the address for each cell
+    one_occ_histo = all_occ_histo + (i*num_bins);
+    spike_triggered_occupancy_hd_histo(num_bins,
+                                       degrees_per_bin,
+                                       hd_whd,
+                                       whd_lines,
+                                       one_occ_histo,
+                                       ms_per_sample,
+                                       start_interval,
+                                       end_interval,
+                                       interval_lines,
+                                       res_samples_per_whd_sample,
+                                       res,
+                                       clu,
+                                       res_lines,
+                                       target_cell1,
+                                       min_isi_ms,
+                                       max_isi_ms,
+                                       res_sampling_rate,
+                                       hd_spike);
+    // smooth the occupancy histogram
+    smooth_double_gaussian(one_occ_histo,num_bins, smoothing_factor_occ,-1.0);
+  }
+  for(int i = 0; i < num_pairs; i++)
+  {     
+    target_cell1 = pair1[i];
+    target_cell2 = pair2[i];
+    
+    // use a pointer to place give the address for each cell
+    one_hd_histo = all_hd_histo + (i*num_bins);
+    one_occ_histo = all_occ_histo + (i*num_bins);
+    spike_triggered_hd_cross_histo(num_bins,degrees_per_bin, 
+                             hd_spike,
+                             num_valid_spikes+i,
+                             res, clu, res_lines, 
+                             target_cell1, target_cell2, 
+                             one_occ_histo,one_hd_histo,
+                             min_isi_ms,max_isi_ms,res_sampling_rate);
+    /// smooth the hd histo
+    smooth_double_gaussian(one_hd_histo,num_bins,smoothing_factor_rate,-1.0);
+  }
+  return;
+}
+
+void spike_triggered_hd_cross_histo(int num_bins,double degrees_per_bin, double *hd_spike,int* num_valid_spikes, 
+                              int* res, int *clu, int res_lines, 
+                              int target_cell1,int target_cell2, 
+                              double *occupancy_map, double *histo, 
+                              double min_isi_ms, double max_isi_ms, int res_sampling_rate)
+{
+  /*******************************************************
+  function to calculate the hd firing rate histo of one cell
+  around the spikes of another cell
+  
+  *********************************************************/
+  int bin;
+  int j;
+  double relative_hd;
+  int res_start_window, res_end_window;
+  // set the histogram to 0
+  for (int i = 0; i < num_bins ; i++)
+    histo[i] = 0;
+  *num_valid_spikes=0;
+  
+  int min_isi_res=(int)(min_isi_ms*res_sampling_rate/1000);
+  int max_isi_res=(int)(max_isi_ms*res_sampling_rate/1000);
+  
+  // add the spikes to the histogram
+  for(int i = 0; i < res_lines; i++)
+  {
+    if (clu[i]==target_cell1&& res[i]!=-1&&hd_spike[i]!=-1.0)
+    {
+      
+      // add the spikes around this one that are within the time period
+      res_start_window=res[i]+min_isi_res;
+      res_end_window=res[i]+max_isi_res;
+      
+      
+      j=i+1;
+      while(res[j]<res_end_window&&j<res_lines) // for all spikes that come after res[i] and are smaller than res_end_window
+      {
+        // if spike of the same cell and res and position are valid
+        if(clu[j]==target_cell2&&res[j]>res_start_window&&res[j]!=-1.0&&hd_spike[j]!=-1.0)
+        {
+          // get the relative position of the spike
+          relative_hd=hd_spike[j]-hd_spike[i];
+          if(relative_hd < -180) 
+            relative_hd=relative_hd+360;
+          if(relative_hd>=180)
+            relative_hd=relative_hd-360;
+          
+          bin = (int)((num_bins/2)+(relative_hd/degrees_per_bin));
+          
+          // check if it falls in the map
+          if (bin<num_bins)
+          {
+            *num_valid_spikes++;
+            histo[bin]++;
+          }
+        }
+        j++;
+      }
+    }
+  }
+  ////////////// get the firing rate for every bin////////////////
+  for (int i = 0; i < num_bins; i++)
+  {
+    if (occupancy_map[i] == -1.0)
+    {
+      histo[i] = -1.0;
+    }
+    
+    if (occupancy_map[i] != -1.0)
+    {
+      if (histo[i] != 0) // 
+      {
+        histo[i] = (double)histo[i]/((double)occupancy_map[i]/1000);
+      }
+    }
+  }
 }

@@ -7,9 +7,9 @@
 \alias{headDirectionStats,HeadDirection-method}
 \title{Calculate the head direction statistics for the head direction rate histograms with a HeadDirection, SpikeTrain and Positrack objects}
 \usage{
-headDirectionStats(hd, st, pt)
+headDirectionStats(hd, st, pt, newHisto = TRUE)
 
-\S4method{headDirectionStats}{HeadDirection}(hd, st, pt)
+\S4method{headDirectionStats}{HeadDirection}(hd, st, pt, newHisto = TRUE)
 }
 \arguments{
 \item{hd}{HeadDirection object}
@@ -17,6 +17,9 @@ headDirectionStats(hd, st, pt)
 \item{st}{SpikeTrain object}
 
 \item{pt}{Positrack}
+
+\item{newHisto}{logical indicating if new rate histograms are calculated when calling the function.
+Default value is TRUE}
 }
 \value{
 HeadDirection object with the statistics in the slots peakRates, vectorLength and meanDirection

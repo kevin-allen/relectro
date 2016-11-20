@@ -349,7 +349,7 @@ setMethod(f="hdHistoAsDataFrame",
 
 
 
-#' Calculate the spike-triggered cross head-direction histogram using a HeadDirection, SpikeTrain and Positrack objects
+#' Calculate the spike-triggered head-direction crosscorrelation histogram using a HeadDirection, SpikeTrain and Positrack objects
 #'
 #' This works on pairs of cells listed in slot cellPairList of the st object.
 #' Each spike of cell A is treated as a reference spike in turn. 
@@ -372,14 +372,14 @@ setMethod(f="hdHistoAsDataFrame",
 #' @return HeadDirection object with the spike-triggered cross rate histograms
 #' 
 #' @docType methods
-#' @rdname spikeTriggeredCrossHeadDirectionHisto-methods
-setGeneric(name="spikeTriggeredCrossHeadDirectionHisto",
+#' @rdname spikeTriggeredHeadDirectionCrossHisto-methods
+setGeneric(name="spikeTriggeredHeadDirectionCrossHisto",
            def=function(hd,st,pt,minIsiMs,maxIsiMs)
-           {standardGeneric("spikeTriggeredCrossHeadDirectionHisto")}
+           {standardGeneric("spikeTriggeredHeadDirectionCrossHisto")}
 )
-#' @rdname spikeTriggeredCrossHeadDirectionHisto-methods
-#' @aliases spikeTriggeredCrossHeadDirectionHisto,ANY,ANY-method
-setMethod(f="spikeTriggeredCrossHeadDirectionHisto",
+#' @rdname spikeTriggeredHeadDirectionCrossHisto-methods
+#' @aliases spikeTriggeredHeadDirectionCrossHisto,ANY,ANY-method
+setMethod(f="spikeTriggeredHeadDirectionCrossHisto",
           signature="HeadDirection",
           definition=function(hd,st,pt,minIsiMs,maxIsiMs)
           {
@@ -395,16 +395,19 @@ setMethod(f="spikeTriggeredCrossHeadDirectionHisto",
               stop(paste("maxIsiMs should be larger than minIsiMs"))
             if(sum(dim(st@cellPairList))==0)
               stop(paste("st@cellPairList has 0 dimension. set the cellPairList in the st object"))
+            
             hd@cellPairList<-st@cellPairList
             ## use -1 as invalid values in c functions
             hdir<-pt@hd
             hdir[is.na(hdir)]<- -1.0
             hd@nBinHisto<-as.integer(ceiling(360/hd@degPerBin))
-            results<- .Call("spike_triggered_head_direction_histo_cwrap",
+          
+            results<- .Call("spike_triggered_head_direction_cross_histo_cwrap",
                             as.integer(hd@nBinHisto),
                             hd@degPerBin,
-                            as.integer(hd@cellList),
-                            length(hd@cellList),
+                            as.integer(hd@cellPairList[,1]),
+                            as.integer(hd@cellPairList[,2]),
+                            length(hd@cellPairList),
                             hdir,
                             length(pt@hd),
                             as.integer(st@res),
@@ -420,6 +423,7 @@ setMethod(f="spikeTriggeredCrossHeadDirectionHisto",
                             minIsiMs,
                             maxIsiMs,
                             as.integer(st@samplingRate))
+            
             hd@crossHisto<-array(data=results,dim=(c(hd@nBinHisto,length(hd@cellList))))
             return(hd)
           }

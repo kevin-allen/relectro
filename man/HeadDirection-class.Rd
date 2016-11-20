@@ -31,6 +31,8 @@ It can get the vector length of the head direction histograms and do shuffling t
 
 \item{\code{cellList}}{A list of cluster id of the neurons}
 
+\item{\code{cellPairList}}{Data frame containing pairs of cells}
+
 \item{\code{histoRepetitions}}{Number of repetition of the 0-360 range in the histogram. Default is 0 repetition}
 
 \item{\code{peakRates}}{Peak firing rate in Hz in each firing rate histogram}
@@ -46,5 +48,7 @@ It can get the vector length of the head direction histograms and do shuffling t
 \item{\code{peakRatesShuffle}}{Numeric to hold the peak firing rates obtained during the shuffling procedure}
 
 \item{\code{vectorLengthShuffle}}{Numeric to hold the vector length obtained during the shuffling procedure}
+
+\item{\code{crossHisto}}{Array containing crosscorrelation rate histogram}
 }}
 

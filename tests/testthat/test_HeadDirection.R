@@ -142,4 +142,63 @@ test_that("hd rate histograms",{
 
 ## test spike trigerred rate histo
 
+test_that("spike-triggered head-direction occupancy histograms",{
+  resSamplesPerWhlSample=400
+  samplingRateDat=20000
+  
+  pt<-new("Positrack")
+  hD<-as.numeric(rep(0:359,50)) # gives us a second per bins
+  x=rnorm(n=length(hD),mean = 40,sd=5)
+  y=rnorm(n=length(hD),mean = 40,sd=5)
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
+                   resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
+  
+  st<-new("SpikeTrain")
+  spikeTimes=seq(400,400*50,400)
+  length(spikeTimes)
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
+  
+  hd<-new("HeadDirection")
+  hd@smoothOccupancySd=0
+  hd@smoothRateHistoSd=0
+  minIsiMs=0
+  maxIsiMs=1000
+  
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  
+  # each data point in the pt object add 20 ms in a bin.
+  # it moves at 1 deg per 20ms so their will be 10x20ms per bin for each spikes
+  # we have 50 spikes
+  expect_equal(max(results),hd@degPerBin*resSamplesPerWhlSample/samplingRateDat*1000*st@nSpikes)
+  
+  # animal rotates only in one direction so first half of histo not visited
+  expect_false(any(results[1:(hd@nBinHisto/2)]!=-1))
+  
+  # there are 50 hd samples per seconds, so max of 50 degree range for each spike
+  # so only 5 bins not at -1
+  expect_equal(sum(results!=-1),5)
+  
+  rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample)
+})
+
 
