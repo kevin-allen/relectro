@@ -20,14 +20,18 @@ whdFromPositrack<-function(rs,
                            ttlChannel=NA,
                            maxUpDiffRes=4000)
   {
-  
-  if(rs@session==""){
+  if(rs@session=="")
     stop(paste("whdFromPositrack, rs@session == \"\""))
-  }
+  if(length(rs@trialNames)==0)
+    stop(paste("whdFromPositrack, rs@trialNames has a length of 0"))
   if(resSamplesPerWhdSample<=0)
     stop(paste("whdFromPositrack, resSamplesPerWhdSample <= 0", resSamplesPerWhdSample))
   if(maxUpDiffRes<=0)
     stop(paste("whdFromPositrack, maxUpDiffRes <= 0", maxUpDiffRes))
+  if(rs@nChannels==0)
+    stop(paste("whdFromPositrack, rs@nChannels equals 0"))
+  if(is.na(rs@samplingRate))
+    stop(paste("rs@samplingRate is NA"))
   
   df<-new("DatFiles")
   df<-datFilesSet(df,
@@ -56,7 +60,8 @@ whdFromPositrack<-function(rs,
     ## get the data from dat file
     print(paste("reading sycn channel",ttlChannel[tIndex],"from",rs@trialStartRes[tIndex],"to",rs@trialEndRes[tIndex]))
     x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel[tIndex],
-                                      firstSample = rs@trialStartRes[tIndex],lastSample = rs@trialEndRes[tIndex]))
+                                      firstSample = rs@trialStartRes[tIndex],
+                                      lastSample = rs@trialEndRes[tIndex]))
     
     up<-detectUps(x) ## detect rising times of ttl pulses
     fn<-paste(paste(rs@path,rs@trialNames[tIndex],sep='/'),"positrack",sep='.')
