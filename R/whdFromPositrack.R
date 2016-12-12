@@ -68,10 +68,10 @@ whdFromPositrack<-function(rs,
     if(!file.exists(fn))
       stop(paste("whdFromPositrack, file missing:",fn))
     
+    ## check if where is a header in positrack file
     con=file(fn,open="r")
     line=readLines(con,n=1) 
     close(con)
-    
     if(substr(line, 1, 2)=="no"){ 
       # this is for the new positrack files with header
       print("positrack file with header")
@@ -92,6 +92,17 @@ whdFromPositrack<-function(rs,
       }
       ## the frame is capture before it is received by the computer, this is the delay in .dat samples
       delay<-(posi$startProcTime-posi$capTime)*rs@samplingRate/1000
+      
+      ## check if delay are resonable, larger than 0 but smaller than 100 ms
+      if(any(delay<0))
+      {
+        stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
+      }
+      if(any(delay>rs@samplingRate/10))
+      {
+        stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
+      } 
+      
       ## remove the delay from the ttl pulse
       up<-up-delay
     } else{ 
