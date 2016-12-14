@@ -20,14 +20,18 @@ whdFromPositrack<-function(rs,
                            ttlChannel=NA,
                            maxUpDiffRes=4000)
   {
-  
-  if(rs@session==""){
+  if(rs@session=="")
     stop(paste("whdFromPositrack, rs@session == \"\""))
-  }
+  if(length(rs@trialNames)==0)
+    stop(paste("whdFromPositrack, rs@trialNames has a length of 0"))
   if(resSamplesPerWhdSample<=0)
     stop(paste("whdFromPositrack, resSamplesPerWhdSample <= 0", resSamplesPerWhdSample))
   if(maxUpDiffRes<=0)
     stop(paste("whdFromPositrack, maxUpDiffRes <= 0", maxUpDiffRes))
+  if(rs@nChannels==0)
+    stop(paste("whdFromPositrack, rs@nChannels equals 0"))
+  if(is.na(rs@samplingRate))
+    stop(paste("rs@samplingRate is NA"))
   
   df<-new("DatFiles")
   df<-datFilesSet(df,
@@ -56,17 +60,18 @@ whdFromPositrack<-function(rs,
     ## get the data from dat file
     print(paste("reading sycn channel",ttlChannel[tIndex],"from",rs@trialStartRes[tIndex],"to",rs@trialEndRes[tIndex]))
     x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel[tIndex],
-                                      firstSample = rs@trialStartRes[tIndex],lastSample = rs@trialEndRes[tIndex]))
+                                      firstSample = rs@trialStartRes[tIndex],
+                                      lastSample = rs@trialEndRes[tIndex]))
     
     up<-detectUps(x) ## detect rising times of ttl pulses
     fn<-paste(paste(rs@path,rs@trialNames[tIndex],sep='/'),"positrack",sep='.')
     if(!file.exists(fn))
       stop(paste("whdFromPositrack, file missing:",fn))
     
+    ## check if where is a header in positrack file
     con=file(fn,open="r")
     line=readLines(con,n=1) 
     close(con)
-    
     if(substr(line, 1, 2)=="no"){ 
       # this is for the new positrack files with header
       print("positrack file with header")
@@ -87,6 +92,17 @@ whdFromPositrack<-function(rs,
       }
       ## the frame is capture before it is received by the computer, this is the delay in .dat samples
       delay<-(posi$startProcTime-posi$capTime)*rs@samplingRate/1000
+      
+      ## check if delay are resonable, larger than 0 but smaller than 100 ms
+      if(any(delay<0))
+      {
+        stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
+      }
+      if(any(delay>rs@samplingRate/10))
+      {
+        stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
+      } 
+      
       ## remove the delay from the ttl pulse
       up<-up-delay
     } else{ 
