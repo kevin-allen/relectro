@@ -13,7 +13,7 @@ sem<-function(x){sd(x,na.rm=T)/sqrt(length(x))}
 #' 
 #' @param x Numeric vector
 #' @return The value in the vector with the highest frequency
-Mode <- function(x) {
+modeRelectro <- function(x) {
   ux <- unique(x)
   ux[which.max(tabulate(match(x, ux)))]
 }
