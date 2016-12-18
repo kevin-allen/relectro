@@ -182,17 +182,6 @@ setMethod(f="ifrAssociation",
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 #' Load the spike train from the .clu and .res files
 #'
 #'
@@ -217,6 +206,12 @@ setMethod(f="loadSpikeTrain",
             if(st@path=="") ## path is given or is getwd()
               st@path=getwd()
             pathSession=paste(st@path,st@session,sep="/")
+            
+            ## replace ~ by the home directory as c code does not know ~
+            if(grepl(pattern = "~",pathSession))
+            {
+              pathSession<-gsub("~",replacement = Sys.getenv("HOME"),x = pathSession)
+            }
             
             if(!file.exists(paste(pathSession,"res",sep=".")))
               stop("need ",paste(pathSession,"res",sep="."))
@@ -1022,14 +1017,11 @@ setMethod(f="crossRefractoryRatio",
             }
 )
 
-
-
-
-
 ### show ###
 setMethod("show", "SpikeTrain",
           function(object){
             print(paste("session:",object@session))
+            print(paste("path:",object@path))
             print(paste("samplingRate:",object@samplingRate))
             print(paste("nCells:",object@nCells))
             print(paste("nSpikes:",object@nSpikes))
