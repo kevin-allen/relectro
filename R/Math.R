@@ -46,6 +46,7 @@ makePairs<-function(cl1="",cl2=NULL){
 #' @param x Numeric vector
 #' @param sd The standard deviation of the Gaussian kernel used to smooth
 #' @param invalid Numeric indicating which value should be treated as NA, by default -1.0.
+#' The value should be a numeric.
 #' @param degrees Logical indicating if the smoothing should consider the vector as circular, i.e. the first and last values are adjacent.
 #' @examples smoothGaussian(x=c(1:10,9:1),sd=2,invalid=-1.0,degrees=FALSE)
 smoothGaussian<-function(x,sd=2,invalid=-1.0,degrees=FALSE)
@@ -59,15 +60,18 @@ smoothGaussian<-function(x,sd=2,invalid=-1.0,degrees=FALSE)
   if(class(x)=="integer"){
     x<-as.numeric(x)
   }
-  if(degrees==FALSE){
+  if(class(invalid)!="numeric")
+    stop(paste("invalid should be a numeric"))
+
+    if(degrees==FALSE){
     results<- .Call("smooth_double_gaussian_cwrap",
                     x, length(x), sd, invalid)
   }
   if(degrees==TRUE){
     if(any(x>360))
       stop(paste("x values larger than 360"))
-    results<- .Call("smooth_double_gaussian_degrees_cwrap",
-                    x, length(x), sd, invalid)  
+    results<-.Call("smooth_double_gaussian_degrees_cwrap",
+                     x, length(x), sd, invalid)
   }
   return(results)
 }

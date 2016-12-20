@@ -285,48 +285,50 @@ void smooth_double_gaussian_degrees(double* array, int array_size,double smooth,
     return;
   if(smooth<=0)
     return;
-  s= (double*)malloc(array_size*sizeof(double));
-  c = (double*)malloc(array_size*sizeof(double));
+  s=(double*)malloc(array_size*sizeof(double));
+  c=(double*)malloc(array_size*sizeof(double));
   // check on the input data
   for(int i =0; i < array_size;i++)
     {
-      if(array[i]!=-1.0&&array[i]<0)
-	{
-	  Rprintf(": function smooth_double_gaussian_degrees, there are values that are not -1 and negative\n");
-	  return;
-	}
+      if(array[i]!=invalid&&array[i]<0)
+	    {
+	      Rprintf(": function smooth_double_gaussian_degrees, there are values that are not -1 and negative\n");
+	      return;
+	    }
       if(array[i]>360)
-	{
-	  Rprintf("function smooth_double_gaussian_degrees, there are values that are larger than 360\n");
-	  return;
-	}
+	    {
+	      Rprintf("function smooth_double_gaussian_degrees, there are values that are larger than 360\n");
+	      return;
+	    }
     }
-    for(int i =0; i < array_size;i++)
+  for(int i =0; i < array_size;i++)
     {
-      if(array[i]==-1.0)
-	{
-	  c[i]=-1.0;
-	  s[i]=-1.0;
-	}
+      if(array[i]==invalid)
+	    {
+	      c[i]=-2.0; // use a value that cos function will never return
+	      s[i]=-2.0;
+	    }
       else
-	{
-	  c[i]=cos(array[i]/180*M_PI);
-	  s[i]=sin(array[i]/180*M_PI);
-	}
+	    {
+	      c[i]=cos(array[i]/180*M_PI);
+	      s[i]=sin(array[i]/180*M_PI);
+	    }
     }
-    // smooth the two linear arrays
-    smooth_double_gaussian(c,array_size,smooth,invalid);
-    smooth_double_gaussian(s,array_size,smooth,invalid);    
+    //smooth the two linear arrays
+    smooth_double_gaussian(c,array_size,smooth,-2);
+    smooth_double_gaussian(s,array_size,smooth,-2);    
+    // sin = opposite/hypo
+    // cos = adjacent/hypo
+    // tan = opposite/adjacent
     // get back the degree
     for(int i =0; i < array_size;i++)
     {
-      if(array[i]!=-1)
-	{
-	  if(s[i]>=0)
-	    array[i]=acos(c[i])*180/M_PI;
-	  if(s[i]<0)
-	    array[i]=360-(acos(c[i])*180/M_PI);
-	}
+      if(array[i]!=invalid)
+      {
+	      array[i]=(atan2(s[i],c[i]))*180/M_PI;
+        if(array[i]<0)
+          array[i]=array[i]+360;
+      }
     }
     free(c);
     free(s);
