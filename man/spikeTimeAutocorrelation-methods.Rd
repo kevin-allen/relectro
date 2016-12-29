@@ -28,5 +28,6 @@ SpikeTrain object with autocorrelation in slot auto
 Each spike is treated in turn as a reference spike.
 The number of spikes or probability to observe a spike around the reference spike is calculated.
 You can set the bins size in ms and and the time window for which you want to do the analysis on.
+The results are saved in the slot auto and autoTimePoints.
 }
 

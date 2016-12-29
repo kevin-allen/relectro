@@ -23,10 +23,10 @@ If a vector, beginning of intervals.}
 a SpikeTrain object with the intervals set.
 }
 \description{
-Only the data within the intervals are used for analysis. 
+Only the data within the intervals are used for analysis.
 For example with interval 0-20000, a spike at time 0 or 20000 is not included.
 Spikes between time 0 and 20000 are used.
-These intervals are used in SpikeTrain methods and also in 
+These intervals are used in SpikeTrain methods and also in
 methods of other classes (SaptialProperties2d, SpatialProperties1d, HeadDirection, etc.).
 By default, the intervals are set from 0 to time point of the last recorded spike.
 }

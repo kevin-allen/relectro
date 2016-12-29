@@ -26,8 +26,8 @@ SpikeTrain object with the instantaneous firing rate
 }
 \description{
 The ifr for the periods within the intervals set within the SpikeTrain object will be calculated.
-A vector with the spike count in each bin is calculated
-Then a gaussian kernel is applied to the spike count vector
+A vector with the spike count in each bin is calculated.
+Then a gaussian kernel is applied to the spike count vector.
 Finally, the firing probability is integrated over a set window size and transform to a firing rate.
 }
 

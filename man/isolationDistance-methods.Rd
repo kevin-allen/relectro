@@ -23,7 +23,7 @@ a SpikeTrain object with the isolationDistance set.
 For each cluster, the mahalanobis distance of all spikes relative to the cluster
 is calculated. The isolation distance is the minimal distance from the cluster center
 at which there are as many spikes from other cluster than from the cluster of interest.
-Distance is not defined for cases in which the number of cluster spikes is 
+Distance is not defined for cases in which the number of cluster spikes is
 greater than the number of noise spikes.
 }
 \details{

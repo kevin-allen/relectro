@@ -11,7 +11,8 @@ smoothGaussian(x, sd = 2, invalid = -1, degrees = FALSE)
 
 \item{sd}{The standard deviation of the Gaussian kernel used to smooth}
 
-\item{invalid}{Numeric indicating which value should be treated as NA, by default -1.0.}
+\item{invalid}{Numeric indicating which value should be treated as NA, by default -1.0.
+The value should be a numeric.}
 
 \item{degrees}{Logical indicating if the smoothing should consider the vector as circular, i.e. the first and last values are adjacent.}
 }

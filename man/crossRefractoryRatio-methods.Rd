@@ -31,7 +31,7 @@ crossRefractoryRatio(st, refractoryMs = 1.5, binSizeMs = 0.5,
 a SpikeTrain object with the refractoryRation set.
 }
 \description{
-This tells you whether a cluster has a common refractory period with other cluster. If this is the 
+This tells you whether a cluster has a common refractory period with other cluster. If this is the
 case, perhaps the two clusters are from the same neuron.
 }
 \details{

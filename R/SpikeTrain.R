@@ -1,8 +1,12 @@
-#' A S4 class to represent spike trains of one recording session
-#' 
-#' Set intervals in this object to limit the analysis to some parts of the 
-#' recording session.
-#' 
+#' A S4 class to represent the spike trains of one recording session
+#'
+#' This class is used to analyse the spike trains of neurons. You can calculate mean firing rates,
+#' instantaneous firing rates, spike-time autocorrelations, spike-time crosscorrelations,
+#' crosscorrelation between spike trains and events, etc.
+#' You can limit the analysis to some time interval by using the method setInterval.
+#' Similarly, you can limit the analysis to some cells with the method setCellList.
+#'
+#'
 #' @slot session Name of the recording session
 #' @slot path Directory where the recording session is located
 #' @slot samplingRate Sampling rate of the electrophysiological data
@@ -23,12 +27,15 @@
 #' @slot cellList Cell list
 #' @slot auto Matrix holding spike-time autocorrelation
 #' @slot autoMsPerBin Ms per bin in spike-time autocorrelation
+#' @slot autoTimePoints Time points for data points in the spike-time autocorrelation
 #' @slot autoProbability Logical, whether the spike-time autocorrelation contains probability values or spike count
 #' @slot cross Matrix holding spike-time crosscorrelation between spikes and events
 #' @slot crossMsPerBin Ms per bin in spike-time crosscorrelation with events
+#' @slot crossTimePoints Time points for data points in the spike-time crosscorrelation
 #' @slot crossProbability Logical, whether the spike-time crosscorrelation to events contains probability values or spike count
 #' @slot crossEvents Matrix holding spike-time crosscorrelation between spikes and events
 #' @slot crossEventsMsPerBin Ms per bin in spike-time crosscorrelation with events
+#' @slot crossEventsTimePoints Time points for data points in the spike-time crosscorrelation to events
 #' @slot crossEventsProbability Logical, whether the spike-time crosscorrelation to events contains probability values or spike count
 #' @slot cellPairList Data frame containing pairs of cells
 #' @slot ifrKernelSdMs Standard deviation of a gaussian kernel used to calculate the instantaneous firing rate
@@ -39,7 +46,7 @@
 #' @slot meanFiringRate Mean firing rate of the neurons
 #' @slot isolationDistance Isolation distance of each cluster
 #' @slot refractoryRatio Refractory ratio of each cluster
-#' @slot crossRefractoryRatio Refractory ratio found in the spike-time crosscorrelation between a cluster 
+#' @slot crossRefractoryRatio Refractory ratio found in the spike-time crosscorrelation between a cluster
 #' and all other clusters. The smallest ratio is used.
 
 SpikeTrain <- setClass(
@@ -59,12 +66,15 @@ SpikeTrain <- setClass(
           cellList="numeric",cellPairList="data.frame", # cell list to limit the analysis to these cells
           auto="matrix",
           autoMsPerBin="numeric",
+          autoTimePoints="numeric",
           autoProbability="logical",
           cross="matrix",
           crossMsPerBin="numeric",
+          crossTimePoints="numeric",
           crossProbability="logical",
           crossEvents="matrix",
           crossEventsMsPerBin="numeric",
+          crossEventsTimePoints="numeric",
           crossEventsProbability="logical",
           # ifr
           ifrKernelSdMs="numeric",
@@ -77,7 +87,7 @@ SpikeTrain <- setClass(
           isolationDistance="numeric",
           refractoryRatio="numeric",
           crossRefractoryRatio="numeric"
-          ),  
+          ),
   prototype = list(session=""))
 
 
@@ -85,17 +95,17 @@ SpikeTrain <- setClass(
 #' Calculate the instantaneous firing rate from the spike trains.
 #'
 #' The ifr for the periods within the intervals set within the SpikeTrain object will be calculated.
-#' A vector with the spike count in each bin is calculated
-#' Then a gaussian kernel is applied to the spike count vector
+#' A vector with the spike count in each bin is calculated.
+#' Then a gaussian kernel is applied to the spike count vector.
 #' Finally, the firing probability is integrated over a set window size and transform to a firing rate.
-#' 
+#'
 #'
 #' @param st SpikeTrain object
 #' @param windowSizeMs The window size for each ifr value
 #' @param spikeBinMs The bin size for the spike count array
 #' @param kernelSdMs Standard deviation of the gaussian kernel used to smooth the spike count vector
 #' @return SpikeTrain object with the instantaneous firing rate
-#' 
+#'
 #' @docType methods
 #' @rdname ifr-methods
 setGeneric(name="ifr",
@@ -114,21 +124,21 @@ setMethod(f="ifr",
             if(windowSizeMs<spikeBinMs)
               stop(paste("ifr(): windowSizeMs should not be smaller than spikeBinMs",
                          windowSizeMs,spikeBinMs))
-            
+
             st@ifrWindowSizeMs<-windowSizeMs
             st@ifrSpikeBinMs<-spikeBinMs
             st@ifrKernelSdMs<-kernelSdMs
-            
+
             results<-.Call("ifr_from_spike_density",
-                  as.integer(st@res),as.integer(st@clu), as.integer(st@nSpikes), 
+                  as.integer(st@res),as.integer(st@clu), as.integer(st@nSpikes),
                   st@ifrWindowSizeMs, st@ifrKernelSdMs, st@ifrSpikeBinMs,
                   as.integer(st@cellList), length(st@cellList),
                   as.integer(st@startInterval),as.integer(st@endInterval),length(st@startInterval),
                   st@samplingRate)
-            
+
             st@ifrTime<-results[1,]
             st@ifr<-matrix(results[-1,],nrow=st@nCells)
-            
+
             return(st)
           }
 )
@@ -141,7 +151,7 @@ setMethod(f="ifr",
 #'
 #' @param st SpikeTrain object with ifr already calculated
 #' @return data.frame with the clu.ids of pairs and correlation coefficient between the instantaneous firing rate.
-#' 
+#'
 #' @docType methods
 #' @rdname ifrAssociation-methods
 setGeneric(name="ifrAssociation",
@@ -158,7 +168,7 @@ setMethod(f="ifrAssociation",
               stop(paste("ifrAssociation(): there are no spike in the SpikeTrain object",st@session))
             if(length(st@ifr)==0)
               stop(paste("ifrAssociation(): st@ifr has a size of 0",st@session))
-            
+
             ## get the ifr and ifrTime inside st@intervals
             resTime<-st@ifrTime*st@samplingRate
             index<-as.logical(.Call("resWithinIntervals",
@@ -167,7 +177,7 @@ setMethod(f="ifrAssociation",
                                     as.integer(st@endInterval),
                                     length(resTime),
                                     as.integer(resTime)))
-            
+
             ifrSel<-matrix(st@ifr[,index],nrow=length(st@cellList))
             m<-cor(t(ifrSel))
             r<-m[which(lower.tri(m,diag=FALSE))]
@@ -187,7 +197,7 @@ setMethod(f="ifrAssociation",
 #'
 #' @param st SpikeTrain object
 #' @return SpikeTrain object with the instantaneous firing rate
-#' 
+#'
 #' @docType methods
 #' @rdname loadSpikeTrain-methods
 setGeneric(name="loadSpikeTrain",
@@ -200,29 +210,29 @@ setMethod(f="loadSpikeTrain",
           signature="SpikeTrain",
           definition=function(st)
           {
-            
+
             if(st@session=="")
               stop("st@session is not set")
             if(st@path=="") ## path is given or is getwd()
               st@path=getwd()
             pathSession=paste(st@path,st@session,sep="/")
-            
+
             ## replace ~ by the home directory as c code does not know ~
             if(grepl(pattern = "~",pathSession))
             {
               pathSession<-gsub("~",replacement = Sys.getenv("HOME"),x = pathSession)
             }
-            
+
             if(!file.exists(paste(pathSession,"res",sep=".")))
               stop("need ",paste(pathSession,"res",sep="."))
             if(!file.exists(paste(pathSession,"clu",sep=".")))
               stop("need ",paste(pathSession,"clu",sep="."))
             if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
               stop("need ",paste(pathSession,"sampling_rate_dat",sep="."))
-            
+
             st@res<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"res",sep=".")))
             st@clu<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"clu",sep=".")))
-  
+
             st@samplingRate<-as.numeric(readLines(paste(pathSession,"sampling_rate_dat",sep=".")))
             if(st@samplingRate<1 | st@samplingRate > 100000)
               stop(paste("samplingRate is out of range:",st@samplingRate,st@session))
@@ -243,12 +253,12 @@ setMethod(f="loadSpikeTrain",
             st@nCells<-length(unique(st@clu))
             if(st@nCells!=cluNoFromCluFile-1){
               stop(paste(st@session,"
-                         There are fewer unique clusters in the spike train than 
+                         There are fewer unique clusters in the spike train than
                          it should based on the first line of the clu file.
                          Could affect how tetrode_id are assigned to cluster if using cellGroup object.
-                         Consider reclustering and deleting cluster without spikes."))              
+                         Consider reclustering and deleting cluster without spikes."))
             }
-            
+
             st@nSpikesPerCell<-as.numeric(table(st@clu))
             # by default analysis on all cells and all recording period
             st@cellList<-sort(unique(st@clu))
@@ -264,8 +274,8 @@ setMethod(f="loadSpikeTrain",
 )
 
 #' Set new spike trains
-#' 
-#' This function is used to set spike trains 
+#'
+#' This function is used to set spike trains
 #'
 #'
 #' @param st SpikeTrain object
@@ -273,7 +283,7 @@ setMethod(f="loadSpikeTrain",
 #' @param clu Cluster id for each spike
 #' @param samplingRate The number of spamples per second (Hz)
 #' @return SpikeTrain object with the instantaneous firing rate
-#' 
+#'
 #' @docType methods
 #' @rdname setSpikeTrain-methods
 setGeneric(name="setSpikeTrain",
@@ -290,13 +300,13 @@ setMethod(f="setSpikeTrain",
             st@res<-res
             st@clu<-clu
             st@samplingRate<-samplingRate
-            
+
             if(st@samplingRate<1 | st@samplingRate > 100000)
               stop(paste("samplingRate is out of range:",st@samplingRate,st@session))
-            
+
             if(length(st@res)!=length(st@clu))
               stop(paste("length of res and clu files not equals:",length(st@res),length(st@clu),st@session))
-            
+
             # get time in sec
             st@time<-st@res/st@samplingRate
             st@nSpikes<-length(st@res)
@@ -304,7 +314,7 @@ setMethod(f="setSpikeTrain",
             st@nSpikesPerCell<-as.numeric(table(st@clu))
             # by default analysis on all cells and all recording period
             st@cellList<-sort(unique(st@clu))
-            
+
             if(length(st@cellList)>1)
               st@cellPairList<-makePairs(st@cellList)
             st@startInterval<-0
@@ -318,17 +328,18 @@ setMethod(f="setSpikeTrain",
 
 
 #' Calculate the spike-time autocorrelation
-#' 
+#'
 #' Each spike is treated in turn as a reference spike.
 #' The number of spikes or probability to observe a spike around the reference spike is calculated.
 #' You can set the bins size in ms and and the time window for which you want to do the analysis on.
+#' The results are saved in the slot auto and autoTimePoints.
 #'
 #' @param st SpikeTrain object
 #' @param binSizeMs Default is 1
 #' @param windowSizeMs Default is 200. This means that autocorrelation ranges from -windowSizeMs to windowSizeMs
 #' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
 #' @return SpikeTrain object with autocorrelation in slot auto
-#' 
+#'
 #' @docType methods
 #' @rdname spikeTimeAutocorrelation-methods
 setGeneric(name="spikeTimeAutocorrelation",
@@ -343,7 +354,7 @@ setMethod(f="spikeTimeAutocorrelation",
             nBins=(windowSizeMs*2)/binSizeMs
             windowSize=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
-            
+
             results<- .Call("autocorrelation_cwrap",
                         st@cellList,
                         length(st@cellList),
@@ -356,9 +367,12 @@ setMethod(f="spikeTimeAutocorrelation",
                         st@endResIndexc,
                         length(st@startResIndexc),
                         probability)
-            
+
             st@auto<-matrix(results,nrow=nBins,ncol=length(st@cellList))
             st@autoMsPerBin=binSizeMs
+            st@autoTimePoints=seq(-st@autoMsPerBin*nBins/2+st@autoMsPerBin/2,
+                                  st@autoMsPerBin*nBins/2,
+                                  st@autoMsPerBin)
             st@autoProbability=probability
             return(st)
             }
@@ -367,11 +381,11 @@ setMethod(f="spikeTimeAutocorrelation",
 
 
 #' Get spike-time autocorrelation as data.frame
-#' 
+#'
 #'
 #' @param st SpikeTrain object
 #' @return data.frame with spike-time autocorrelation
-#' 
+#'
 #' @docType methods
 #' @rdname spikeTimeAutocorrelationAsDataFrame-methods
 setGeneric(name="spikeTimeAutocorrelationAsDataFrame",
@@ -403,7 +417,7 @@ setMethod(f="spikeTimeAutocorrelationAsDataFrame",
 
 
 #' Calculate the spike-time crosscorrelation between the spike trains and a list of events
-#' 
+#'
 #' Each event is treated in turn as a reference event.
 #' The number of spikes or probability to observe a spike around the reference event is calculated.
 #' You can set the bins size in ms and and the time window for which you want to do the analysis on.
@@ -414,7 +428,7 @@ setMethod(f="spikeTimeAutocorrelationAsDataFrame",
 #' @param windowSizeMs Default is 200, meaning that it ranges from + and - 200
 #' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
 #' @return st SpikeTrain object with the slot crossEvents filled
-#' 
+#'
 #' @docType methods
 #' @rdname spikeTimeCrosscorrelationEvents-methods
 setGeneric(name="spikeTimeCrosscorrelationEvents",
@@ -426,7 +440,7 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
           signature = "SpikeTrain",
           definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
           {
-            
+
             if(length(st@events)==0)
               stop("events is empty")
 
@@ -447,24 +461,27 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
                             probability,
                             st@events,
                             length(st@events))
-            
+
             st@crossEvents=matrix(results,nrow=nBins,ncol=length(st@cellList))
             st@crossEventsMsPerBin=binSizeMs
+            st@crossEventsTimePoints=seq(-st@crossEventsMsPerBin*nBins/2+st@crossEventsMsPerBin/2,
+                                   st@crossEventsMsPerBin*nBins/2,
+                                   st@crossEventsMsPerBin)
             st@crossEventsProbability=probability
-            return(st) 
+            return(st)
           }
           )
-            
-            
-          
+
+
+
 
 
 #' Get spike-time crosscorelation to events as data.frame
-#' 
+#'
 #'
 #' @param st SpikeTrain object
 #' @return data.frame with spike-time crosscorrelation to events
-#' 
+#'
 #' @docType methods
 #' @rdname spikeTimeCrosscorrelationEventsAsDataFrame-methods
 setGeneric(name="spikeTimeCrosscorrelationEventsAsDataFrame",
@@ -493,10 +510,10 @@ setMethod(f="spikeTimeCrosscorrelationEventsAsDataFrame",
             }
           }
 )
- 
+
 
 #' Calculate the spike-time crosscorrelation between the spike trains of cell pairs
-#' 
+#'
 #' The spikes of cell 1 are used in turn as a reference spike.
 #' The number of spikes or probability to observe a spike of cell 2 around the reference spikes is calculated.
 #' You can set the bins size in ms and and the time window for which you want to do the analysis on.
@@ -507,7 +524,7 @@ setMethod(f="spikeTimeCrosscorrelationEventsAsDataFrame",
 #' @param windowSizeMs Default is 200. Will span from -windowSizeMs to windowSizeMs
 #' @param probability If TRUE, will calculate the probability of a spike in a given bin instead of the spike count
 #' @return SpikeTrain object with spike-time crosscorrelation of cell pairs in slot cross
-#' 
+#'
 #' @docType methods
 #' @rdname spikeTimeCrosscorrelation-methods
 setGeneric(name="spikeTimeCrosscorrelation",
@@ -519,13 +536,13 @@ setMethod(f="spikeTimeCrosscorrelation",
           signature = "SpikeTrain",
           definition=function(st,binSizeMs=1,windowSizeMs=200,probability=FALSE)
           {
-            
+
             if(length(st@cellPairList[,1])==0)
               stop("cellPairList is empty")
             nBins=(windowSizeMs*2)/binSizeMs
             window.size=2*windowSizeMs*st@samplingRate/1000 # window size in res value from - to + extrems
             # call cwrapper function
-            
+
             results<- .Call("crosscorrelation_cwrap",
                             as.integer(st@cellPairList[,1]),
                             as.integer(st@cellPairList[,2]),
@@ -539,9 +556,12 @@ setMethod(f="spikeTimeCrosscorrelation",
                             as.integer(st@endResIndexc),
                             length(st@startResIndexc),
                             probability)
-            
+
             st@cross=matrix(results,nrow=nBins,ncol=length(st@cellPairList[,1]))
             st@crossMsPerBin=binSizeMs
+            st@crossTimePoints=seq(-st@crossMsPerBin*nBins/2+st@crossMsPerBin/2,
+                                   st@crossMsPerBin*nBins/2,
+                                   st@crossMsPerBin)
             st@crossProbability=probability
             return(st)
           })
@@ -550,11 +570,11 @@ setMethod(f="spikeTimeCrosscorrelation",
 
 
 #' Get spike-time crosscorelation between cells as data.frame
-#' 
+#'
 #'
 #' @param st SpikeTrain object
 #' @return data.frame with spike-time crosscorrelation between neurons
-#' 
+#'
 #' @docType methods
 #' @rdname spikeTimeCrosscorrelationAsDataFrame-methods
 setGeneric(name="spikeTimeCrosscorrelationAsDataFrame",
@@ -588,14 +608,14 @@ setMethod(f="spikeTimeCrosscorrelationAsDataFrame",
 
 
 #' Calculate the mean firing rate (Hz) of each neuron in a SpikeTrain object
-#' 
+#'
 #' This is simply the number of spikes divided by the time within the intervals
 #' set in the SpikeTrain object.
 #'
 #'
 #' @param st SpikeTrain object
 #' @return a SpikeTrain object with the mean firing rate in slot meanFiringRate
-#' 
+#'
 #' @docType methods
 #' @rdname meanFiringRate-methods
 setGeneric(name="meanFiringRate",
@@ -608,7 +628,7 @@ setMethod(f="meanFiringRate",
           signature = "SpikeTrain",
           definition=function(st)
           {
-            
+
             # call cwrapper function
             st@meanFiringRate<- .Call("meanFiringRate_cwrap",
                                       as.integer(st@cellList),
@@ -628,11 +648,11 @@ setMethod(f="meanFiringRate",
 
 
 #' Set time intervals to limit the period used in the analysis
-#' 
-#' Only the data within the intervals are used for analysis. 
+#'
+#' Only the data within the intervals are used for analysis.
 #' For example with interval 0-20000, a spike at time 0 or 20000 is not included.
 #' Spikes between time 0 and 20000 are used.
-#' These intervals are used in SpikeTrain methods and also in 
+#' These intervals are used in SpikeTrain methods and also in
 #' methods of other classes (SaptialProperties2d, SpatialProperties1d, HeadDirection, etc.).
 #' By default, the intervals are set from 0 to time point of the last recorded spike.
 #'
@@ -641,7 +661,7 @@ setMethod(f="meanFiringRate",
 #' If a vector, beginning of intervals.
 #' @param e Vector, end of the intervals. If s is a matrix, e is not used.
 #' @return a SpikeTrain object with the intervals set.
-#' 
+#'
 #' @docType methods
 #' @rdname setIntervals-methods
 setGeneric(name="setIntervals",
@@ -654,7 +674,7 @@ setMethod(f="setIntervals",
           signature = "SpikeTrain",
           definition=function(st,s,e)
           {
-            
+
             ## if s is a matrix, then e is ignored
             if(class(s)=="matrix"){
               if(dim(s)[2]!=2){
@@ -676,10 +696,10 @@ setMethod(f="setIntervals",
               stop(paste("problem with chonology within endIntervals in set intervals",st@session))
             if(any(startIntervals[-1]-endIntervals[-length(endIntervals)]<0))
               stop(paste("problem with chronology between intervals, from end to next start in set intervals",st@session))
-            
+
             st@startInterval<-startIntervals
             st@endInterval<-endIntervals
-            
+
             # call cwrapper function
             results<- .Call("resIndexForIntervals_cwrap",
                             length(st@startInterval),
@@ -688,25 +708,25 @@ setMethod(f="setIntervals",
                             as.integer(st@nSpikes),
                             as.integer(st@res),
                             as.integer(0))# will keep the intervals after the last spikes
-            
+
             st@startResIndexc<-results[1,]
             st@endResIndexc<-results[2,]
             st@startInterval<-st@startInterval[1:length(st@startResIndexc)]
             st@endInterval<-st@endInterval[1:length(st@endResIndexc)]
-            
+
             return(st)
           }
 )
 
 
 #' Set the list of cells to limit the analysis to these cells
-#' 
+#'
 #' Only these cells will be considered for analysis.
 #'
 #' @param st SpikeTrain object
 #' @param cellList Numiric vector containing the clu id of the neurons
 #' @return a SpikeTrain object with a new cellList.
-#' 
+#'
 #' @docType methods
 #' @rdname setCellList-methods
 setGeneric(name="setCellList",
@@ -725,17 +745,17 @@ setMethod(f="setCellList",
               stop("setCellList: length(cellList==0)")
             st@cellList<-cellList
             st@nCells<-length(cellList)
-            
+
             ## spikes per cell
             st@nSpikesPerCell<-as.numeric(table(st@clu)[as.character(cellList)])
-            
+
             if(any(is.na(st@nSpikesPerCell)))
               stop("setCellList: a cell has no spike")
-            
+
             # all the possible pairs
             if(length(st@cellList>1))
               st@cellPairList<-makePairs(st@cellList)
-            
+
             return(st)
           }
 )
@@ -758,14 +778,14 @@ setMethod(f="setCellList",
 
 
 
-#' Set some events for spike-time crosscorrelation to the events. 
-#' 
+#' Set some events for spike-time crosscorrelation to the events.
+#'
 #' These events could be laser stimulation or some behavioural events
 #'
 #' @param st SpikeTrain object
 #' @param events Time in sample number of the events
 #' @return a SpikeTrain object with the events set
-#' 
+#'
 #' @docType methods
 #' @rdname setEvents-methods
 setGeneric(name="setEvents",
@@ -783,26 +803,26 @@ setMethod(f="setEvents",
               stop(paste("negative values as events",st@session))
             if(any(diff(events)<0))
               stop(paste("problem with the chronology of the events",st@session))
-            
+
             st@events<-events
             return(st)
           }
 )
 
 #' Get the isolation distance of each cluster
-#' 
+#'
 #' For each cluster, the mahalanobis distance of all spikes relative to the cluster
 #' is calculated. The isolation distance is the minimal distance from the cluster center
 #' at which there are as many spikes from other cluster than from the cluster of interest.
-#' Distance is not defined for cases in which the number of cluster spikes is 
+#' Distance is not defined for cases in which the number of cluster spikes is
 #' greater than the number of noise spikes.
-#' 
+#'
 #' From Schmitzer-Torbert et al. 2005
 #'
 #' @param st SpikeTrain object
 #' @param cg CellGroup object
 #' @return a SpikeTrain object with the isolationDistance set.
-#' 
+#'
 #' @docType methods
 #' @rdname isolationDistance-methods
 setGeneric(name="isolationDistance",
@@ -823,26 +843,26 @@ setMethod(f="isolationDistance",
             pathSession=paste(st@path,st@session,sep="/")
             index=1
             for(tetrode in unique(cg@tetrode)){
-            
+
               clus<-cg@cluToTetrode[which(cg@tetrode==tetrode)]
-            
+
               ## check if the files are there
               if(!file.exists(paste(pathSession,"fet",tetrode,sep=".")))
                 stop("isolationDistance needs",paste(pathSession,"fet",tetrode,sep="."))
               if(!file.exists(paste(pathSession,"clu",tetrode,sep=".")))
                 stop("isolationDistance needs",paste(pathSession,"clu",tetrode,sep="."))
-              
+
               ## load the tetrode clu file
               cluTet<-as.numeric(.Call("read_one_column_int_file_cwrap", paste(pathSession,"clu",tetrode,sep=".")))
               cluTet<-cluTet[-1]# remove first line
-              
+
               ## load the tetrode fet file
               fet<-readFetFile(paste(pathSession,"fet",tetrode,sep="."))
               fet<-fet[,1:(ncol(fet)-1)] # remove time, last column
-              
+
               if(length(cluTet)!=nrow(fet))
                 stop("isolationDistance, length of cluTet and fet not equal")
-              
+
               for(clu in clus){
                 # get the mahalanobis distance of each spikes relative to clu
                 fetClu<-fet[which(cluTet==clu),]
@@ -851,7 +871,7 @@ setMethod(f="isolationDistance",
                 cm<-cm[order(cm[,2]),] ## order spikes according to distance
                 propSpikeFromClu<-cumsum(cm[,1]==clu)/1:length(cm[,1]) ## probability that spikes are from clu
                 if(any(propSpikeFromClu<.5)){
-                  st@isolationDistance[index]=min(cm[which(propSpikeFromClu<.5),2])  
+                  st@isolationDistance[index]=min(cm[which(propSpikeFromClu<.5),2])
                 } else{
                   st@isolationDistance[index]=NA
                 }
@@ -863,7 +883,7 @@ setMethod(f="isolationDistance",
 )
 
 #' Get refractory ratio of each cluster from its spike-time autocorrelation
-#' 
+#'
 #' This is the ratio between the mean number of spikes falling in the bins of the refractory period
 #' compared to the max number of spikes falling in one bin of the control period outside the refractory period.
 #' Note that the spike-time autocorrelations in the SpikeTrain object will be modified.
@@ -875,7 +895,7 @@ setMethod(f="isolationDistance",
 #' @param minControlWindowMs Minimum time of the control window
 #' @param maxControlWindowMs Maximal time of the control window
 #' @return a SpikeTrain object with the refractoryRation set.
-#' 
+#'
 #' @docType methods
 #' @rdname refractoryRatio-methods
 setGeneric(name="refractoryRatio",
@@ -889,7 +909,7 @@ setMethod(f="refractoryRatio",
           definition=function(st,refractoryMs=1.5,binSizeMs=0.5,windowSizeMs=25,
                               minControlWindowMs=5.0,maxControlWindowMs=25)
           {
-            
+
             if(st@session=="")
               stop("st@session is not set")
             if(st@path=="") ## path is given or is getwd()
@@ -915,7 +935,7 @@ setMethod(f="refractoryRatio",
                   return(NA)
                 } else{
                   return(ref/con)
-                  
+
                 }
             },
             st@autoMsPerBin,
@@ -927,10 +947,10 @@ setMethod(f="refractoryRatio",
 )
 
 #' Get the cross refractory ratio of each cluster from its spike-time crosscorrelation
-#' 
-#' This tells you whether a cluster has a common refractory period with other cluster. If this is the 
+#'
+#' This tells you whether a cluster has a common refractory period with other cluster. If this is the
 #' case, perhaps the two clusters are from the same neuron.
-#' 
+#'
 #' This is the ratio between the mean number of spikes falling in the bins of the refractory period
 #' compared to the max number of spikes falling in one bin of the control period outside the refractory period.
 #' Note that the spike-time crosscorrelations in the SpikeTrain object will be modified.
@@ -942,7 +962,7 @@ setMethod(f="refractoryRatio",
 #' @param minControlWindowMs Minimum time of the control window
 #' @param maxControlWindowMs Maximal time of the control window
 #' @return a SpikeTrain object with the refractoryRation set.
-#' 
+#'
 #' @docType methods
 #' @rdname crossRefractoryRatio-methods
 setGeneric(name="crossRefractoryRatio",
@@ -974,7 +994,7 @@ setMethod(f="crossRefractoryRatio",
             }
             st<-spikeTimeCrosscorrelation(st,binSizeMs=binSizeMs,
                                          windowSizeMs=windowSizeMs,probability=F)
-            
+
             refractoryRatio<-apply(st@cross,2,function(x,crossMsPerBin,refractoryMs,minControlWindowMs,maxControlWindowMs)
             {
               time<-seq(-st@crossMsPerBin*length(x)/2+st@crossMsPerBin/2,
@@ -986,24 +1006,24 @@ setMethod(f="crossRefractoryRatio",
                 return(NA)
               } else{
                 return(ref/con)
-                
+
               }
             },
             st@crossMsPerBin,
             refractoryMs,
             minControlWindowMs,
             maxControlWindowMs)
-            
+
             # get the sum of spikes in the positive side of the crosscorrelation
             if(ncol(st@cross)>1){
               totalSpikes<-colSums(st@cross[ (nrow(st@cross)/2):(nrow(st@cross))  , ])
             } else {
               totalSpikes<-sum(st@cross[(length(st@cross)/2):(length(st@cross))])
             }
-            
+
             # don't consider the cc with very few spikes
             refractoryRatio[which(totalSpikes<200)]<-NA
-            
+
             for(clu in 1:st@nCells){
               if(all(is.na(refractoryRatio[which(st@cellPairList[,1]==st@cellList[clu]|
                                                  st@cellPairList[,2]==st@cellList[clu])]))){
@@ -1048,10 +1068,10 @@ setMethod("show", "SpikeTrain",
               print(paste("crosscorrelation refractory ratio:"))
               print(paste(object@crossRefractoryRatio))
             }
-            
-            
+
+
             if(length(object@startInterval)!=0){
-              print(paste("nIntervals:",length(object@startInterval))) 
+              print(paste("nIntervals:",length(object@startInterval)))
               print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))
               if(length(object@startInterval<500)){
                 print(paste(object@startInterval,object@endInterval))

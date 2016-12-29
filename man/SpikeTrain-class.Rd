@@ -4,10 +4,13 @@
 \name{SpikeTrain-class}
 \alias{SpikeTrain}
 \alias{SpikeTrain-class}
-\title{A S4 class to represent spike trains of one recording session}
+\title{A S4 class to represent the spike trains of one recording session}
 \description{
-Set intervals in this object to limit the analysis to some parts of the 
-recording session.
+This class is used to analyse the spike trains of neurons. You can calculate mean firing rates,
+instantaneous firing rates, spike-time autocorrelations, spike-time crosscorrelations,
+crosscorrelation between spike trains and events, etc.
+You can limit the analysis to some time interval by using the method setInterval.
+Similarly, you can limit the analysis to some cells with the method setCellList.
 }
 \section{Slots}{
 
@@ -49,17 +52,23 @@ The spike at the intdex is to be considered for analysis}
 
 \item{\code{autoMsPerBin}}{Ms per bin in spike-time autocorrelation}
 
+\item{\code{autoTimePoints}}{Time points for data points in the spike-time autocorrelation}
+
 \item{\code{autoProbability}}{Logical, whether the spike-time autocorrelation contains probability values or spike count}
 
 \item{\code{cross}}{Matrix holding spike-time crosscorrelation between spikes and events}
 
 \item{\code{crossMsPerBin}}{Ms per bin in spike-time crosscorrelation with events}
 
+\item{\code{crossTimePoints}}{Time points for data points in the spike-time crosscorrelation}
+
 \item{\code{crossProbability}}{Logical, whether the spike-time crosscorrelation to events contains probability values or spike count}
 
 \item{\code{crossEvents}}{Matrix holding spike-time crosscorrelation between spikes and events}
 
 \item{\code{crossEventsMsPerBin}}{Ms per bin in spike-time crosscorrelation with events}
+
+\item{\code{crossEventsTimePoints}}{Time points for data points in the spike-time crosscorrelation to events}
 
 \item{\code{crossEventsProbability}}{Logical, whether the spike-time crosscorrelation to events contains probability values or spike count}
 
@@ -81,7 +90,7 @@ The spike at the intdex is to be considered for analysis}
 
 \item{\code{refractoryRatio}}{Refractory ratio of each cluster}
 
-\item{\code{crossRefractoryRatio}}{Refractory ratio found in the spike-time crosscorrelation between a cluster 
+\item{\code{crossRefractoryRatio}}{Refractory ratio found in the spike-time crosscorrelation between a cluster
 and all other clusters. The smallest ratio is used.}
 }}
 

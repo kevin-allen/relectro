@@ -74,7 +74,7 @@ setMethod(f="setSessionList",
             
             ## make sure all directories have the same depth
             x<-sapply(ep@sessionPathList,function(x){length(unlist(strsplit(x,split="/")))})
-            xMode<-Mode(as.numeric(x))
+            xMode<-modeRelectro(as.numeric(x))
             if(any(x!=xMode)){
               print(paste("The depth of some directories differs"))
               print(paste("Most directories have a depth of",xMode))
