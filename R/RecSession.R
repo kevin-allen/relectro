@@ -389,9 +389,15 @@ setMethod(f="getRecSessionObjects",
             st<-loadSpikeTrain(st)
             pt<-new("Positrack",session=rs@session,path=rs@path)
             pt<-loadPositrack(pt)
-            df<-new("DatFiles")
-            df<-datFilesSet(df,fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,
-                            nChannels=rs@nChannels)
+            df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
+            if(file.exists(paste(df@path,df@fileNames[1],sep="/")))
+            { # make it possible to use this function with recSession that have no .dat files
+              df<-datFilesSet(df,
+                              fileNames=paste(rs@trialNames,"dat",sep="."),
+                              path=rs@path,
+                              nChannels=rs@nChannels)
+            }
+
             cg<-new("CellGroup",session=rs@session,path=rs@path,nTetrodes=rs@nElectrodes)
             cg<-loadCellGroup(cg)
             sp<-new("SpatialProperties2d",session=rs@session)
