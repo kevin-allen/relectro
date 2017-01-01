@@ -1,8 +1,8 @@
 #' An S4 class representing a group of cells
-#' 
-#' This class gets you the tetrode id and brain region associated with each cell of a recording session. 
+#'
+#' This class gets you the tetrode id and brain region associated with each cell of a recording session.
 #' It also get the cluster id of the cell on its respective tetrode.
-#' 
+#'
 #' @slot session A character vector containing the names of the recording session.
 #' @slot path The directory in which the files of the session are located.
 #' @slot fileBase Is the path and session
@@ -21,7 +21,7 @@
 CellGroup <- setClass(
   "CellGroup", ## name of the class
   slots=c(session="character",
-          path="character", 
+          path="character",
           fileBase="character", # path+session
           nTetrodes="numeric",
           nCells="numeric",
@@ -36,15 +36,15 @@ CellGroup <- setClass(
 
 #' Load the information regarding a group of cells
 #'
-#' The object will get the tetrode id and 
-#' cluster number on the tetrode for each cluster. 
+#' The object will get the tetrode id and
+#' cluster number on the tetrode for each cluster.
 #' The object also load the brain region associated with each cell.
 #' This infomration is read from the .desel file and the clu file
 #' of each tetrode.
 #'
 #' @param cg A CellGroup object
 #' @return A CellGroup object with the information loaded
-#' 
+#'
 #' @docType methods
 #' @rdname loadCellGroup-methods
 setGeneric(name="loadCellGroup",
@@ -64,17 +64,17 @@ setMethod(f="loadCellGroup",
               cg@path=getwd()
             cg@fileBase=paste(cg@path,cg@session,sep="/")
             if(cg@nTetrodes==0)
-              stop("cg@nTetrodes==0")
+              stop(paste("cg@nTetrodes==0", "consider setting it when creating the CellGroup object")
             if(!file.exists(paste(cg@fileBase,"clu",sep="."))) # need the main clu file
-              stop("needs ",paste(cg@fileBase,"clu",sep=".")) 
-            
+              stop("needs ",paste(cg@fileBase,"clu",sep="."))
+
             cg@nCells<-as.numeric(readLines(con=paste(cg@fileBase,"clu",sep="."),n=1))-1
             # clu 1 is noise, ignore
             cg@clu=2:(cg@nCells+1)
             cg@id=paste(cg@session,cg@clu,sep="_")
-            
-            cg@tetrode=vector("numeric")        
-            cg@cluToTetrode=vector("numeric")        
+
+            cg@tetrode=vector("numeric")
+            cg@cluToTetrode=vector("numeric")
             for (t in 1:cg@nTetrodes){
               n=as.numeric(readLines(con=paste(cg@fileBase,"clu",t,sep="."),n=1))-1
               if(n>0){
@@ -84,14 +84,14 @@ setMethod(f="loadCellGroup",
             }
             if(length(cg@cluToTetrode)!=length(cg@clu))
             {
-              print("problem with the number of clusters in main clu files and in tetrode clu files")  
+              print("problem with the number of clusters in main clu files and in tetrode clu files")
               print(paste(cg@session,":",length(cg@clu),"vs",length(cg@cluToTetrode)))
               stop()
             }
             cg@tetrodeId<-paste(cg@session,cg@tetrode,sep="_")
             if(file.exists(paste(cg@fileBase,"desel",sep="."))){
               br<-readLines(con=paste(cg@fileBase,"desel",sep="."))
-              cg@brainRegion<-br[cg@tetrode]          
+              cg@brainRegion<-br[cg@tetrode]
             }
             return(cg)
           }
@@ -107,7 +107,7 @@ setMethod(f="loadCellGroup",
 #' @param cg A CellGroup object
 #' @param cluNo Numeric containing the cluNo of the cluster for which you want the brain region.
 #' @return Character vector with be name of the brain region for each cluNo
-#' 
+#'
 #' @docType methods
 #' @rdname brainRegionFromCluNo-methods
 setGeneric(name="brainRegionFromCluNo",
