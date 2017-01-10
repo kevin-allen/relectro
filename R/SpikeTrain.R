@@ -1073,16 +1073,18 @@ setMethod("show", "SpikeTrain",
             if(length(object@startInterval)!=0){
               print(paste("nIntervals:",length(object@startInterval)))
               print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))
-              if(length(object@startInterval<500)){
+              if(length(object@startInterval<100)){
                 print(paste(object@startInterval,object@endInterval))
               }else{
-                print(head(paste(object@startInterval,object@endInterval),n=200))
+                print(head(paste(object@startInterval,object@endInterval),n=100))
+                print("only the first 100 are printed")
               }
-              print(paste("nIntervalsc:",length(object@startResIndexc)))
-              if(length(object@startInterval<500)){
+              print(paste("nIntervals for c function:",length(object@startResIndexc)))
+              if(length(object@startInterval<100)){
                 print(paste(object@startResIndexc,object@endResIndexc))
               }else{
-                print(head(paste(object@startResIndexc,object@endResIndexc),n=200))
+                print(head(paste(object@startResIndexc,object@endResIndexc),n=100))
+                print("only the first 100 are printed")
               }
             }
             if(length(object@events)!=0)
