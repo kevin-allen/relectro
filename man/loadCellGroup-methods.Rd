@@ -18,8 +18,8 @@ loadCellGroup(cg)
 A CellGroup object with the information loaded
 }
 \description{
-The object will get the tetrode id and 
-cluster number on the tetrode for each cluster. 
+The object will get the tetrode id and
+cluster number on the tetrode for each cluster.
 The object also load the brain region associated with each cell.
 This infomration is read from the .desel file and the clu file
 of each tetrode.

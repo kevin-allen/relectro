@@ -16,7 +16,7 @@ copyRecSessionFiles(rs, destination, sessionSpecificExtensions,
 \arguments{
 \item{rs}{A RecSession object}
 
-\item{destination}{A directory in which to do the backup. 
+\item{destination}{A directory in which to do the backup.
 If /data is given for destination, the data go in the directory /data/animalName/sessionName}
 
 \item{sessionSpecificExtensions}{List of file extensions. These are in the format session.extension}

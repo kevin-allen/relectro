@@ -64,7 +64,7 @@ setMethod(f="loadCellGroup",
               cg@path=getwd()
             cg@fileBase=paste(cg@path,cg@session,sep="/")
             if(cg@nTetrodes==0)
-              stop(paste("cg@nTetrodes==0", "consider setting it when creating the CellGroup object")
+              stop(paste("cg@nTetrodes==0", "consider setting it when creating the CellGroup object"))
             if(!file.exists(paste(cg@fileBase,"clu",sep="."))) # need the main clu file
               stop("needs ",paste(cg@fileBase,"clu",sep="."))
 

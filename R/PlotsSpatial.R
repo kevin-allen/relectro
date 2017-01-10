@@ -46,6 +46,26 @@ spikeOnPathPlot <- function(sop,clu,name="",
 }
 
 
+
+#' Plot a color scale for the firing rate maps
+#' 
+#' Plot a color sclae that can be used beside the plots obtained with firingRateMapPlot()
+#' 
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param cex.labels Size of the font use for 0 and Max
+colorScalePlot<-function(outma=c(0.2,0.2,0.2,0.2),margin=c(0,1,0,1),cex.labels=0.5){
+  par(oma=outma,mar=margin)
+  jet.colors = grDevices::colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
+  m<-matrix(0:200,ncol = 1)
+  graphics::image(m,zlim=c(0,max(m,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=F)
+  graphics::axis(side = 1,labels = F,tck=0.2)
+  graphics::axis(side = 3,labels = F,tck=0.2)
+  graphics::mtext("0",side=2,las=1,cex=cex.labels,line=0.2)
+  graphics::mtext("Max",side=4,las=1,cex=cex.labels,line=0.2)
+}
+
+
 #' Plot a single firing rate map
 #' 
 #' Plot a 2-dimensional representation of firing rate using the image function included in the graphics package

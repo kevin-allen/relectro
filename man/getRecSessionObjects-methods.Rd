@@ -15,11 +15,11 @@ getRecSessionObjects(rs)
 \item{rs}{A RecSession object}
 }
 \value{
-a list of objects containing spike trains, position data, data files, cell groups, 
+a list of objects containing spike trains, position data, data files, cell groups,
 spatial properties, 1D spatial properties, head direction data.
 }
 \description{
-This is used to get the objects that are most commonly needed when doing analysis. 
+This is used to get the objects that are most commonly needed when doing analysis.
 Instead of creating the object each at a time and having to set some values manually,
 just call this function and a list of objects are returned.
 }
