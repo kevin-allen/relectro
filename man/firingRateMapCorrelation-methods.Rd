@@ -22,4 +22,10 @@ Numeric containing the Pearson correlation coefficients
 \description{
 Used to estimate map stability between the firing rate maps in two conditions.
 }
+\details{
+The maps of 2 SpatialProperties2d are compared. 
+If the maps are made with different Positrack objects, make sure that the sp@reduceSize is set to FALSE.
+Also make sure that the maps of the 2 SpatialProperties2d objects have the same dimensions by using the 
+arguments nRowMap and nColMap when calling firingRateMap2d().
+}
 

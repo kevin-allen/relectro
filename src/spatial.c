@@ -296,6 +296,8 @@ SEXP speed_intervals_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_samples_per_
   UNPROTECT(1);
   return(out);
 }
+
+
 int speed_intervals_count(double* speed, int whl_lines, int res_samples_per_whl_sample,double min_speed,double max_speed)
 { // returns how many intervals will be found
   int minus_one=0;

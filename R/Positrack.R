@@ -260,7 +260,6 @@ setMethod(f="setPositrack",
 )
 
 
-
 #' Apply some smoothing to the x and y position data
 #'
 #' A Gaussian kernel is used for smoothing
@@ -334,7 +333,7 @@ setMethod(f="smoothhd",
 )
 
 
-#' Set position data for which the animal speed was not between a given range to NA
+#' Set position data to NA for which the animal speed was not between a given range
 #'
 #' The slots x, y, hd, speed are affected.
 #' Please note that the speed array is affected. 
@@ -374,7 +373,7 @@ setMethod(f="speedFilter",
 
 
 
-#' Set position data for which the animal speed was not between a given range to NA
+#' Set position data to NA if animal's direction was not the one given in arguments
 #'
 #' The slots x, y, hd, speed and lin are affected.
 #' Please note that this is not head direction but rather the direction of movement in 1D environment 
@@ -562,6 +561,58 @@ setMethod(f="getIntervalsAtDirection",
             return(results)
           }
 )
+
+
+#' Get time intervals at which the animal's head direction is in a given range
+#' 
+#' Works as though head direction was a linear variable.
+#' 
+#' @param pt Positrack object
+#' @param hdMin Minimal head direction that will be considered (in degree)
+#' @param hdMax Maximal head direction that will be considered (in degree)
+#' @return matrix with the time intervals
+#'
+#' @docType methods
+#' @rdname getIntervalsAtHeadDirection-methods
+setGeneric(name="getIntervalsAtHeadDirection",
+           def=function(pt,hdMin,hdMax)
+           {standardGeneric("getIntervalsAtHeadDirection")}
+)
+#' @rdname getIntervalsAtHeadDirection-methods
+#' @aliases getIntervalsAtHeadDirection,ANY,ANY-method
+setMethod(f="getIntervalsAtHeadDirection",
+          signature="Positrack",
+          definition=function(pt,hdMin,hdMax)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@x)==0)
+              stop("pt@x has a length of 0")
+            if(length(pt@hd)==0)
+              stop("pt@hd has a length of 0")
+            if(hdMin<0)
+              stop("hdMin < 0")
+            if(hdMin>360)
+              stop("hdMin > 360")
+            if(hdMax<0)
+              stop("hdMax < 0")
+            if(hdMax>360)
+              stop("hdMax > 360")
+            if(hdMax < hdMin)
+              stop("hdMax < hd Min")
+            x<-pt@hd
+            x[is.na(x)]<- -1.0
+            results<-.Call("speed_intervals_cwrap",
+                           x,
+                           length(x),
+                           as.integer(pt@resSamplesPerWhlSample),
+                           hdMin,
+                           hdMax)
+            colnames(results)<-c("start","end")
+            return(results)
+          }
+)
+
 
 #' Get the speed of the animal at given time points
 #' 

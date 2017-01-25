@@ -2,7 +2,7 @@
 % Please edit documentation in R/PlotsSpatial.R
 \name{firingRateMapsPlot}
 \alias{firingRateMapsPlot}
-\title{Plot a several firing rate maps on the same page}
+\title{Plot several firing rate maps on the same page}
 \usage{
 firingRateMapsPlot(maps, names, fn = "page.full.plot.pdf")
 }

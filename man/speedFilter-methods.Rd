@@ -5,7 +5,7 @@
 \alias{speedFilter}
 \alias{speedFilter,ANY,ANY-method}
 \alias{speedFilter,Positrack-method}
-\title{Set position data for which the animal speed was not between a given range to NA}
+\title{Set position data to NA for which the animal speed was not between a given range}
 \usage{
 speedFilter(pt, minSpeed, maxSpeed)
 

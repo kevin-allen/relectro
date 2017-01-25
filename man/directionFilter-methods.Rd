@@ -5,7 +5,7 @@
 \alias{directionFilter}
 \alias{directionFilter,ANY,ANY-method}
 \alias{directionFilter,Positrack-method}
-\title{Set position data for which the animal speed was not between a given range to NA}
+\title{Set position data to NA if animal's direction was not the one given in arguments}
 \usage{
 directionFilter(pt, direction)
 

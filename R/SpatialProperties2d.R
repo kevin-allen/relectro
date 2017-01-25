@@ -1298,6 +1298,11 @@ setMethod(f="firingRateMapCenterOfMass",
 #' 
 #' Used to estimate map stability between the firing rate maps in two conditions.
 #' 
+#' The maps of 2 SpatialProperties2d are compared. 
+#' If the maps are made with different Positrack objects, make sure that the sp@reduceSize is set to FALSE.
+#' Also make sure that the maps of the 2 SpatialProperties2d objects have the same dimensions by using the 
+#' arguments nRowMap and nColMap when calling firingRateMap2d().
+#' 
 #' 
 #' @param sp1 SpatialProperties2d object
 #' @param sp2 SpatialProperties2d object

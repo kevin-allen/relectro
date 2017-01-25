@@ -46,6 +46,59 @@ spikeOnPathPlot <- function(sop,clu,name="",
 }
 
 
+#' Plot the animal path
+#' 
+#' Plot the animal path from a Positrack object
+#' 
+#' @param pt Positrack object
+#' @param name String with the name of the plot
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param cex.name Size of the font use for the name of the map
+#' @param cex.point Size of the spike points
+#' @param plotxlim Limits of the x axis
+#' @param plotylim Limits of the y axis
+#' @param mgp.x mgp for the x axis
+#' @param mgp.y mgp for the y axis
+#' @param axis.x.pos Y position of the x axis
+#' @param axis.y.pos X position of the y axis
+#' @param plot.axis Whether to plot the axes or not (TRUE or FALSE)
+#' @param xlab Name to display under the x axis
+#' @param ylab Name to display at the left of the y axis
+pathPlot <- function(pt,name="",
+                     outma=c(2.0,2.0,2.0,2.0),margin=c(1.5,1.5,1,1),
+                     cex.name=0.6,cex.point=0.2,
+                     plotxlim=c(0,80),plotylim=c(0,80),
+                     mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),
+                     axis.x.pos=0,axis.y.pos=0,
+                     plot.axis=TRUE,
+                     xlab="",ylab="")
+{
+  if(class(pt)!="Positrack")
+    stop("pt is not of the Positrack class")
+  if(length(pt@x)==0)
+    stop("length(pt@x)==0")
+  par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
+  plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="",cex=cex.point)
+  lines(pt@x,pt@y,type='l',xlab=xlab,ylab=ylab,lwd=0.2)
+  if(plot.axis){
+    axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=0.60,mgp=mgp.x)
+    axis(side = 2, las=2, pos=axis.y.pos, tck=-0.05,cex.axis=0.60,mgp=mgp.y)
+  }
+  title(xlab=xlab,mgp=mgp.x)
+  title(ylab=ylab,mgp=mgp.y)
+  if(name!="")
+  {
+    mtext(name,side=3,line=0.3,cex=cex.name)
+  }
+}
+
+
+
+
+
+
+
 
 #' Plot a color scale for the firing rate maps
 #' 
@@ -107,7 +160,7 @@ firingRateMapPlot <- function(m,name="",
 }
 
 
-#' Plot a several firing rate maps on the same page
+#' Plot several firing rate maps on the same page
 #' 
 #' Plot 2-dimensional representation of firing rate for several maps
 #' This is not currently being developed.
