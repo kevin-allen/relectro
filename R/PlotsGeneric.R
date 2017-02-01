@@ -124,14 +124,13 @@ plotPoints <- function(data,v1="v1",v2="v2",axis.y.pos=-.2,axis.x.pos=-.2,axis.y
 spikeTimeAutocorrelationPlot <- function(x,y,name="",
                                          axis.y.pos=NA,axis.x.pos=0,
                                          axis.y.las=2,
-                                         main.title="",mgp.x=c(0.5,0.1,0.1), mgp.y=c(0.9,0.2,0.1),
+                                         mgp.x=c(0.5,0.1,0.1), mgp.y=c(0.9,0.2,0.1),
                                          xlab="Time (ms)", ylab="Spikes",
                                          plotxlim=NA,plotylim=NA,
                                          outma=c(0.5,0.5,0.5,0.5),margin=c(1.5,1.5,1,0.3),
                                          xaxis.at=NA,yaxis.at=NA,
                                          add.text="",add.text.pos=c(0,0.5),...)
 {
-  
    par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
   if(is.na(plotxlim))
       plotxlim=c(min(x),max(x))
@@ -155,13 +154,45 @@ spikeTimeAutocorrelationPlot <- function(x,y,name="",
   } else{
     graphics::axis(side = 2, at=yaxis.at, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
   }
-  
   graphics::title(xlab=xlab,mgp=mgp.x)
   graphics::title(ylab=ylab,mgp=mgp.y)
-  if(main.title!=""){
-    graphics::title(main=main.title,cex.main=0.4)
+  if(name!=""){
+    graphics::title(main=name,cex.main=0.5)
   }
   if(add.text!=""){
     graphics::text(labels=add.text,x=add.text.pos[1],y=add.text.pos[2],cex=0.6)
   }
+}
+
+#' Plot several spike-time autocorrelation plot on the same page
+#' 
+#' @param autos A matrix containing autocorrelations
+#' @param timePoints A numerical vector with the time point for each value of the autocorrelation
+#' @param names A character vector containing the name of each map in the array
+spikeTimeAutocorrelationsPlot<-function(autos,timePoints,names){
+  num.cols<-5
+  num.rows<-6
+  plot.per.page=num.cols*num.rows
+  m<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
+              rep(seq(1/num.cols,1,1/num.cols),num.rows),
+              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
+              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
+  index=1
+  nCells<-dim(autos)[2]
+  for (i in 1:nCells){
+    if(index==1)
+    {
+      split.screen(m)  
+    }
+    screen(index)
+    ## insert your plot function here
+    spikeTimeAutocorrelationPlot(x=timePoints,y=autos[,i],name=names[i])
+    if(index==plot.per.page)
+    {
+      close.screen( all.screens = TRUE )
+      index=0
+    }
+    index=index+1
+  }
+  close.screen(all.screens = TRUE)
 }
