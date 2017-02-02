@@ -169,14 +169,14 @@ spikeTimeAutocorrelationPlot <- function(x,y,name="",
 #' @param autos A matrix containing autocorrelations
 #' @param timePoints A numerical vector with the time point for each value of the autocorrelation
 #' @param names A character vector containing the name of each map in the array
-spikeTimeAutocorrelationsPlot<-function(autos,timePoints,names){
-  num.cols<-5
-  num.rows<-6
-  plot.per.page=num.cols*num.rows
-  m<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
-              rep(seq(1/num.cols,1,1/num.cols),num.rows),
-              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
-              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
+#' @param ncol Number of columns of plots per page
+#' @param nrow Number of rows of plots per page
+spikeTimeAutocorrelationsPlot<-function(autos,timePoints,names,ncol=5,nrow=6){
+  plot.per.page=ncol*nrow
+  m<-matrix(c(rep(seq(0,1-(1/ncol),1/ncol),nrow),
+              rep(seq(1/ncol,1,1/ncol),nrow),
+              rep(seq(1-(1/nrow),0,0-1/nrow),each=ncol),
+              rep(seq(1,1/nrow,0-1/nrow),each=ncol)),ncol=4)
   index=1
   nCells<-dim(autos)[2]
   for (i in 1:nCells){

@@ -4,12 +4,14 @@
 \alias{linearRatePlots}
 \title{Plot several linear rate histograms from a SpatialProperties1D object}
 \usage{
-linearRatePlots(sp1, fn = "page.full.plot.pdf")
+linearRatePlots(sp1, ncol = 5, nrow = 6)
 }
 \arguments{
 \item{sp1}{SpatialProperties1d object}
 
-\item{fn}{file name}
+\item{ncol}{Number of columns of plots per page}
+
+\item{nrow}{Number of rows of plots per page}
 }
 \description{
 In development

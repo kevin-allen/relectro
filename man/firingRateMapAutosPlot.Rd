@@ -4,14 +4,16 @@
 \alias{firingRateMapAutosPlot}
 \title{Plot a several spatial autocorrelation maps on the same page}
 \usage{
-firingRateMapAutosPlot(maps, names, fn = "page.full.plot.pdf")
+firingRateMapAutosPlot(maps, names, ncol = 5, nrow = 6)
 }
 \arguments{
 \item{maps}{A 3d array containing maps (x,y,clu)}
 
 \item{names}{A character vector containing the name of each map in the array}
 
-\item{fn}{Character vector containing the file name for the plot}
+\item{ncol}{Number of columns of plots per page}
+
+\item{nrow}{Number of rows of plots per page}
 }
 \description{
 This is not currently being developed.

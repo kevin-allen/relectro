@@ -5,8 +5,8 @@
 \title{Plot a single spike-time autocorrelation}
 \usage{
 spikeTimeAutocorrelationPlot(x, y, name = "", axis.y.pos = NA,
-  axis.x.pos = 0, axis.y.las = 2, main.title = "", mgp.x = c(0.5, 0.1,
-  0.1), mgp.y = c(0.9, 0.2, 0.1), xlab = "Time (ms)", ylab = "Spikes",
+  axis.x.pos = 0, axis.y.las = 2, mgp.x = c(0.5, 0.1, 0.1),
+  mgp.y = c(0.9, 0.2, 0.1), xlab = "Time (ms)", ylab = "Spikes",
   plotxlim = NA, plotylim = NA, outma = c(0.5, 0.5, 0.5, 0.5),
   margin = c(1.5, 1.5, 1, 0.3), xaxis.at = NA, yaxis.at = NA,
   add.text = "", add.text.pos = c(0, 0.5), ...)
@@ -23,8 +23,6 @@ spikeTimeAutocorrelationPlot(x, y, name = "", axis.y.pos = NA,
 \item{axis.x.pos}{Position of the x axis}
 
 \item{axis.y.las}{Orientation of the letters for the label of the y axis}
-
-\item{main.title}{Main title}
 
 \item{mgp.x}{mgp for x axis}
 
@@ -51,6 +49,8 @@ spikeTimeAutocorrelationPlot(x, y, name = "", axis.y.pos = NA,
 \item{add.text.pos}{Position of the text to add, format (x,y)}
 
 \item{...}{Passed to the lines function}
+
+\item{main.title}{Main title}
 }
 \description{
 Plot a single spike-time autocorrelation
