@@ -101,13 +101,12 @@ plotPoints <- function(data,v1="v1",v2="v2",axis.y.pos=-.2,axis.x.pos=-.2,axis.y
 
 #' Plot a single spike-time autocorrelation
 #' 
-#' @param y Numeric vectors with the y values
 #' @param x Numeric vectors with the x values
+#' @param y Numeric vectors with the y values
 #' @param name Character vectors containing the name of the graph
 #' @param axis.y.pos Position of the y axis
 #' @param axis.x.pos Position of the x axis
 #' @param axis.y.las Orientation of the letters for the label of the y axis
-#' @param main.title Main title
 #' @param mgp.x mgp for x axis
 #' @param mgp.y mgp for y axis
 #' @param xlab Label for the x axis
@@ -120,18 +119,17 @@ plotPoints <- function(data,v1="v1",v2="v2",axis.y.pos=-.2,axis.x.pos=-.2,axis.y
 #' @param yaxis.at Where the tics are shown on the y axis
 #' @param add.text Text to add to the plot
 #' @param add.text.pos Position of the text to add, format (x,y)
-#' @param ... Passed to the graphics::plot function
-spikeTimeAutocorrelationPlot <- function(y,x,name="",
+#' @param ... Passed to the lines function
+spikeTimeAutocorrelationPlot <- function(x,y,name="",
                                          axis.y.pos=NA,axis.x.pos=0,
                                          axis.y.las=2,
-                                         main.title="",mgp.x=c(0.5,0.1,0.1), mgp.y=c(0.9,0.2,0.1),
+                                         mgp.x=c(0.5,0.1,0.1), mgp.y=c(0.9,0.2,0.1),
                                          xlab="Time (ms)", ylab="Spikes",
                                          plotxlim=NA,plotylim=NA,
                                          outma=c(0.5,0.5,0.5,0.5),margin=c(1.5,1.5,1,0.3),
                                          xaxis.at=NA,yaxis.at=NA,
                                          add.text="",add.text.pos=c(0,0.5),...)
 {
-  
    par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
   if(is.na(plotxlim))
       plotxlim=c(min(x),max(x))
@@ -141,8 +139,8 @@ spikeTimeAutocorrelationPlot <- function(y,x,name="",
     axis.y.pos<-min(x)
   if(length(x)!=length(y))
     stop("length(x) != length(y)")
-  graphics::plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="") #,...)
-  lines(x,y)
+  graphics::plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
+  lines(x,y,...)
   par(mgp=mgp.x)
   if(is.na(xaxis.at)){
     graphics::axis(side = 1, pos=axis.x.pos, tck=-0.05,cex.axis=0.6)
@@ -155,17 +153,48 @@ spikeTimeAutocorrelationPlot <- function(y,x,name="",
   } else{
     graphics::axis(side = 2, at=yaxis.at, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
   }
-  
   graphics::title(xlab=xlab,mgp=mgp.x)
   graphics::title(ylab=ylab,mgp=mgp.y)
-  if(main.title!=""){
-    graphics::title(main=main.title,cex.main=0.4)
+  if(name!=""){
+    graphics::title(main=name,cex.main=0.5)
   }
   if(add.text!=""){
     graphics::text(labels=add.text,x=add.text.pos[1],y=add.text.pos[2],cex=0.6)
   }
 }
 
+#' Plot several spike-time autocorrelation plot on the same page
+#' 
+#' @param autos A matrix containing autocorrelations
+#' @param timePoints A numerical vector with the time point for each value of the autocorrelation
+#' @param names A character vector containing the name of each map in the array
+#' @param ncol Number of columns of plots per page
+#' @param nrow Number of rows of plots per page
+spikeTimeAutocorrelationsPlot<-function(autos,timePoints,names,ncol=5,nrow=6){
+  plot.per.page=ncol*nrow
+  m<-matrix(c(rep(seq(0,1-(1/ncol),1/ncol),nrow),
+              rep(seq(1/ncol,1,1/ncol),nrow),
+              rep(seq(1-(1/nrow),0,0-1/nrow),each=ncol),
+              rep(seq(1,1/nrow,0-1/nrow),each=ncol)),ncol=4)
+  index=1
+  nCells<-dim(autos)[2]
+  for (i in 1:nCells){
+    if(index==1)
+    {
+      split.screen(m)  
+    }
+    screen(index)
+    ## insert your plot function here
+    spikeTimeAutocorrelationPlot(x=timePoints,y=autos[,i],name=names[i])
+    if(index==plot.per.page)
+    {
+      close.screen( all.screens = TRUE )
+      index=0
+    }
+    index=index+1
+  }
+  close.screen(all.screens = TRUE)
+}
 
 #' Plot function to display the recording trials of each recording session in a sessionList
 #' 
@@ -181,7 +210,7 @@ RecSessionListTrialPlot<- function(sessionList,
                                    margin=c(1.5,1.5,1,0.3),
                                    mgp.x=c(0.4,0.2,0),
                                    mgp.y=c(1,0.2,0)
-                                   ){
+){
   if(class(sessionList)!="list")
     stop("sessionList is not a list in ")
   if(class(sessionList[[1]])!="RecSession")
@@ -202,9 +231,9 @@ RecSessionListTrialPlot<- function(sessionList,
   for(session in 1:length(envList))
     for(trial in 1:length(envList[[session]]))
       graphics::rect(xleft=session-0.4,xright = session+0.4,
-           ybottom = cumSumTimeList[[session]][trial],
-           ytop = cumSumTimeList[[session]][trial+1],
-           col=which(env==envList[[session]][trial]))
+                     ybottom = cumSumTimeList[[session]][trial],
+                     ytop = cumSumTimeList[[session]][trial+1],
+                     col=which(env==envList[[session]][trial]))
   ## y axis
   graphics::axis(side = 2,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
   graphics::axis(side = 1,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
@@ -213,4 +242,5 @@ RecSessionListTrialPlot<- function(sessionList,
   ## add title for x and y axis
   graphics::title(xlab="Sessions",mgp=mgp.x,cex=0.6)
   graphics::title(ylab="Time (min)",mgp=mgp.y,cex=0.6)
+  
 }

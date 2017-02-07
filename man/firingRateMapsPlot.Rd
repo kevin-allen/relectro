@@ -4,14 +4,16 @@
 \alias{firingRateMapsPlot}
 \title{Plot several firing rate maps on the same page}
 \usage{
-firingRateMapsPlot(maps, names, fn = "page.full.plot.pdf")
+firingRateMapsPlot(maps, names, ncol = 5, nrow = 6)
 }
 \arguments{
 \item{maps}{A 3d array containing maps (x,y,clu)}
 
 \item{names}{A character vector containing the name of each map in the array}
 
-\item{fn}{Character vector containing the file name for the plot}
+\item{ncol}{Number of columns of plots per page}
+
+\item{nrow}{Number of rows of plots per page}
 }
 \description{
 Plot 2-dimensional representation of firing rate for several maps

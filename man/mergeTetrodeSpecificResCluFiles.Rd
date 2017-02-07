@@ -11,10 +11,10 @@ mergeTetrodeSpecificResCluFiles(rs)
 }
 \description{
 This is run after the clustering of all tetrodes is done. It create
-the main .res and .clu files that are used when doing subsequent 
-analysis. Cluster 1 is noise. 
+the main .res and .clu files that are used when doing subsequent
+analysis. Cluster 1 is noise.
 The clusters 1 from different tetrodes are merged. The other
-clusters are not merged. They will be numbered from 2 to N, where N is 
+clusters are not merged. They will be numbered from 2 to N, where N is
 the total number of clusters in the recording session.
 }
 

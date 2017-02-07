@@ -4,14 +4,16 @@
 \alias{headDirectionPolarPlots}
 \title{Plot several polar plot with firing rate as a function of head direction}
 \usage{
-headDirectionPolarPlots(histo, names, fn = "page.full.plot.pdf")
+headDirectionPolarPlots(histo, names, ncol = 5, nrow = 6)
 }
 \arguments{
 \item{histo}{A matrix [deg,clu], or numeric if there is only one cell, containing the data for the polar plots.}
 
 \item{names}{A character vector containing the name of each plot}
 
-\item{fn}{Character vector containing the file name for the plot}
+\item{ncol}{Number of columns of plots per page}
+
+\item{nrow}{Number of rows of plots per page}
 }
 \description{
 Plot several polar plot with firing rate as a function of head direction

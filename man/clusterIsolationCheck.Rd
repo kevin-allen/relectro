@@ -10,11 +10,15 @@ clusterIsolationCheck(rs)
 \item{rs}{RecSession}
 }
 \value{
-A list including isolation distance and refractory ratio of all clusters. The check element is a
-logical indicating which clusters are likely to be poorly isolated.
+A list including a data.frame.
+The check element is a logical indicating which clusters are likely to be poorly isolated.
 }
 \description{
-This function generate a data.frame with the isolation distance and refractory period ratio for all clusters.
-It is returned within a list to conform to runOnSessionList policy on returned object.
+This function returns a data.frame to assess the quality of the clusters.
+For each neuron, you get an isolation distance, a refractory period ratio of the spike-time autocorrelation,
+and a refractory period ratio of the spike-time crosscorrelations involving this neuron.
+}
+\details{
+The data.frame is returned within a list so that the function can be used with runOnSessionList
 }
 

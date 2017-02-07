@@ -167,16 +167,14 @@ firingRateMapPlot <- function(m,name="",
 #' 
 #' @param maps A 3d array containing maps (x,y,clu)
 #' @param names A character vector containing the name of each map in the array
-#' @param fn Character vector containing the file name for the plot
-firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
-  num.cols<-5
-  num.rows<-6
-  plot.per.page=num.cols*num.rows
-  m<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
-              rep(seq(1/num.cols,1,1/num.cols),num.rows),
-              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
-              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
-#  pdf(file=fn,onefile=TRUE,paper="a4",width=8,height=10)
+#' @param ncol Number of columns of plots per page
+#' @param nrow Number of rows of plots per page
+firingRateMapsPlot<-function(maps,names,ncol=5,nrow=6){
+  plot.per.page=ncol*nrow
+  m<-matrix(c(rep(seq(0,1-(1/ncol),1/ncol),nrow),
+              rep(seq(1/ncol,1,1/ncol),nrow),
+              rep(seq(1-(1/nrow),0,0-1/nrow),each=ncol),
+              rep(seq(1,1/nrow,0-1/nrow),each=ncol)),ncol=4)
   index=1
   nCells<-dim(maps)[3]
   for (i in 1:nCells){
@@ -195,7 +193,6 @@ firingRateMapsPlot<-function(maps,names,fn="page.full.plot.pdf"){
     index=index+1
   }
   close.screen(all.screens = TRUE)
-#  dev.off()
 }
 
 
@@ -230,16 +227,14 @@ firingRateMapAutoPlot <- function(m,name="",
 #' 
 #' @param maps A 3d array containing maps (x,y,clu)
 #' @param names A character vector containing the name of each map in the array
-#' @param fn Character vector containing the file name for the plot
-firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
-  num.cols<-5
-  num.rows<-6
-  plot.per.page=num.cols*num.rows
-  m<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
-              rep(seq(1/num.cols,1,1/num.cols),num.rows),
-              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
-              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
-  #  pdf(file=fn,onefile=TRUE,paper="a4",width=8,height=10)
+#' @param ncol Number of columns of plots per page
+#' @param nrow Number of rows of plots per page
+firingRateMapAutosPlot<-function(maps,names,ncol=5,nrow=6){
+  plot.per.page=ncol*nrow
+  m<-matrix(c(rep(seq(0,1-(1/ncol),1/ncol),nrow),
+              rep(seq(1/ncol,1,1/ncol),nrow),
+              rep(seq(1-(1/nrow),0,0-1/nrow),each=ncol),
+              rep(seq(1,1/nrow,0-1/nrow),each=ncol)),ncol=4)
   index=1
   nCells<-dim(maps)[3]
   for (i in 1:nCells){
@@ -258,7 +253,6 @@ firingRateMapAutosPlot<-function(maps,names,fn="page.full.plot.pdf"){
     index=index+1
   }
   close.screen(all.screens = TRUE)
-  #  dev.off()
 }
 
 #' Polar plot of firing rate as a function of head direction
@@ -327,18 +321,15 @@ headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0
 #' 
 #' @param histo A matrix [deg,clu], or numeric if there is only one cell, containing the data for the polar plots.
 #' @param names A character vector containing the name of each plot
-#' @param fn Character vector containing the file name for the plot
-headDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
-  num.cols<-5
-  num.rows<-6
-  plot.per.page=num.cols*num.rows
-  m<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
-              rep(seq(1/num.cols,1,1/num.cols),num.rows),
-              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
-              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
-  #  pdf(file=fn,onefile=TRUE,paper="a4",width=8,height=10)
+#' @param ncol Number of columns of plots per page
+#' @param nrow Number of rows of plots per page
+headDirectionPolarPlots<-function(histo,names,ncol=5,nrow=6){
+  plot.per.page=ncol*nrow
+  m<-matrix(c(rep(seq(0,1-(1/ncol),1/ncol),nrow),
+              rep(seq(1/ncol,1,1/ncol),nrow),
+              rep(seq(1-(1/nrow),0,0-1/nrow),each=ncol),
+              rep(seq(1,1/nrow,0-1/nrow),each=ncol)),ncol=4)
   index=1
-  
   if(class(histo)=="numeric")
     nCells<-1
   if(class(histo)=="matrix")
@@ -363,7 +354,6 @@ headDirectionPolarPlots<-function(histo,names,fn="page.full.plot.pdf"){
     index=index+1
   }
   close.screen(all.screens = TRUE)
-  #  dev.off()
 }
 
 #' Plot a linear rate histogram from a SpatialProperties1D object
@@ -410,16 +400,14 @@ linearRatePlot<-function(sp1,n=1,
 #' In development
 #' 
 #' @param sp1 SpatialProperties1d object
-#' @param fn file name
-linearRatePlots<-function(sp1,fn="page.full.plot.pdf"){
-  num.cols<-5
-  num.rows<-6
-  plot.per.page=num.cols*num.rows
-  m<-matrix(c(rep(seq(0,1-(1/num.cols),1/num.cols),num.rows),
-              rep(seq(1/num.cols,1,1/num.cols),num.rows),
-              rep(seq(1-(1/num.rows),0,0-1/num.rows),each=num.cols),
-              rep(seq(1,1/num.rows,0-1/num.rows),each=num.cols)),ncol=4)
-  #  pdf(file=fn,onefile=TRUE,paper="a4",width=8,height=10)
+#' @param ncol Number of columns of plots per page
+#' @param nrow Number of rows of plots per page
+linearRatePlots<-function(sp1,ncol=5,nrow=6){
+  plot.per.page=ncol*nrow
+  m<-matrix(c(rep(seq(0,1-(1/ncol),1/ncol),nrow),
+              rep(seq(1/ncol,1,1/ncol),nrow),
+              rep(seq(1-(1/nrow),0,0-1/nrow),each=ncol),
+              rep(seq(1,1/nrow,0-1/nrow),each=ncol)),ncol=4)
   index=1
   for (i in 1:length(sp1@cellList)){
     if(index==1)
@@ -437,5 +425,4 @@ linearRatePlots<-function(sp1,fn="page.full.plot.pdf"){
     index=index+1
   }
   close.screen(all.screens = TRUE)
-  #  dev.off()
 }
