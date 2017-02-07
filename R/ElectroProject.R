@@ -29,12 +29,11 @@ ElectroProject <- setClass(
   prototype = list(directory=""))
 
 
-
-
 #' Create a list of RecSession objects for the ElectroProject
 #'
 #' Will list directories in the project directories.
 #' Only directories with an hyphen in their names are considered recSession directories.
+#' so only recording session directories should have a hyphen in their names
 #'
 #' @param ep ElectroProject object
 #' @param loadSessions logical, whether the RecSession object should be created
@@ -66,6 +65,7 @@ setMethod(f="setSessionList",
             }
             
             ## list all directories in the project path
+            ## this is really slow if over nfs
             dirs<-list.dirs(path=ep@directory)
             
             ## only keep the directories with a hyphen in the name
@@ -74,14 +74,23 @@ setMethod(f="setSessionList",
             
             ## make sure all directories have the same depth
             x<-sapply(ep@sessionPathList,function(x){length(unlist(strsplit(x,split="/")))})
-            if(any(x!=x[1])){
-              stop("the depth of some session directories differs")
-            }
-            
-            dirDepth<-as.numeric(x[1])
-            ep@sessionNameList<-unlist(strsplit(dirs,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
-          
-            if(loadSessions==TRUE){ep<-loadSessionsInList(ep)}
+            xMode<-modeRelectro(as.numeric(x))
+            if(any(x!=xMode)){
+              print(paste("The depth of some directories differs"))
+              print(paste("Most directories have a depth of",xMode))
+              print(paste("For example,",head(ep@sessionPathList[which(x==xMode)],n=1)))
+              print("The following directories will not be included")
+              print(ep@sessionPathList[which(x!=xMode)])
+              ep@sessionPathList<-ep@sessionPathList[which(x==xMode)]
+              ep@nSessions<-length(ep@sessionPathList)
+            }    
+            dirDepth<-xMode
+            ep@sessionNameList<-
+              unlist(strsplit(ep@sessionPathList,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
+              
+            if(loadSessions==TRUE){
+              ep<-loadSessionsInList(ep)
+              }
           return(ep)
           })
 
@@ -211,6 +220,7 @@ setMethod(f="getClusteredSessionList",
 #' @param region Set to a given brain region to select only sessions with tetrodes in this brain region
 #' @param env Set to a given environment code to select only sessions during which this environment was presented
 #' @param stim Set to a given stimulation code to select only sessions during which this stimulatoin was presented
+#' @param fileExtension Keep sessions that have a session file ending with the value of fileExtension (e.g. kld-19021016-0101.fileExtension)
 #' @return list of RecSession objects
 #' 
 #' @docType methods
