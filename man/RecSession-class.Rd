@@ -26,7 +26,9 @@ Sessions are usually divided in several trials with one .dat file for each trial
 
 \item{\code{resofs}}{Number of samples in each trial}
 
-\item{\code{env}}{List of environment for each trial}
+\item{\code{env}}{List of environments for each trial}
+
+\item{\code{stim}}{List of stimulations for each trial}
 
 \item{\code{electrodeLocation}}{List of electrode location, one per electrode}
 

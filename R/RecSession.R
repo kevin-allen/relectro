@@ -1,10 +1,10 @@
 #' A S4 class to represent a recording session.
-#'
+#' 
 #' A RecSession object contains a description of the recording session.
-#'
+#' 
 #' Sessions are usually divided in several trials with one .dat file for each trial.
-#'
-#'
+#' 
+#' 
 #' @slot session Name of the recording session
 #' @slot path Directory where the recording session data are located
 #' @slot fileBase Filebase of the session
@@ -12,6 +12,7 @@
 #' @slot samplingRate Sampling rate of the electrophysiological data
 #' @slot resofs Number of samples in each trial
 #' @slot env List of environment for each trial
+#' @slot stim List of stimulation types
 #' @slot electrodeLocation List of electrode location, one per electrode
 #' @slot trialStartRes Sample at which a trial starts. Index starts at 0
 #' @slot trialEndRes Sample at which a trial ends. Index starts at 0
@@ -33,6 +34,7 @@ RecSession <- setClass(
           samplingRate="numeric",
           resofs="numeric",
           env="character",
+          stim="character",
           electrodeLocation="character",
           trialStartRes="numeric",
           trialEndRes="numeric",
@@ -55,7 +57,7 @@ RecSession <- setClass(
 #'
 #' @param rs A RecSession object
 #' @return RecSession
-#'
+#' 
 #' @docType methods
 #' @rdname loadRecSession-methods
 setGeneric(name="loadRecSession",
@@ -72,15 +74,15 @@ setMethod(f="loadRecSession",
               stop("rs@session is empty")
             if(rs@path=="")
               rs@path=getwd()
-
+            
             rs@clustered=FALSE
             rs@earlyProcessed<-FALSE
             rs@fileBase<-paste(rs@path,rs@session,sep="/")
             rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
-
+            
             if(!file.exists(paste(rs@fileBase,"par",sep=".")))
               stop("needs ",paste(rs@fileBase,"par",sep="."))
-
+            
             ## read the par file line per line## shitty format
             conn <- file(paste(rs@fileBase,"par",sep="."),open="r")
             par<-readLines(conn)
@@ -88,29 +90,14 @@ setMethod(f="loadRecSession",
             rs@nChannels<-as.numeric(unlist(strsplit(par[1], split=" "))[1])
             rs@nElectrodes  <-as.numeric(unlist(strsplit(par[3], split=" "))[1])
             rs@nTrials<-as.numeric(par[rs@nElectrodes+4])
-
-            ## add tests in case of weird .par file
-            if(length(rs@nChannels)!=1)
-              stop(paste("rs@nChannels is not set correctly for",rs@session))
-            if(length(rs@nElectrodes)!=1)
-              stop(paste("rs@nElectrodes is not set correctly for",rs@session))
-            if(is.na(rs@nChannels))
-              stop(paste("rs@nChannels is na for",rs@session))
-            if(is.na(rs@nElectrodes))
-              stop(paste("rs@nChannels is na for",rs@session))
-            if(length(rs@nTrials)!=1)
-              stop(paste("rs@nTrials is not set correctly for",rs@session))
-            if(is.na(rs@nTrials))
-              stop(paste("rs@nTrials is na for",rs@session))
-
             rs@trialNames<-par[(rs@nElectrodes+5):(rs@nElectrodes+5+rs@nTrials-1)]
-
+            
             ## map of channel and tetrodes
             chan<-strsplit(par[4:(4+rs@nElectrodes-1)], split=" ")
             max.channelsTetrode<-max(unlist(lapply(chan,length))-1)
             rs@channelsTetrode<-matrix(nrow=rs@nElectrodes,ncol=max.channelsTetrode)
-
-            if(rs@nElectrodes>0) {
+            
+            if(rs@nElectrodes>0) { 
             for(i in 1:rs@nElectrodes) {
               l1<-length((rs@channelsTetrode[i,]))
               l2<-length((as.numeric(chan[[i]][-1])))
@@ -122,13 +109,21 @@ setMethod(f="loadRecSession",
               print("No channelsTetrode")
               rs@channelsTetrode<-matrix(NA)
             }
-
+            
             if(file.exists(paste(rs@fileBase,"desen",sep="."))){
               try(
                 rs@env<-as.character(read.table(paste(rs@fileBase,"desen",sep="."))$V1),
                 silent=F)
               if(length(rs@env)!=length(rs@trialNames))
                 stop(paste("loadRecSession, problem with length of par and desen files",rs@session))
+            }
+            
+            if(file.exists(paste(rs@fileBase,"stimulation",sep="."))){
+              try(
+                rs@stim<-as.character(read.table(paste(rs@fileBase,"stimulation",sep="."))$V1),
+                silent=F)
+              if(length(rs@stim)!=length(rs@trialNames))
+                stop(paste("loadRecSession, problem with length of par and stimulation files",rs@session))
             }
 
             if(file.exists(paste(rs@fileBase,"desel",sep="."))){
@@ -138,20 +133,18 @@ setMethod(f="loadRecSession",
               if(rs@nElectrodes!=length(rs@electrodeLocation))
                 stop(paste("loadRecSession, problem with length of par and desel files",rs@session))
             }
-
-
+            
+            
             if(rs@nTrials!=length(rs@trialNames))
               stop(paste("loadRecSession, problem with number of trials in par file",rs@session))
 
             if(file.exists(paste(rs@fileBase,"sampling_rate_dat",sep="."))){
               try(rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1,
                   silent=F)
-              if(length(rs@samplingRate)>1)
-                stop(paste("loadRecSession, samplingRate has a length > 1, check",paste(rs@fileBase,"sampling_rate_dat",sep=".")))
               if(rs@samplingRate<1 | rs@samplingRate > 100000)
                 stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }
-
+            
             ## if early process was run on this one, get more informaiton from resofs file
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
             {
@@ -169,8 +162,8 @@ setMethod(f="loadRecSession",
                 rs@sessionDurationSec<-sum(rs@trialDurationSec)
               }
             }else
-            {
-              # try to get the info from DatFiles object, but don't return error if not there
+            { 
+              # try to get the info from DatFiles object, but don't return error if not there 
               df<-new("DatFiles")
               try(
                 df<-datFilesSet(df,
@@ -183,14 +176,14 @@ setMethod(f="loadRecSession",
                 if(length(rs@samplingRate)!=0){
                   rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
                   rs@sessionDurationSec<-sum(rs@trialDurationSec)
-                }
+                }  
               print(rs@trialStartRes)
               }
             }
-
+            
             if(file.exists(paste(rs@fileBase,"clu",sep="."))&
                file.exists(paste(rs@fileBase,"res",sep="."))) rs@clustered=T
-
+            
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))rs@earlyProcessed=T
             return(rs)
           }
@@ -200,7 +193,7 @@ setMethod(f="loadRecSession",
 #'
 #' @param rs A RecSession object
 #' @return TRUE or FALSE
-#'
+#' 
 #' @docType methods
 #' @rdname getIsClustered-methods
 setGeneric(name="getIsClustered",
@@ -221,7 +214,7 @@ setMethod(f="getIsClustered",
 #'
 #' @param rs A RecSession object
 #' @return TRUE or FALSE
-#'
+#' 
 #' @docType methods
 #' @rdname getIsEarlyProcessed-methods
 setGeneric(name="getIsEarlyProcessed",
@@ -241,11 +234,11 @@ setMethod(f="getIsEarlyProcessed",
 #' Check if the session had an electrode in a particular brain area
 #'
 #' This will check whether the value of location is in the electrodeLocation vector.
-#'
+#' 
 #' @param rs A RecSession object
 #' @param location A brain area of interest
 #' @return TRUE or FALSE
-#'
+#' 
 #' @docType methods
 #' @rdname containsElectrodeLocation-methods
 setGeneric(name="containsElectrodeLocation",
@@ -264,11 +257,11 @@ setMethod(f="containsElectrodeLocation",
 #' Check if the session had a trial in a given environment
 #'
 #' This will check whether the value of environment is in the env vector.
-#'
+#' 
 #' @param rs A RecSession object
 #' @param environment The name of an environment
 #' @return TRUE or FALSE
-#'
+#' 
 #' @docType methods
 #' @rdname containsEnvironment-methods
 setGeneric(name="containsEnvironment",
@@ -284,38 +277,34 @@ setMethod(f="containsEnvironment",
             return(any(rs@env==environment))
           })
 
-
-
-
-#' Check if the session directory contains a file ending with the value of the argument extension
+#' Check if the session had a trial in a given stimulation type
 #'
-#' By default test whether paste(rs@fileBase,extension,sep=".") exists
-#'
+#' This will check whether the value of stimulation is in the stim vector.
+#' 
 #' @param rs A RecSession object
-#' @param extension The extension of the file you are looking for.
+#' @param stimulation The name of a stimulation
 #' @return TRUE or FALSE
-#'
+#' 
 #' @docType methods
-#' @rdname fileExists-methods
-setGeneric(name="fileExists",
-           def=function(rs,extension="")
-           {standardGeneric("fileExists")}
+#' @rdname containsEnvironment-methods
+setGeneric(name="containsStimulation",
+           def=function(rs,stimulation="")
+           {standardGeneric("containsStimulation")}
 )
-#' @rdname fileExists-methods
-#' @aliases fileExists,ANY,ANY-method
-setMethod(f="fileExists",
+#' @rdname containsStimulation-methods
+#' @aliases containsStimulation,ANY,ANY-method
+setMethod(f="containsStimulation",
           signature="RecSession",
-          definition=function(rs,extension="")
+          definition=function(rs,stimulation="")
           {
-            return(file.exists(paste(rs@fileBase,extension,sep=".")))
+            return(any(rs@stim==stimulation))
           })
-
 
 #' Get the recording date of a recSession, taken from session name
 #'
 #' @param rs A RecSession object
 #' @return Date
-#'
+#' 
 #' @docType methods
 #' @rdname recordingDate-methods
 setGeneric(name="recordingDate",
@@ -338,13 +327,12 @@ setMethod(f="recordingDate",
             return(rDate)
 })
 
-
 #' Get the time intervals in sample values for trials in a given environment
 #'
 #' @param rs A RecSession object
 #' @param environment The name of an environment
 #' @return matrix with 2 columns containing the start and end of each trial in the environment
-#'
+#' 
 #' @docType methods
 #' @rdname getIntervalsEnvironment-methods
 setGeneric(name="getIntervalsEnvironment",
@@ -369,18 +357,48 @@ setMethod(f="getIntervalsEnvironment",
                  dimnames=list(rep(environment,length(which(rs@env==environment))),c("start","end"))))
           })
 
+#' Get the time intervals in sample values for trials for a given stimulation
+#'
+#' @param rs A RecSession object
+#' @param stimulation The name of a stimulation
+#' @return matrix with 2 columns containing the start and end of each trial in the stimulation
+#' 
+#' @docType methods
+#' @rdname getIntervalsStimulation-methods
+setGeneric(name="getIntervalsStimulation",
+           def=function(rs,stimulation="lt")
+           {standardGeneric("getIntervalsStimulation")}
+)
+#' @rdname getIntervalsStimulation-methods
+#' @aliases getIntervalsStimulation,ANY,ANY-method
+setMethod(f="getIntervalsStimulation",
+          signature="RecSession",
+          definition=function(rs,stimulation="lt")
+          {
+            if(length(rs@trialStartRes)==0){
+              print("trialStartRes is not set")
+              return()
+            }
+            if(!stimulation%in%rs@stim){
+              print("stimulation not used in the session")
+              return()
+            }
+          return(matrix(data=c(rs@trialStartRes[which(rs@stim==stimulation)],rs@trialEndRes[which(rs@stim==stimulation)]),ncol=2,
+                 dimnames=list(rep(stimulation,length(which(rs@stim==stimulation))),c("start","end"))))
+          })
+
 #' Load a set of objects that are session specific
 #'
-#' This is used to get the objects that are most commonly needed when doing analysis.
+#' This is used to get the objects that are most commonly needed when doing analysis. 
 #' Instead of creating the object each at a time and having to set some values manually,
 #' just call this function and a list of objects are returned.
-#'
+#' 
 #' If you just want to use one or two objects, the code might run faster if you load what you need manually.
 #'
 #' @param rs A RecSession object
-#' @return a list of objects containing spike trains, position data, data files, cell groups,
+#' @return a list of objects containing spike trains, position data, data files, cell groups, 
 #' spatial properties, 1D spatial properties, head direction data.
-#'
+#' 
 #' @docType methods
 #' @rdname getRecSessionObjects-methods
 setGeneric(name="getRecSessionObjects",
@@ -399,50 +417,31 @@ setMethod(f="getRecSessionObjects",
               stop("rs@path not set")
             if(rs@clustered==FALSE)
               stop("rs is not clustered")
-
+              
             st<-new("SpikeTrain",session=rs@session,path=rs@path)
             st<-loadSpikeTrain(st)
             pt<-new("Positrack",session=rs@session,path=rs@path)
             pt<-loadPositrack(pt)
             df<-new("DatFiles",fileNames=paste(rs@trialNames,"dat",sep="."),path=rs@path,nChannels=rs@nChannels)
-            if(file.exists(paste(df@path,df@fileNames[1],sep="/")))
-            { # make it possible to use this function with recSession that have no .dat files
-              df<-datFilesSet(df,
-                              fileNames=paste(rs@trialNames,"dat",sep="."),
-                              path=rs@path,
-                              nChannels=rs@nChannels)
-            }
-
             cg<-new("CellGroup",session=rs@session,path=rs@path,nTetrodes=rs@nElectrodes)
             cg<-loadCellGroup(cg)
             sp<-new("SpatialProperties2d",session=rs@session)
             sp1<-new("SpatialProperties1d",session=rs@session)
             hd<-new("HeadDirection",session=rs@session)
-
-            if(st@nCells!=cg@nCells){
-              print(paste("st@nCells is not equal to cg@nCells for",rs@session))
-              print("There is probably a cluster with no spike that was not removed at clustering time")
-              print("cg object")
-              print(cg)
-              print("st object")
-              print(st)
-              stop()
-            }
-
             return(list(st=st,pt=pt,df=df,cg=cg,sp=sp,sp1=sp1,hd=hd))
           })
 
 
 #' Make a copy of the files of the recording session in another directory
 #'
-#' This is used to export the data of an experiment.
+#' This is used to export the data of an experiment. 
 #'
 #' @param rs A RecSession object
-#' @param destination A directory in which to do the backup.
+#' @param destination A directory in which to do the backup. 
 #' If /data is given for destination, the data go in the directory /data/animalName/sessionName
 #' @param sessionSpecificExtensions List of file extensions. These are in the format session.extension
 #' @param tetrodeSpecificExtensions List of file extensions. These are in the format session.extension.tetrodeNo
-#'
+#' 
 #' @docType methods
 #' @rdname copyRecSessionFiles-methods
 setGeneric(name="copyRecSessionFiles",
@@ -459,7 +458,7 @@ setMethod(f="copyRecSessionFiles",
               stop("rs@session is empty")
             if(rs@path=="")
               stop("rs@path not set")
-
+           
             print(paste("copyRecSessionFiles",rs@session))
             ## create mouse directory
             mouseDestination=paste(destination,rs@animalName,sep="/")
@@ -472,7 +471,7 @@ setMethod(f="copyRecSessionFiles",
             if(!dir.exists(sessionDestination)){
               print(paste("Creating",sessionDestination))
               dir.create(sessionDestination)
-            }
+            }  
             ## check that session specific files exists
             fileNames<-paste(rs@fileBase,sessionSpecificExtensions,sep=".")
             if(any(!file.exists(fileNames))){
@@ -515,6 +514,8 @@ setMethod("show", "RecSession",
             print(paste("nTrials:",object@nTrials))
             print(paste("env:"))
             print(paste(object@env))
+            print(paste("stim:"))
+            print(paste(object@stim))
             print(paste("nElectrodes:",object@nElectrodes))
             print(paste("electrodeLocation:"))
             print(paste(object@electrodeLocation))
@@ -534,9 +535,9 @@ setMethod("show", "RecSession",
 
 
 #' Get animal name from session name
-#'
+#' 
 #' Assumes the session name is in the format name-date-rest
-#'
+#' 
 #' @param sessionName Character vector with the session name
 #' @return Character vector with animal name
 animalNameFromSessionName<-function(sessionName=NULL){
@@ -544,22 +545,12 @@ animalNameFromSessionName<-function(sessionName=NULL){
 }
 
 #' Get session name from cluId
-#'
-#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluNo
-#'
+#' 
+#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluId
+#' 
 #' @param cluId Character vector with the session name
 #' @return Character vector with session name
 sessionNameFromCluId<-function(cluId=NULL){
   return(unlist(lapply(strsplit(as.character(cluId),split="_"),function(x){return(x[[1]])})))
-}
-
-#' Get cluNo from cluId
-#'
-#' Assumes the cluId is in the format name-date-rest_cluNo
-#'
-#' @param cluId Character vector with the cluIds
-#' @return Numeric vectors with cluNo
-cluNoFromCluId<-function(cluId=NULL){
-  return(as.numeric(unlist(lapply(strsplit(as.character(cluId),split="_"),function(x){return(x[[2]])}))))
 }
 
