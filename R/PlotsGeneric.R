@@ -207,8 +207,9 @@ RecSessionListTrialPlot<- function(sessionList,
            col=which(env==envList[[session]][trial]))
   ## y axis
   graphics::axis(side = 2,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
+  graphics::axis(side = 1,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
   ## add a legend
-  graphics::legend(x=xlim[2]-10, y=ylim[2],legend = env,fill=c(1:length(env)),cex=0.7)
+  graphics::legend(x=xlim[2]-10, y=ylim[2],legend = env,fill=c(1:length(env)),cex=0.7,bty = 'n')
   ## add title for x and y axis
   graphics::title(xlab="Sessions",mgp=mgp.x,cex=0.6)
   graphics::title(ylab="Time (min)",mgp=mgp.y,cex=0.6)
