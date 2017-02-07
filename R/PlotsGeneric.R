@@ -165,3 +165,51 @@ spikeTimeAutocorrelationPlot <- function(y,x,name="",
     graphics::text(labels=add.text,x=add.text.pos[1],y=add.text.pos[2],cex=0.6)
   }
 }
+
+
+#' Plot function to display the recording trials of each recording session in a sessionList
+#' 
+#' Easy way to visualize the environment used in each trial of a list of recording sessions
+#' 
+#' @param sessionList List of RecSession objects
+#' @param outma outma for setting par
+#' @param margin margin for setting par
+#' @param mgp.x mgp.x for setting par of xaxis
+#' @param mgp.y mgp.y for setting par of yaxis
+RecSessionListTrialPlot<- function(sessionList,
+                                   outma=c(1,1,0.5,0.5),
+                                   margin=c(1.5,1.5,1,0.3),
+                                   mgp.x=c(0.4,0.2,0),
+                                   mgp.y=c(1,0.2,0)
+                                   ){
+  if(class(sessionList)!="list")
+    stop("sessionList is not a list in ")
+  if(class(sessionList[[1]])!="RecSession")
+    stop("sessionList[[1]] is not a RecSession object")
+  ## get time of each trial
+  timeList<-lapply(sessionList,function(rs){rs@trialDurationSec/60})
+  ## get environments
+  envList<-lapply(sessionList,function(rs){rs@env})
+  ## get unique environments
+  env<-unique(unlist(envList))
+  ## cumulative time of trials
+  cumSumTimeList<-lapply(timeList,function(tl){c(0,cumsum(tl))})
+  xlim<-c(0,length(sessionList)+1)
+  ylim<-c(0,max(sapply(timeList,function(x){sum(x)})))
+  par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
+  graphics::plot(x=xlim,y=ylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
+  ## make a rectangle for each trial in the experiment
+  for(session in 1:length(envList))
+    for(trial in 1:length(envList[[session]]))
+      graphics::rect(xleft=session-0.4,xright = session+0.4,
+           ybottom = cumSumTimeList[[session]][trial],
+           ytop = cumSumTimeList[[session]][trial+1],
+           col=which(env==envList[[session]][trial]))
+  ## y axis
+  graphics::axis(side = 2,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
+  ## add a legend
+  graphics::legend(x=xlim[2]-10, y=ylim[2],legend = env,fill=c(1:length(env)),cex=0.7)
+  ## add title for x and y axis
+  graphics::title(xlab="Sessions",mgp=mgp.x,cex=0.6)
+  graphics::title(ylab="Time (min)",mgp=mgp.y,cex=0.6)
+}
