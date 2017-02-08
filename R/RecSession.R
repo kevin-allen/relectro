@@ -11,7 +11,7 @@
 #' @slot animalName Name of the animal
 #' @slot samplingRate Sampling rate of the electrophysiological data
 #' @slot resofs Number of samples in each trial
-#' @slot env List of environment for each trial
+#' @slot env List of environments for each trial
 #' @slot stim List of stimulation types
 #' @slot electrodeLocation List of electrode location, one per electrode
 #' @slot trialStartRes Sample at which a trial starts. Index starts at 0
@@ -303,7 +303,7 @@ setMethod(f="containsEnvironment",
 #' @return TRUE or FALSE
 #' 
 #' @docType methods
-#' @rdname containsEnvironment-methods
+#' @rdname containsStimulation-methods
 setGeneric(name="containsStimulation",
            def=function(rs,stimulation="")
            {standardGeneric("containsStimulation")}
@@ -322,13 +322,9 @@ setMethod(f="containsStimulation",
 #' Check if the session directory contains a file ending with the value of the argument extension
 #'
 #' By default test whether paste(rs@fileBase,extension,sep=".") exists
-#' Check if the session had a trial in a given stimulation type
 #'
-#' This will check whether the value of stimulation is in the stim vector.
-#' 
 #' @param rs A RecSession object
 #' @param extension The extension of the file you are looking for.
-#' @param stimulation The name of a stimulation
 #' @return TRUE or FALSE
 #'
 #' @docType methods
