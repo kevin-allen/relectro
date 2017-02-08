@@ -336,11 +336,15 @@ setMethod(f="containsStimulation",
 setGeneric(name="fileExists",
            def=function(rs,extension="")
            {standardGeneric("fileExists")}
+)
 #' @rdname fileExists-methods
 #' @aliases fileExists,ANY,ANY-method
 setMethod(f="fileExists",
+          signature="RecSession"
           definition=function(rs,extension="")
+          {
             return(file.exists(paste(rs@fileBase,extension,sep=".")))
+          })
 
 #' Get the recording date of a recSession, taken from session name
 #'
@@ -435,11 +439,11 @@ setMethod(f="getIntervalsStimulation",
 #' This is used to get the objects that are most commonly needed when doing analysis.
 #' Instead of creating the object each at a time and having to set some values manually,
 #' just call this function and a list of objects are returned.
-#' 
+#'
 #' If you just want to use one or two objects, the code might run faster if you load what you need manually.
 #'
 #' @param rs A RecSession object
-#' @return a list of objects containing spike trains, position data, data files, cell groups, 
+#' @return a list of objects containing spike trains, position data, data files, cell groups,
 #' spatial properties, 1D spatial properties, head direction data.
 #'
 #' @docType methods
@@ -607,9 +611,9 @@ animalNameFromSessionName<-function(sessionName=NULL){
 }
 
 #' Get session name from cluId
-#' 
+#'
 #' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluId
-#' 
+#'
 #' @param cluId Character vector with the session name
 #' @return Character vector with session name
 sessionNameFromCluId<-function(cluId=NULL){
