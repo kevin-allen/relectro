@@ -340,11 +340,12 @@ setGeneric(name="fileExists",
 #' @rdname fileExists-methods
 #' @aliases fileExists,ANY,ANY-method
 setMethod(f="fileExists",
-          signature="RecSession"
+          signature="RecSession",
           definition=function(rs,extension="")
           {
             return(file.exists(paste(rs@fileBase,extension,sep=".")))
           })
+
 
 #' Get the recording date of a recSession, taken from session name
 #'
@@ -612,7 +613,7 @@ animalNameFromSessionName<-function(sessionName=NULL){
 
 #' Get session name from cluId
 #'
-#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluId
+#' Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluNo
 #'
 #' @param cluId Character vector with the session name
 #' @return Character vector with session name
