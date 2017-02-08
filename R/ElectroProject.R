@@ -33,7 +33,7 @@ ElectroProject <- setClass(
 #'
 #' Will list directories in the project directories.
 #' Only directories with an hyphen in their names are considered recSession directories.
-#' so only recording session directories should have a hyphen in their names
+#' So only recording session directories should have a hyphen in their names
 #'
 #' @param ep ElectroProject object
 #' @param loadSessions logical, whether the RecSession object should be created
@@ -65,7 +65,7 @@ setMethod(f="setSessionList",
             }
             
             ## list all directories in the project path
-            ## this is really slow if over nfs
+            ## this is really slow if over nfs.
             dirs<-list.dirs(path=ep@directory)
             
             ## only keep the directories with a hyphen in the name
@@ -121,14 +121,10 @@ setMethod(f="loadSessionsInList",
               stop("ep@sessionNameList has length of 0")
             if(length(ep@sessionPathList)==0)
               stop("ep@sessionPathList has length of 0")
-          
             
             for (i in 1:length(ep@sessionNameList))
-            {
-              ep@sessionList[[i]]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])
-            }
+            {ep@sessionList[[i]]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])}
             ep@sessionList<-lapply(ep@sessionList,loadRecSession)     
-            
             return(ep)
           })
 
@@ -226,24 +222,22 @@ setMethod(f="getClusteredSessionList",
 #' @docType methods
 #' @rdname getSessionList-methods
 setGeneric(name="getSessionList",
-           def=function(ep,clustered="",region="",env="",stim="")
+           def=function(ep,clustered="",region="",env="",stim="",fileExtension="")
            {standardGeneric("getSessionList")}
 )
 #' @rdname getSessionList-methods
 #' @aliases getSessionList,ANY,ANY-method
 setMethod(f="getSessionList",
           signature="ElectroProject",
-          definition=function(ep,clustered="",region="",env="",stim="")
+          definition=function(ep,clustered="",region="",env="",stim="",fileExtension="")
           {
             if(ep@directory=="")
               stop("ep@directory not set")
             if(length(ep@sessionList)==0)
               stop("sp@sessionList has a length of 0")
             myList<-ep@sessionList
-            length(myList)
             if(clustered==T)
               myList<-myList[sapply(myList,getIsClustered)]
-            length(myList)
             if(region!=""){
               myList<-myList[sapply(myList,containsElectrodeLocation,location=region)]
             }
@@ -252,6 +246,9 @@ setMethod(f="getSessionList",
             }
             if(stim!=""){
               myList<-myList[sapply(myList,containsStimulation,stimulation=stim)]
+            if(fileExtension!=""){
+              myList<-myList[sapply(myList,fileExists,extension=fileExtension)]
+            }
             }
             return(myList)
           })
