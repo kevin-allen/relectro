@@ -246,9 +246,9 @@ setMethod(f="getSessionList",
             }
             if(stim!=""){
               myList<-myList[sapply(myList,containsStimulation,stimulation=stim)]
+            }
             if(fileExtension!=""){
               myList<-myList[sapply(myList,fileExists,extension=fileExtension)]
-            }
             }
             return(myList)
           })
