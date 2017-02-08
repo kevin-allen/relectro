@@ -1,10 +1,10 @@
 #' A S4 class to represent a recording session.
-#' 
+#'
 #' A RecSession object contains a description of the recording session.
-#' 
+#'
 #' Sessions are usually divided in several trials with one .dat file for each trial.
-#' 
-#' 
+#'
+#'
 #' @slot session Name of the recording session
 #' @slot path Directory where the recording session data are located
 #' @slot fileBase Filebase of the session
@@ -57,7 +57,7 @@ RecSession <- setClass(
 #'
 #' @param rs A RecSession object
 #' @return RecSession
-#' 
+#'
 #' @docType methods
 #' @rdname loadRecSession-methods
 setGeneric(name="loadRecSession",
@@ -74,15 +74,15 @@ setMethod(f="loadRecSession",
               stop("rs@session is empty")
             if(rs@path=="")
               rs@path=getwd()
-            
+
             rs@clustered=FALSE
             rs@earlyProcessed<-FALSE
             rs@fileBase<-paste(rs@path,rs@session,sep="/")
             rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
-            
+
             if(!file.exists(paste(rs@fileBase,"par",sep=".")))
               stop("needs ",paste(rs@fileBase,"par",sep="."))
-            
+
             ## read the par file line per line## shitty format
             conn <- file(paste(rs@fileBase,"par",sep="."),open="r")
             par<-readLines(conn)
@@ -90,6 +90,21 @@ setMethod(f="loadRecSession",
             rs@nChannels<-as.numeric(unlist(strsplit(par[1], split=" "))[1])
             rs@nElectrodes  <-as.numeric(unlist(strsplit(par[3], split=" "))[1])
             rs@nTrials<-as.numeric(par[rs@nElectrodes+4])
+
+             ## add tests in case of weird .par file
+             if(length(rs@nChannels)!=1)
+               stop(paste("rs@nChannels is not set correctly for",rs@session))
+             if(length(rs@nElectrodes)!=1)
+               stop(paste("rs@nElectrodes is not set correctly for",rs@session))
+             if(is.na(rs@nChannels))
+               stop(paste("rs@nChannels is na for",rs@session))
+             if(is.na(rs@nElectrodes))
+               stop(paste("rs@nChannels is na for",rs@session))
+             if(length(rs@nTrials)!=1)
+               stop(paste("rs@nTrials is not set correctly for",rs@session))
+             if(is.na(rs@nTrials))
+               stop(paste("rs@nTrials is na for",rs@session))
+
             rs@trialNames<-par[(rs@nElectrodes+5):(rs@nElectrodes+5+rs@nTrials-1)]
             
             ## map of channel and tetrodes
