@@ -91,28 +91,28 @@ setMethod(f="loadRecSession",
             rs@nElectrodes  <-as.numeric(unlist(strsplit(par[3], split=" "))[1])
             rs@nTrials<-as.numeric(par[rs@nElectrodes+4])
 
-             ## add tests in case of weird .par file
-             if(length(rs@nChannels)!=1)
-               stop(paste("rs@nChannels is not set correctly for",rs@session))
-             if(length(rs@nElectrodes)!=1)
-               stop(paste("rs@nElectrodes is not set correctly for",rs@session))
-             if(is.na(rs@nChannels))
-               stop(paste("rs@nChannels is na for",rs@session))
-             if(is.na(rs@nElectrodes))
-               stop(paste("rs@nChannels is na for",rs@session))
-             if(length(rs@nTrials)!=1)
-               stop(paste("rs@nTrials is not set correctly for",rs@session))
-             if(is.na(rs@nTrials))
-               stop(paste("rs@nTrials is na for",rs@session))
+            ## add tests in case of weird .par file
+            if(length(rs@nChannels)!=1)
+              stop(paste("rs@nChannels is not set correctly for",rs@session))
+            if(length(rs@nElectrodes)!=1)
+              stop(paste("rs@nElectrodes is not set correctly for",rs@session))
+            if(is.na(rs@nChannels))
+              stop(paste("rs@nChannels is na for",rs@session))
+            if(is.na(rs@nElectrodes))
+              stop(paste("rs@nChannels is na for",rs@session))
+            if(length(rs@nTrials)!=1)
+              stop(paste("rs@nTrials is not set correctly for",rs@session))
+            if(is.na(rs@nTrials))
+              stop(paste("rs@nTrials is na for",rs@session))
 
             rs@trialNames<-par[(rs@nElectrodes+5):(rs@nElectrodes+5+rs@nTrials-1)]
-            
+
             ## map of channel and tetrodes
             chan<-strsplit(par[4:(4+rs@nElectrodes-1)], split=" ")
             max.channelsTetrode<-max(unlist(lapply(chan,length))-1)
             rs@channelsTetrode<-matrix(nrow=rs@nElectrodes,ncol=max.channelsTetrode)
-            
-            if(rs@nElectrodes>0) { 
+
+            if(rs@nElectrodes>0) {
             for(i in 1:rs@nElectrodes) {
               l1<-length((rs@channelsTetrode[i,]))
               l2<-length((as.numeric(chan[[i]][-1])))
@@ -124,7 +124,7 @@ setMethod(f="loadRecSession",
               print("No channelsTetrode")
               rs@channelsTetrode<-matrix(NA)
             }
-            
+
             if(file.exists(paste(rs@fileBase,"desen",sep="."))){
               try(
                 rs@env<-as.character(read.table(paste(rs@fileBase,"desen",sep="."))$V1),
@@ -148,18 +148,20 @@ setMethod(f="loadRecSession",
               if(rs@nElectrodes!=length(rs@electrodeLocation))
                 stop(paste("loadRecSession, problem with length of par and desel files",rs@session))
             }
-            
-            
+
+
             if(rs@nTrials!=length(rs@trialNames))
               stop(paste("loadRecSession, problem with number of trials in par file",rs@session))
 
             if(file.exists(paste(rs@fileBase,"sampling_rate_dat",sep="."))){
               try(rs@samplingRate<-read.table(paste(rs@fileBase,"sampling_rate_dat",sep="."))$V1,
                   silent=F)
+              if(length(rs@samplingRate)>1)
+                stop(paste("loadRecSession, samplingRate has a length > 1, check",paste(rs@fileBase,"sampling_rate_dat",sep=".")))
               if(rs@samplingRate<1 | rs@samplingRate > 100000)
                 stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }
-            
+
             ## if early process was run on this one, get more informaiton from resofs file
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
             {
@@ -177,7 +179,7 @@ setMethod(f="loadRecSession",
                 rs@sessionDurationSec<-sum(rs@trialDurationSec)
               }
             }else
-            { 
+            {
               # try to get the info from DatFiles object, but don't return error if not there 
               df<-new("DatFiles")
               try(
