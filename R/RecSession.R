@@ -11,7 +11,8 @@
 #' @slot animalName Name of the animal
 #' @slot samplingRate Sampling rate of the electrophysiological data
 #' @slot resofs Number of samples in each trial
-#' @slot env List of environment for each trial
+#' @slot env List of environments for each trial
+#' @slot stim List of stimulation types
 #' @slot electrodeLocation List of electrode location, one per electrode
 #' @slot trialStartRes Sample at which a trial starts. Index starts at 0
 #' @slot trialEndRes Sample at which a trial ends. Index starts at 0
@@ -33,6 +34,7 @@ RecSession <- setClass(
           samplingRate="numeric",
           resofs="numeric",
           env="character",
+          stim="character",
           electrodeLocation="character",
           trialStartRes="numeric",
           trialEndRes="numeric",
@@ -129,6 +131,14 @@ setMethod(f="loadRecSession",
                 silent=F)
               if(length(rs@env)!=length(rs@trialNames))
                 stop(paste("loadRecSession, problem with length of par and desen files",rs@session))
+            }
+            
+            if(file.exists(paste(rs@fileBase,"stimulation",sep="."))){
+              try(
+                rs@stim<-as.character(read.table(paste(rs@fileBase,"stimulation",sep="."))$V1),
+                silent=F)
+              if(length(rs@stim)!=length(rs@trialNames))
+                stop(paste("loadRecSession, problem with length of par and stimulation files",rs@session))
             }
 
             if(file.exists(paste(rs@fileBase,"desel",sep="."))){
@@ -284,6 +294,28 @@ setMethod(f="containsEnvironment",
             return(any(rs@env==environment))
           })
 
+#' Check if the session had a trial in a given stimulation type
+#'
+#' This will check whether the value of stimulation is in the stim vector.
+#' 
+#' @param rs A RecSession object
+#' @param stimulation The name of a stimulation
+#' @return TRUE or FALSE
+#' 
+#' @docType methods
+#' @rdname containsStimulation-methods
+setGeneric(name="containsStimulation",
+           def=function(rs,stimulation="")
+           {standardGeneric("containsStimulation")}
+)
+#' @rdname containsStimulation-methods
+#' @aliases containsStimulation,ANY,ANY-method
+setMethod(f="containsStimulation",
+          signature="RecSession",
+          definition=function(rs,stimulation="")
+          {
+            return(any(rs@stim==stimulation))
+          })
 
 
 
@@ -367,6 +399,36 @@ setMethod(f="getIntervalsEnvironment",
             }
           return(matrix(data=c(rs@trialStartRes[which(rs@env==environment)],rs@trialEndRes[which(rs@env==environment)]),ncol=2,
                  dimnames=list(rep(environment,length(which(rs@env==environment))),c("start","end"))))
+          })
+
+#' Get the time intervals in sample values for trials for a given stimulation
+#'
+#' @param rs A RecSession object
+#' @param stimulation The name of a stimulation
+#' @return matrix with 2 columns containing the start and end of each trial in the stimulation
+#' 
+#' @docType methods
+#' @rdname getIntervalsStimulation-methods
+setGeneric(name="getIntervalsStimulation",
+           def=function(rs,stimulation="lt")
+           {standardGeneric("getIntervalsStimulation")}
+)
+#' @rdname getIntervalsStimulation-methods
+#' @aliases getIntervalsStimulation,ANY,ANY-method
+setMethod(f="getIntervalsStimulation",
+          signature="RecSession",
+          definition=function(rs,stimulation="lt")
+          {
+            if(length(rs@trialStartRes)==0){
+              print("trialStartRes is not set")
+              return()
+            }
+            if(!stimulation%in%rs@stim){
+              print("stimulation not used in the session")
+              return()
+            }
+          return(matrix(data=c(rs@trialStartRes[which(rs@stim==stimulation)],rs@trialEndRes[which(rs@stim==stimulation)]),ncol=2,
+                 dimnames=list(rep(stimulation,length(which(rs@stim==stimulation))),c("start","end"))))
           })
 
 #' Load a set of objects that are session specific
@@ -515,6 +577,8 @@ setMethod("show", "RecSession",
             print(paste("nTrials:",object@nTrials))
             print(paste("env:"))
             print(paste(object@env))
+            print(paste("stim:"))
+            print(paste(object@stim))
             print(paste("nElectrodes:",object@nElectrodes))
             print(paste("electrodeLocation:"))
             print(paste(object@electrodeLocation))

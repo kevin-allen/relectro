@@ -2,8 +2,8 @@
 % Please edit documentation in R/RecSession.R
 \docType{class}
 \name{RecSession-class}
-\alias{RecSession}
 \alias{RecSession-class}
+\alias{RecSession}
 \title{A S4 class to represent a recording session.}
 \description{
 A RecSession object contains a description of the recording session.
@@ -26,7 +26,9 @@ Sessions are usually divided in several trials with one .dat file for each trial
 
 \item{\code{resofs}}{Number of samples in each trial}
 
-\item{\code{env}}{List of environment for each trial}
+\item{\code{env}}{List of environments for each trial}
+
+\item{\code{stim}}{List of stimulation types}
 
 \item{\code{electrodeLocation}}{List of electrode location, one per electrode}
 
