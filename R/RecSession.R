@@ -575,13 +575,19 @@ setMethod("show", "RecSession",
             print(paste("samplingRate:",object@samplingRate,"Hz"))
             print(paste("nChannels:",object@nChannels))
             print(paste("nTrials:",object@nTrials))
-            print(paste("env:"))
-            print(paste(object@env))
-            print(paste("stim:"))
-            print(paste(object@stim))
+            if(length(object@env)!=0){
+              print(paste("env:"))
+              print(paste(object@env))
+            }
+            if(length(object@stim)!=0){
+              print(paste("stim:"))
+              print(paste(object@stim))
+            }
             print(paste("nElectrodes:",object@nElectrodes))
-            print(paste("electrodeLocation:"))
-            print(paste(object@electrodeLocation))
+            if(length(object@electrodeLocation)!=0){
+              print(paste("electrodeLocation:"))
+              print(paste(object@electrodeLocation))
+            }
             print(paste("trialNames:"))
             print(paste(object@trialNames))
             print(paste("trialDurationSec:"))
