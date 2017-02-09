@@ -102,7 +102,7 @@ pathPlot <- function(pt,name="",
 
 #' Plot a color scale for the firing rate maps
 #' 
-#' Plot a color sclae that can be used beside the plots obtained with firingRateMapPlot()
+#' Plot a color scale that can be used beside the plots obtained with firingRateMapPlot()
 #' 
 #' @param outma Outer margins of the figure
 #' @param margin Inner margins of the figure

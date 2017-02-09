@@ -15,6 +15,6 @@ colorScalePlot(outma = c(0.2, 0.2, 0.2, 0.2), margin = c(0, 1, 0, 1),
 \item{cex.labels}{Size of the font use for 0 and Max}
 }
 \description{
-Plot a color sclae that can be used beside the plots obtained with firingRateMapPlot()
+Plot a color scale that can be used beside the plots obtained with firingRateMapPlot()
 }
 
