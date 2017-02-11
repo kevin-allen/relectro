@@ -98,7 +98,9 @@ whdFromPositrack<-function(rs,
       {
         stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
       }
-      if(any(delay>rs@samplingRate/10))
+      if(any(delay>rs@samplingRate/2))
+        print("There were long delays (> 500 ms) between frame capture and frame processing")
+      if(any(delay>rs@samplingRate))
       {
         stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
       } 
