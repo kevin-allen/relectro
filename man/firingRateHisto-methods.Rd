@@ -3,8 +3,8 @@
 \docType{methods}
 \name{firingRateHisto}
 \alias{firingRateHisto}
-\alias{firingRateHisto,ANY,ANY-method}
 \alias{firingRateHisto,SpatialProperties1d-method}
+\alias{firingRateHisto,ANY,ANY-method}
 \title{Calculate the firing rate histograms of neurons using a SpikeTrain and Positrack objects}
 \usage{
 firingRateHisto(sp1, st, pt)
@@ -24,4 +24,3 @@ SpatialProperties1d object with the firing rate histograms
 \description{
 Calculate the firing rate histograms of neurons using a SpikeTrain and Positrack objects
 }
-

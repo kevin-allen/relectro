@@ -3,8 +3,8 @@
 \docType{methods}
 \name{loadSpikeTrain}
 \alias{loadSpikeTrain}
-\alias{loadSpikeTrain,ANY,ANY-method}
 \alias{loadSpikeTrain,SpikeTrain-method}
+\alias{loadSpikeTrain,ANY,ANY-method}
 \title{Load the spike train from the .clu and .res files}
 \usage{
 loadSpikeTrain(st)
@@ -20,4 +20,3 @@ SpikeTrain object with the instantaneous firing rate
 \description{
 Load the spike train from the .clu and .res files
 }
-

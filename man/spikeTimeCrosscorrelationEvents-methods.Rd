@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTimeCrosscorrelationEvents}
 \alias{spikeTimeCrosscorrelationEvents}
-\alias{spikeTimeCrosscorrelationEvents,ANY,ANY-method}
 \alias{spikeTimeCrosscorrelationEvents,SpikeTrain-method}
+\alias{spikeTimeCrosscorrelationEvents,ANY,ANY-method}
 \title{Calculate the spike-time crosscorrelation between the spike trains and a list of events}
 \usage{
 spikeTimeCrosscorrelationEvents(st, binSizeMs = 1, windowSizeMs = 200,
@@ -30,4 +30,3 @@ Each event is treated in turn as a reference event.
 The number of spikes or probability to observe a spike around the reference event is calculated.
 You can set the bins size in ms and and the time window for which you want to do the analysis on.
 }
-

@@ -15,4 +15,3 @@ Charcter vector of the session names
 \description{
 Get a character vector with the session names of a list of RecSession object
 }
-

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{meanFiringRate}
 \alias{meanFiringRate}
-\alias{meanFiringRate,ANY,ANY-method}
 \alias{meanFiringRate,SpikeTrain-method}
+\alias{meanFiringRate,ANY,ANY-method}
 \title{Calculate the mean firing rate (Hz) of each neuron in a SpikeTrain object}
 \usage{
 meanFiringRate(st)
@@ -21,4 +21,3 @@ a SpikeTrain object with the mean firing rate in slot meanFiringRate
 This is simply the number of spikes divided by the time within the intervals
 set in the SpikeTrain object.
 }
-

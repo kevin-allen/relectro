@@ -3,8 +3,8 @@
 \docType{methods}
 \name{datFilesSamples}
 \alias{datFilesSamples}
-\alias{datFilesSamples,ANY,ANY-method}
 \alias{datFilesSamples,DatFiles-method}
+\alias{datFilesSamples,ANY,ANY-method}
 \title{Get the number of samples per file and file size}
 \usage{
 datFilesSamples(df)
@@ -20,4 +20,3 @@ A DatFiles object with the samples and size set.
 \description{
 Get the number of samples per file and file size
 }
-

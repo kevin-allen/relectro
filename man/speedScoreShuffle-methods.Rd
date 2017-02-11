@@ -3,8 +3,8 @@
 \docType{methods}
 \name{speedScoreShuffle}
 \alias{speedScoreShuffle}
-\alias{speedScoreShuffle,ANY,ANY-method}
 \alias{speedScoreShuffle,SpatialProperties2d-method}
+\alias{speedScoreShuffle,ANY,ANY-method}
 \title{Random speed scores from spike train and positrack}
 \usage{
 speedScoreShuffle(sp, st, pt, minSpeed, maxSpeed)
@@ -29,4 +29,3 @@ SpatialProperties2d object with the random speed scores in the slots SpeedScoreS
 \description{
 Random speed scores from spike train and positrack
 }
-

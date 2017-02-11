@@ -15,4 +15,3 @@ Numeric of length 2 with the x and y coordinate of the center fo mass
 \description{
 Calculate the center of mass of a matrix
 }
-

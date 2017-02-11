@@ -3,8 +3,8 @@
 \docType{methods}
 \name{mapSpatialAutocorrelation}
 \alias{mapSpatialAutocorrelation}
-\alias{mapSpatialAutocorrelation,ANY,ANY-method}
 \alias{mapSpatialAutocorrelation,SpatialProperties2d-method}
+\alias{mapSpatialAutocorrelation,ANY,ANY-method}
 \title{Calculate the spatial autocorrelation of the firing rate maps of neurons}
 \usage{
 mapSpatialAutocorrelation(sp)
@@ -20,4 +20,3 @@ SpatialProperties2d object with the spatial autocorrelation in slot auto
 \description{
 The autocorrelation is performed on the firing rate maps of the SpatialProperties2d object
 }
-

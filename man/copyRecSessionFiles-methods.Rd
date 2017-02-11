@@ -3,8 +3,8 @@
 \docType{methods}
 \name{copyRecSessionFiles}
 \alias{copyRecSessionFiles}
-\alias{copyRecSessionFiles,ANY,ANY-method}
 \alias{copyRecSessionFiles,RecSession-method}
+\alias{copyRecSessionFiles,ANY,ANY-method}
 \title{Make a copy of the files of the recording session in another directory}
 \usage{
 copyRecSessionFiles(rs, destination, sessionSpecificExtensions,
@@ -26,4 +26,3 @@ If /data is given for destination, the data go in the directory /data/animalName
 \description{
 This is used to export the data of an experiment.
 }
-

@@ -32,4 +32,3 @@ firingRateMapPlot(m, name = "", outma = c(2, 2, 2, 2), margin = c(1, 1, 1,
 \description{
 Plot a 2-dimensional representation of firing rate using the image function included in the graphics package
 }
-

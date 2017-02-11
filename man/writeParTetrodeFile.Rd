@@ -31,4 +31,3 @@ Here is an example
 3 16        # number of principal components (features) per electrode, number of samples used for the PCA
 800.        # high pass filter frequency (in Hz)
 }
-

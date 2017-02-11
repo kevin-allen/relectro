@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getIntervalsAtHeadDirection}
 \alias{getIntervalsAtHeadDirection}
-\alias{getIntervalsAtHeadDirection,ANY,ANY-method}
 \alias{getIntervalsAtHeadDirection,Positrack-method}
+\alias{getIntervalsAtHeadDirection,ANY,ANY-method}
 \title{Get time intervals at which the animal's head direction is in a given range}
 \usage{
 getIntervalsAtHeadDirection(pt, hdMin, hdMax)
@@ -24,4 +24,3 @@ matrix with the time intervals
 \description{
 Works as though head direction was a linear variable.
 }
-

@@ -28,4 +28,3 @@ are used to synchronize the position and electrophysiological data. By default, 
 pulses are on the last channel in the .dat files.
 This function runs on a single recording session
 }
-

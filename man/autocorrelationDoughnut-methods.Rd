@@ -3,8 +3,8 @@
 \docType{methods}
 \name{autocorrelationDoughnut}
 \alias{autocorrelationDoughnut}
-\alias{autocorrelationDoughnut,ANY,ANY-method}
 \alias{autocorrelationDoughnut,SpatialProperties2d-method}
+\alias{autocorrelationDoughnut,ANY,ANY-method}
 \title{Calculate the spatial autocorrelation of the firing rate maps of neurons and get the region use for grid score calculation
 Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 Fields are detected as when one wants to calculate grid scores. 
@@ -28,4 +28,3 @@ Fields are detected as when one wants to calculate grid scores.
 Then the region with the 6 fields surrounding the center is kept
 Usefull to test the different steps of the calculation of the grid score.
 }
-

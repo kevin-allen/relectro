@@ -20,4 +20,3 @@ spikeTimeAutocorrelationsPlot(autos, timePoints, names, ncol = 5, nrow = 6)
 \description{
 Plot several spike-time autocorrelation plot on the same page
 }
-

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{firingRateMapsRotation}
 \alias{firingRateMapsRotation}
-\alias{firingRateMapsRotation,ANY,ANY-method}
 \alias{firingRateMapsRotation,SpatialProperties2d-method}
+\alias{firingRateMapsRotation,ANY,ANY-method}
 \title{Rotate the firing rate maps of a SpatialProperties2d object}
 \usage{
 firingRateMapsRotation(sp, rotationDegrees)
@@ -23,4 +23,3 @@ SpatialProperties2d object with the rotated maps
 \description{
 Rotate the firing rate maps of a SpatialProperties2d object
 }
-

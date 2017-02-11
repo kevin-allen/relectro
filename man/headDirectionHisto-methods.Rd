@@ -3,8 +3,8 @@
 \docType{methods}
 \name{headDirectionHisto}
 \alias{headDirectionHisto}
-\alias{headDirectionHisto,ANY,ANY-method}
 \alias{headDirectionHisto,HeadDirection-method}
+\alias{headDirectionHisto,ANY,ANY-method}
 \title{Calculate the head direction rate histograms of neurons using a HeadDirection, SpikeTrain and Positrack objects}
 \usage{
 headDirectionHisto(hd, st, pt)
@@ -24,4 +24,3 @@ HeadDirection object with the firing rate histograms in the slot histo
 \description{
 Calculate the head direction rate histograms of neurons using a HeadDirection, SpikeTrain and Positrack objects
 }
-

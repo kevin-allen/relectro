@@ -23,4 +23,3 @@ firingRateMapAutoPlot(m, name = "", outma = c(2, 2, 2, 2), margin = c(1,
 \description{
 Plot a single spatial autocorrelation map
 }
-

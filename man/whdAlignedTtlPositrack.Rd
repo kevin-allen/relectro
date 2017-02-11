@@ -18,4 +18,3 @@ When there is no problem of alignment, the correlation between intervals of ttl 
 If there is an additional ttl detected, then the correlation goes down. 
 How low it is depends at which point the alignment brake
 }
-

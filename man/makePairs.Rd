@@ -21,4 +21,3 @@ If two vectors of values are given, only pairs across the two vectors are return
 \examples{
 makePairs(cl1=1:10)
 }
-

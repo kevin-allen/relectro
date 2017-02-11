@@ -42,4 +42,3 @@ linearRatePlot(sp1, n = 1, outma = c(1, 1, 1, 0), margin = c(1.5, 2, 0.8,
 \description{
 In development
 }
-
