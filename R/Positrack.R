@@ -4,6 +4,10 @@
 #' The first data point is at time resSamplesPerWhlSample and not 0.
 #' The data are usually loaded from .whd, .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm
 #' 
+#' The position data likely come from a tracking system (e.g. positrack) in which the y-axis has its origin
+#' at the top-left of the screen. In contrast, most plotting functions in R have the y-axis origin at the bottom-left
+#' of the screen. This is important to know if you want to find out where landmarks relative to the animal.
+#' 
 #' @slot session A character vector containing the names of the recording session.
 #' @slot path The directory in which the files of the session are located.
 #' @slot pxPerCm Pixels per centimeter in the x and y position data.
