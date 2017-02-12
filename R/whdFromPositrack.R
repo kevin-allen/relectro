@@ -57,75 +57,53 @@ whdFromPositrack<-function(rs,
   for(tIndex in 1:length(rs@trialNames)){
     
     print(paste(tIndex, rs@trialNames[tIndex]))
-    ## get the data from dat file
+    
+    ################################
+    ## get the data from dat file ##
+    ################################
     print(paste("reading sycn channel",ttlChannel[tIndex],"from",rs@trialStartRes[tIndex],"to",rs@trialEndRes[tIndex]))
     x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel[tIndex],
                                       firstSample = rs@trialStartRes[tIndex],
                                       lastSample = rs@trialEndRes[tIndex]))
-    
     up<-detectUps(x) ## detect rising times of ttl pulses
+    
+    ######################################
+    ## get the data from positrack file ##
+    ######################################
     fn<-paste(paste(rs@path,rs@trialNames[tIndex],sep='/'),"positrack",sep='.')
     if(!file.exists(fn))
       stop(paste("whdFromPositrack, file missing:",fn))
+    print(paste("reading",fn))
+    posi<-read.table(fn,header=T)  ## now assumes that there is a header
+    if(checkIntegrityPositrackData(posi)!=0)
+      stop(paste("check of integrity of positrack file failed"))
     
-    ## check if where is a header in positrack file
-    con=file(fn,open="r")
-    line=readLines(con,n=1) 
-    close(con)
-    if(substr(line, 1, 2)=="no"){ 
-      # this is for the new positrack files with header
-      print("positrack file with header")
-      posi<-read.table(fn,header=T)  
-      lup<-length(up)
-      lposi<-length(posi$startProcTime)
-      print(paste("Number of ttl pulses:",lup))
-      print(paste("Number of frames in positrack file:",lposi))
-      if(lup!=lposi)  
-      { # try to align the frames using jitters
-        print(paste("whdFromPositrack,",rs@trialNames[tIndex],"length of up (",lup,") and positrack (",lposi,") differs"))
-        if(!is.list(x<-whdAlignedTtlPositrack(up,posi))){
-          print(paste("aligmnet failed"))
-          stop()
-        }      
-        up<-x$up
-        posi<-x$posi
-      }
-      ## the frame is capture before it is received by the computer, this is the delay in .dat samples
-      delay<-(posi$startProcTime-posi$capTime)*rs@samplingRate/1000
-      
-      ## check if delay are resonable, larger than 0 but smaller than 100 ms
-      if(any(delay<0))
-      {
-        stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
-      }
-      if(any(delay>rs@samplingRate/2))
-        print("There were long delays (> 500 ms) between frame capture and frame processing")
-      if(any(delay>rs@samplingRate))
-      {
-        stop(paste("whdFromPositrack, there is a problem with time in the positrack file (column startProcTime or capTime)"))
-      } 
-      
-      ## remove the delay from the ttl pulse
-      up<-up-delay
-    } else{ 
-      # this is for the old positrack files without header
-      print("positrack file without header")
-      posi<-read.table(fn)  
-      colnames(posi)<-c("startProcTime","no","x","y","hd")
-      lup<-length(up)
-      lposi<-length(posi$startProcTime)
-      print(paste("Number of ttl pulses:",lup))
-      print(paste("Number of frames in positrack file:",lposi))
-      if(lup!=lposi)  
-      {
-        print(paste("whdFromPositrack,",rs@trialNames[tIndex],"length of up (",lup,") and positrack (",lposi,") differs"))
-        stop()      
-      }
-      ## because of the firewire camera buffer is one frame late ##
-      ## we shift the spots forward by one and ignore the last up ##
-      posi<-posi[2:length(posi$startProcTime),]
-      up<-up[1:(length(up)-1)]  
+    #############################################
+    ### compare the .dat and .positrack data  ###
+    #############################################
+    lup<-length(up)
+    lposi<-length(posi$startProcTime)
+    print(paste("Number of ttl pulses:",lup))
+    print(paste("Number of frames in positrack file:",lposi))
+    
+    if(lup!=lposi)  
+    { # try to align the frames using jitters
+      print(paste("whdFromPositrack,",rs@trialNames[tIndex],"length of up (",lup,") and positrack (",lposi,") differs"))
+      if(!is.list(x<-whdAlignedTtlPositrack(up,posi))){
+        print(paste("alignment failed"))
+        stop()
+      }      
     }
+    
+    up<-x$up
+    posi<-x$posi
+    
+    ## the frame is capture before it is received by the computer
+    ## up in .dat file is frame processing and not frame capture
+    ## Therefore, we remove the capture-to-processing delay from the up values
+    delay<-(posi$startProcTime-posi$capTime)*rs@samplingRate/1000
+    ## remove the delay from the ttl pulse
+    up<- up - delay
     
     ### create a main up and main posi for the entire recording session
     mainUp<-c(mainUp,up+rs@trialStartRes[tIndex])
@@ -176,10 +154,15 @@ whdFromPositrack<-function(rs,
 #' Try to realign the up part of ttl pulses from .dat file and the positrack frames for a single trial. 
 #' 
 #' One assumption that is made is that there is variability in the intervals between frames in the positrack software
-#' These time intervals can be measured from the positrack file (startProcTime) and the ttl pulse
+#' These time intervals can be measured from the positrack file (startProcTime) and the ttl pulses.
 #' When there is no problem of alignment, the correlation between intervals of ttl and positrack is above .97
 #' If there is an additional ttl detected, then the correlation goes down. 
-#' How low it is depends at which point the alignment brake
+#' 
+#' The intervals between ups is calculated (dup)
+#' The intervals between the posi$startProcTime is calculated (dposi)
+#' We search for points where there is a large difference between dup and dposi.
+#' The crosscorrelation function for the data points just after the large difference is calculated. 
+#' If the peak is before or after 0, then an up or a posi is removed.
 #' 
 #' @param up Time of up phase of ttl pulses
 #' @param posi Data from the positrack file
@@ -202,47 +185,171 @@ whdAlignedTtlPositrack<-function(up,posi){
     return(NA)
   }
     
-  if(length(up)<length(posi$no)){
-    print("not implemented")  
-    return(NA)
-  }
-  if(length(up)>length(posi$no))
-  {
-    print(paste("more ups (",length(up),") than lines in posi (",length(posi$no),")"))
-    toRemove=length(up)-length(posi$no)
-    print(paste("Try to remove",toRemove,"ttl pulses"))
-    
-    removed=0
-    while(removed<toRemove){
-      index<-head(which(head(dup,n=length(dposi))-dposi< -50),n=1)
-    #  index
-    #  dup[990:1003]
-    #  dposi[990:1003]
-      if(length(index)==1){
-        print(paste("Removing index",index))
-        up<-up[0-index]
-        removed=removed+1
-      }else{
-        removed=toRemove
-      }
-    }
-    
-    if(length(up)!=length(posi$no)){
-      print(paste("alignment failed, number of up and posi still differ"))
-      return(NA)
-    }
-    
+  ## visualize the situation
+  dup<-diff(up)
+  dposi<-diff(posi$startProcTime*20)
+  lmin<-min(length(dup),length(dposi))
+  dif<-head(dup,n=lmin)-head(dposi,n=lmin)
+  plot(dif,type='l')
+  removedPosi=0
+  removedUp=0
+  attempted=0
+  print(paste("Try to remove ttl or posi data points based on crosscorrelation"))
+  while(TRUE){
+    ## recalculate the differences
     dup<-diff(up)
     dposi<-diff(posi$startProcTime*20)
+    print(paste("length up:", length(up),"length posi",length(posi$startProcTime)))
     
-    cor1<-cor(head(dup,n=1000),head(dposi,n=1000))
-    cor2<-cor(dup[(length(dposi)-1000):length(dposi)],dposi[(length(dposi)-1000):length(dposi)])
-    print(paste("correlation first 1000:",round(cor1,4)))
-    print(paste("correlation last 1000:",round(cor2,4)))
-    if(cor1<0.98|cor2<0.98){
-      print(paste("alignment failed because of correlation of jitter too low"))
-      return(NA)
+    ## compare the diff of two signal
+    ## start at last index, to avoid retesting always the same data point
+    lmin<-min(length(dup),length(dposi))
+    dif<-head(dup,n=lmin)-head(dposi,n=lmin)
+    #plot(dif,type='l')
+    if(attempted==0){
+      index<-head(which(dif< -50),n=1)
+    } else{
+      index<-head(which(dif< -50)[-c(1:attempted)],n=1)
     }
-    return(list(up=up,posi=posi))
+    if(length(index)==0){
+      print("no more indices to test")
+      break()
+    }
+    print(paste("large difference at index",index))
+    ## should we remove an up or posi line?
+    ## if the crosscorrelation function of the 2 signals has a peak after 0, remove up[index]
+    ## get a segment of data of approximately 250 data points
+    if(index+250>length(posi$no)){
+      endIndex=length(posi$no) 
+    }else{
+      endIndex=index+250
+    }
+    cc<-ccf(dup[index:endIndex],dposi[index:endIndex])
+    print(paste("peak crosscorrelation between", index, "and", endIndex, "is" ,round(cc$acf[which.max(cc$acf)],3),"at lag",cc$lag[which.max(cc$acf)]))
+    ## Warning: the peak in cc$acf might be below 0.90 if there are two data point to remove to remove
+    if(cc$lag[which.max(cc$acf)]>0 & cc$acf[which.max(cc$acf)] > 0.85){
+      print(paste("Removing index in up",index))
+      up<-up[0-index]
+      removedUp=removedUp+1
+      attempted=0
+    } else if(cc$lag[which.max(cc$acf)]<0 & cc$acf[which.max(cc$acf)] > 0.85){
+      print(paste("Removing index in posi",index))
+      posi<-posi[0-index,]
+      removedPosi=removedPosi+1
+      attempted=0
+    } else{
+      print(paste("Index",index,"not removed"))
+      attempted=attempted+1
+    }
   }
+    
+  if(length(up)!=length(posi$no)){
+    print(paste("alignment failed, number of up and posi still differ"))
+    return(NA)
+  }
+  
+  dup<-diff(up)
+  dposi<-diff(posi$startProcTime*20)
+  dif<-dup-dposi
+  plot(dif,type='l')
+  
+  
+  if(removedUp+removedPosi>10){
+    print(paste("Removed up:",removedUp, "removed posi:",removedPosi))
+    print(paste("More than 10 missalignments were detected. There is a problem with recording setup"))
+    return(NA)
+  }
+  
+  cor1<-cor(head(dup,n=2000),head(dposi,n=2000))
+  cor2<-cor(dup[(length(dposi)-2000):length(dposi)],dposi[(length(dposi)-2000):length(dposi)])
+  cor3<-cor(dup,dposi)
+  print(paste("correlation first 2000:",round(cor1,4)))
+  print(paste("correlation last 2000:",round(cor2,4)))
+  print(paste("correlation all:",round(cor3,4)))
+  print(paste("Removed up:",removedUp, "removed posi:",removedPosi))
+  if(cor1<0.96|cor2<0.96| cor3<.98){
+    print(paste("alignment failed because of correlation of jitter too low"))
+    return(NA)
+  }
+  return(list(up=up,posi=posi))
 }
+
+#' Check the integrity of positrack data read from positrack file. 
+#' 
+#' @param posi Data frame containing the positrack file read via read.table(fn,header=T)
+#' @param maxDelayCapProc Maximum allowed delay between frame capture and processing
+#' @param maxInterCapDelay Maximum allowed delay between the time stamps of frame capture
+#' @param maxInterProcDelay Maximum allowed delay between the time stamps of frame processing
+#' @param maxProcDuration Maximum allowed processing of frame duration
+#' @return Return 0 if all is ok and positive number if something is wrong
+checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
+                                      maxInterCapDelay=500,
+                                      maxInterProcDelay=500,
+                                      maxProcDuration=500){
+  ## check for valid header
+  validHeaderBeginning<-c("no","capTime","startProcTime")
+  if(!all(validHeaderBeginning==names(posi)[1:3])){
+    print(paste("Header of positrack is not starting with",validHeaderBeginning))
+    print("Make sure you are using the latest version of positrack",validHeaderBeginning)
+    return(1)
+  }
+
+  # there should not be any characters in the data
+  if(any(is.character(posi))){
+    print(paste("There are characters in the data"))
+    return(2)
+  }
+
+  # check capture/processing delays
+  delayCapProc<-posi$startProcTime-posi$capTime
+  print(paste("Max delay between capture and processing of frame is",max(delayCapProc),"at index",which.max(delayCapProc)))
+  print(paste("Number of delay between capture and precessing of frame above 100 ms:",sum(delayCapProc>100)))
+  if(max(delayCapProc)>maxDelayCapProc)
+  {
+    print(paste("There is a delay between frame capture and frame processing that is longer",maxDelayCapProc))
+    return(2)
+  }
+  
+  # Check inter-caputre delays
+  # This would suggest that some frames might have been lost
+  interCapDelay<-diff(posi$capTime)
+  print(paste("Max inter caputre delay:",max(interCapDelay),"at index",which.max(interCapDelay)))
+  print(paste("Number of inter capture time above 30 ms:",sum(interCapDelay>30)))
+  if(max(interCapDelay)>maxInterCapDelay)
+  {
+    print(paste("There is a inter caputre delay that is larger than ",maxInterCapDelay))
+    return(3)
+  }
+  
+  ## Check inter-processing delays
+  interProcDelay<-diff(posi$startProcTime)
+  print(paste("Max inter processing delay:",max(interProcDelay),"at index",which.max(interProcDelay)))
+  print(paste("Number of inter processing time above 50 ms:",sum(interProcDelay>50)))
+  if(max(interProcDelay)>maxInterProcDelay)
+  {
+    print(paste("There is a inter processing delay that is larger than ",maxInterProcDelay))
+    return(3)
+  }
+  
+  ## Check for processing time
+  print(paste("Max processing duration:",max(posi$procDuration)))
+  print(paste("Number of processing duration above 50 ms:",sum(posi$procDuration>50)))
+  if(max(posi$procDuration)>maxProcDuration)
+  {
+    print(paste("There is a processing duration that is larger than ",maxProcDuration))
+    return(4)
+  }
+  
+  
+  #plot((which.max(delayCapProc)-15):(which.max(delayCapProc)+100),
+  #     delayCapProc[(which.max(delayCapProc)-15):(which.max(delayCapProc)+100)],ylim=c(0,max(delayCapProc)),
+  #     ylab="Capture-Processing delays",
+  #     xlab="Frame number")
+  plot(delayCapProc,type='l',
+       ylab="Capture-Processing delays",
+       xlab="Frame number")
+  lines(interCapDelay,col='red')
+  lines(posi$procDuration,col='blue')
+  return(0)  
+}
+
