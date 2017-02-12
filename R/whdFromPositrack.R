@@ -65,7 +65,11 @@ whdFromPositrack<-function(rs,
     x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel[tIndex],
                                       firstSample = rs@trialStartRes[tIndex],
                                       lastSample = rs@trialEndRes[tIndex]))
+    
     up<-detectUps(x) ## detect rising times of ttl pulses
+    if(checkIntegrityUp(up)!=0)
+      stop(paste("check of integrity of up failed"))
+   
     
     ######################################
     ## get the data from positrack file ##
@@ -353,3 +357,18 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
   return(0)  
 }
 
+#' Check the integrity of the up. 
+#' 
+#' @param up Time stamps of the ttl pulses of tracking system
+#' @return Return 0 if all is ok and positive number if something is wrong
+checkIntegrityUp<-function(up){
+  
+  d<-diff(up)
+  if(any(diff(up)<20)){
+    print(paste("There are up intervals shorter than 1 ms"))
+    print(paste("The first case occured at index",head(which(diff(up)<20),n=1)))
+    print(paste("Assuming 50 hz, this is", head(which(diff(up)<20),n=1)/50,"sec in the trial"))
+    return(1)
+  }
+  return(0)  
+}
