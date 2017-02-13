@@ -167,10 +167,14 @@ spikeTimeAutocorrelationPlot <- function(x,y,name="",
 #' 
 #' @param autos A matrix containing autocorrelations
 #' @param timePoints A numerical vector with the time point for each value of the autocorrelation
+#' @param type Type of plot: 'l' for line or 'h' for barplot/histogram
 #' @param names A character vector containing the name of each map in the array
 #' @param ncol Number of columns of plots per page
 #' @param nrow Number of rows of plots per page
-spikeTimeAutocorrelationsPlot<-function(autos,timePoints,names,ncol=5,nrow=6){
+spikeTimeAutocorrelationsPlot<-function(autos,timePoints,type,names,ncol=5,nrow=6){
+  if (missing(type)) {
+      type = 'l'
+  }
   plot.per.page=ncol*nrow
   m<-matrix(c(rep(seq(0,1-(1/ncol),1/ncol),nrow),
               rep(seq(1/ncol,1,1/ncol),nrow),
@@ -185,7 +189,7 @@ spikeTimeAutocorrelationsPlot<-function(autos,timePoints,names,ncol=5,nrow=6){
     }
     screen(index)
     ## insert your plot function here
-    spikeTimeAutocorrelationPlot(x=timePoints,y=autos[,i],name=names[i])
+    spikeTimeAutocorrelationPlot(x=timePoints,y=autos[,i],type=type,name=names[i])
     if(index==plot.per.page)
     {
       close.screen( all.screens = TRUE )

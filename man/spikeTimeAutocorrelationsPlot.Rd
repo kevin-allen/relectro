@@ -4,12 +4,15 @@
 \alias{spikeTimeAutocorrelationsPlot}
 \title{Plot several spike-time autocorrelation plot on the same page}
 \usage{
-spikeTimeAutocorrelationsPlot(autos, timePoints, names, ncol = 5, nrow = 6)
+spikeTimeAutocorrelationsPlot(autos, timePoints, type, names, ncol = 5,
+  nrow = 6)
 }
 \arguments{
 \item{autos}{A matrix containing autocorrelations}
 
 \item{timePoints}{A numerical vector with the time point for each value of the autocorrelation}
+
+\item{type}{Type of plot: 'l' for line or 'h' for barplot/histogram}
 
 \item{names}{A character vector containing the name of each map in the array}
 
