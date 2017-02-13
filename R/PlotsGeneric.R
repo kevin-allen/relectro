@@ -189,7 +189,7 @@ spikeTimeAutocorrelationsPlot<-function(autos,timePoints,type,names,ncol=5,nrow=
     }
     screen(index)
     ## insert your plot function here
-    spikeTimeAutocorrelationPlot(x=timePoints,y=autos[,i],name=names[i])
+    spikeTimeAutocorrelationPlot(x=timePoints,y=autos[,i],type=type,name=names[i])
     if(index==plot.per.page)
     {
       close.screen( all.screens = TRUE )
