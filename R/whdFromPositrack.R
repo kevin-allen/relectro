@@ -97,10 +97,10 @@ whdFromPositrack<-function(rs,
         print(paste("alignment failed"))
         stop()
       }      
+      up<-x$up
+      posi<-x$posi
     }
     
-    up<-x$up
-    posi<-x$posi
     
     ## the frame is capture before it is received by the computer
     ## up in .dat file is frame processing and not frame capture
