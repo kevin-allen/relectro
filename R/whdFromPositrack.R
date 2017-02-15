@@ -67,7 +67,7 @@ whdFromPositrack<-function(rs,
                                       lastSample = rs@trialEndRes[tIndex]))
     
     up<-detectUps(x) ## detect rising times of ttl pulses
-    if(checkIntegrityUp(up)!=0)
+    if(checkIntegrityUp(up,samplingRate=rs@samplingRate)!=0)
       stop(paste("check of integrity of up failed"))
    
     
@@ -287,9 +287,9 @@ whdAlignedTtlPositrack<-function(up,posi){
 #' @param maxProcDuration Maximum allowed processing of frame duration
 #' @return Return 0 if all is ok and positive number if something is wrong
 checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
-                                      maxInterCapDelay=500,
-                                      maxInterProcDelay=500,
-                                      maxProcDuration=500){
+                                      maxInterCapDelay=1000,
+                                      maxInterProcDelay=1000,
+                                      maxProcDuration=1000){
   ## check for valid header
   validHeaderBeginning<-c("no","capTime","startProcTime")
   if(!all(validHeaderBeginning==names(posi)[1:3])){
@@ -360,15 +360,28 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
 #' Check the integrity of the up. 
 #' 
 #' @param up Time stamps of the ttl pulses of tracking system
+#' @param maxInterUpDelay Maximal delay between ups that will be allowed
+#' @param samplingRate Sampling rate for the time point in up file
 #' @return Return 0 if all is ok and positive number if something is wrong
-checkIntegrityUp<-function(up){
+checkIntegrityUp<-function(up,maxInterUpDelay=1000,samplingRate=20000){
+  
+  print(paste("Minimum delay between up", min(up)/samplingRate*1000, "ms"))
+  print(paste("Maximum delay between up", max(up)/samplingRate*1000, "ms"))
   
   d<-diff(up)
-  if(any(diff(up)<20)){
+  if(any(diff(up)<1*samplingRate/1000)){
     print(paste("There are up intervals shorter than 1 ms"))
     print(paste("The first case occured at index",head(which(diff(up)<20),n=1)))
     print(paste("Assuming 50 hz, this is", head(which(diff(up)<20),n=1)/50,"sec in the trial"))
     return(1)
   }
+  
+  if(any(diff(up)>maxInterUpDelay*samplingRate/1000)){
+    print(paste("There are up intervals larger than",maxInterUpDelay))
+    print(paste("The first case occured at index",head(which(diff(up)>maxInterUpDelay*samplingRate/1000),n=1)))
+    return(1)
+  }
+  
+  
   return(0)  
 }
