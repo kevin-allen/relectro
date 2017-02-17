@@ -102,6 +102,15 @@ whdFromPositrack<-function(rs,
     }
     
     
+    interEventCor<-cor(diff(up),diff(posi$startProcTime))
+    print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
+    if(interEventCor<0.9)
+    {
+      paste("The correlation between interUp and interPosi is below 0.8:",interEventCor)
+      stop("Something is wrong with alignment")
+    }
+    
+    
     ## the frame is capture before it is received by the computer
     ## up in .dat file is frame processing and not frame capture
     ## Therefore, we remove the capture-to-processing delay from the up values
@@ -365,10 +374,10 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
 #' @return Return 0 if all is ok and positive number if something is wrong
 checkIntegrityUp<-function(up,maxInterUpDelay=1000,samplingRate=20000){
   
-  print(paste("Minimum delay between up", min(up)/samplingRate*1000, "ms"))
-  print(paste("Maximum delay between up", max(up)/samplingRate*1000, "ms"))
-  
   d<-diff(up)
+  print(paste("Minimum delay between up", min(d)/samplingRate*1000, "ms"))
+  print(paste("Maximum delay between up", max(d)/samplingRate*1000, "ms"))
+        
   if(any(diff(up)<1*samplingRate/1000)){
     print(paste("There are up intervals shorter than 1 ms"))
     print(paste("The first case occured at index",head(which(diff(up)<20),n=1)))
