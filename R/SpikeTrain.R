@@ -29,6 +29,7 @@
 #' @slot autoMsPerBin Ms per bin in spike-time autocorrelation
 #' @slot autoTimePoints Time points for data points in the spike-time autocorrelation
 #' @slot autoProbability Logical, whether the spike-time autocorrelation contains probability values or spike count
+#' @slot autoCOM Center of mass of the positive half of each spike-time autocorrelation
 #' @slot cross Matrix holding spike-time crosscorrelation between spikes and events
 #' @slot crossMsPerBin Ms per bin in spike-time crosscorrelation with events
 #' @slot crossTimePoints Time points for data points in the spike-time crosscorrelation
@@ -68,6 +69,7 @@ SpikeTrain <- setClass(
           autoMsPerBin="numeric",
           autoTimePoints="numeric",
           autoProbability="logical",
+          autoCOM="numeric",
           cross="matrix",
           crossMsPerBin="numeric",
           crossTimePoints="numeric",
@@ -377,6 +379,42 @@ setMethod(f="spikeTimeAutocorrelation",
             return(st)
             }
 )
+
+#' Calculate spike-time autocorrelation center of mass
+#'
+#' Only the positive half of the spike-time autocorrelation is used.
+#' Only positive values should be returned by this function.
+#'
+#' @param st SpikeTrain object
+#'
+#' @docType methods
+#' @rdname spikeTimeAutocorrelationCenterOfMass-methods
+setGeneric(name="spikeTimeAutocorrelationCenterOfMass",
+           def=function(st)
+           {standardGeneric("spikeTimeAutocorrelationCenterOfMass")})
+#' @rdname spikeTimeAutocorrelationCenterOfMass-methods
+#' @aliases spikeTimeAutocorrelationCenterOfMass,ANY,ANY-method
+setMethod(f="spikeTimeAutocorrelationCenterOfMass",
+          signature = "SpikeTrain",
+          definition=function(st)
+          {
+            if(length(st@auto)==0)
+              stop(paste("length(st@auto) == 0, call spikeTimeAutocorrelation() before spikeTimeAutocorrelationCenterOfMass()"))
+            
+            ## get center of mass of positive part of st auto
+            autoPositive<-st@auto[which(st@autoTimePoints>=0),]
+            com<-apply(autoPositive,2,centerOfMass) # the values are in indices from 1 to length of positive auto
+            
+            ## transform the com from indices to ms
+            m<-min(st@autoTimePoints[which(st@autoTimePoints>=0)])
+            M<-max(st@autoTimePoints[which(st@autoTimePoints>=0)])
+            propRange<-(com-1)/(length(st@autoTimePoints[which(st@autoTimePoints>=0)])-1) ## proportion of the range
+            st@autoCOM<-m+propRange*(M-m)
+            
+            return(st)
+          })
+
+
 
 
 

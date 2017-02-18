@@ -150,23 +150,26 @@ shiftPositionVectors<-function(x,y,
 }
 
 
-#' Calculate the center of mass of a matrix
+#' Calculate the center of mass of a matrix, numeric or integer
+#' 
+#' The values returned are in indices with first bin being 1 and last being length(x)
 #' 
 #' @param x A matrix
 #' @return Numeric of length 2 with the x and y coordinate of the center fo mass
 centerOfMass<-function(x){
-  if(class(x)!="matrix")
-    stop("centerOfMass: x is not a matrix")
-  s<-sum(x,na.rm=T)
-  if(s==0)
-    return(c(NA,NA))
-  
-  sr<-sum(apply(x,1,sum,na.rm=T)*1:length(x[,1]))
-  sc<-sum(apply(x,2,sum,na.rm=T)*1:length(x[1,]))
-  sr/s
-  sc/s
-  
-  return(c(sr/s,sc/s))
+  if(class(x)=="matrix")
+  {
+    s<-sum(x,na.rm=T)
+    if(s==0)
+      return(c(NA,NA))
+    sr<-sum(apply(x,1,sum,na.rm=T)*1:length(x[,1]))
+    sc<-sum(apply(x,2,sum,na.rm=T)*1:length(x[1,]))
+    return(c(sr/s,sc/s))
+  }
+  if(class(x)=="integer"|class(x)=="numeric")
+  {
+    return(sum(x*1:length(x))/sum(x,na.rm=T))
+  }
 }
 
 
