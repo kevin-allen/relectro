@@ -403,15 +403,22 @@ setMethod(f="spikeTimeAutocorrelationCenterOfMass",
             
             ## get center of mass of positive part of st auto
             autoPositive<-st@auto[which(st@autoTimePoints>=0),]
-            com<-apply(autoPositive,2,centerOfMass) # the values are in indices from 1 to length of positive auto
+            if(class(autoPositive)=="numeric")
+              {
+              #only one cell
+              com<-centerOfMass(autoPositive)
+            }
+            else
+              {
+              com<-apply(autoPositive,2,centerOfMass) # the values are in indices from 1 to length of positive auto
+              }
             
             ## transform the com from indices to ms
             m<-min(st@autoTimePoints[which(st@autoTimePoints>=0)])
             M<-max(st@autoTimePoints[which(st@autoTimePoints>=0)])
             propRange<-(com-1)/(length(st@autoTimePoints[which(st@autoTimePoints>=0)])-1) ## proportion of the range
             st@autoCOM<-m+propRange*(M-m)
-            
-            return(st)
+                        return(st)
           })
 
 
