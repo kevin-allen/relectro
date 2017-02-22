@@ -2,7 +2,7 @@
 % Please edit documentation in R/Math.R
 \name{centerOfMass}
 \alias{centerOfMass}
-\title{Calculate the center of mass of a matrix}
+\title{Calculate the center of mass of a matrix, numeric or integer}
 \usage{
 centerOfMass(x)
 }
@@ -13,5 +13,5 @@ centerOfMass(x)
 Numeric of length 2 with the x and y coordinate of the center fo mass
 }
 \description{
-Calculate the center of mass of a matrix
+The values returned are in indices with first bin being 1 and last being length(x)
 }

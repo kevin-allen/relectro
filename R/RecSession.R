@@ -480,6 +480,7 @@ setMethod(f="getRecSessionObjects",
             sp<-new("SpatialProperties2d",session=rs@session)
             sp1<-new("SpatialProperties1d",session=rs@session)
             hd<-new("HeadDirection",session=rs@session)
+            sw<-new("SpikeWaveform",session=rs@session)
 
             if(st@nCells!=cg@nCells){
               print(paste("st@nCells is not equal to cg@nCells for",rs@session))
@@ -491,7 +492,7 @@ setMethod(f="getRecSessionObjects",
               stop()
             }
 
-            return(list(st=st,pt=pt,df=df,cg=cg,sp=sp,sp1=sp1,hd=hd))
+            return(list(st=st,pt=pt,df=df,cg=cg,sp=sp,sp1=sp1,hd=hd,sw=sw))
           })
 
 

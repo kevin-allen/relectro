@@ -13,8 +13,14 @@ whdAlignedTtlPositrack(up, posi)
 }
 \description{
 One assumption that is made is that there is variability in the intervals between frames in the positrack software
-These time intervals can be measured from the positrack file (startProcTime) and the ttl pulse
+These time intervals can be measured from the positrack file (startProcTime) and the ttl pulses.
 When there is no problem of alignment, the correlation between intervals of ttl and positrack is above .97
-If there is an additional ttl detected, then the correlation goes down. 
-How low it is depends at which point the alignment brake
+If there is an additional ttl detected, then the correlation goes down.
+}
+\details{
+The intervals between ups is calculated (dup)
+The intervals between the posi$startProcTime is calculated (dposi)
+We search for points where there is a large difference between dup and dposi.
+The crosscorrelation function for the data points just after the large difference is calculated. 
+If the peak is before or after 0, then an up or a posi is removed.
 }
