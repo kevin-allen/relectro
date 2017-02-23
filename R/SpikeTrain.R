@@ -376,6 +376,7 @@ setMethod(f="spikeTimeAutocorrelation",
                                   st@autoMsPerBin*nBins/2,
                                   st@autoMsPerBin)
             st@autoProbability=probability
+            rownames(st@auto)<-st@autoTimePoints
             return(st)
             }
 )

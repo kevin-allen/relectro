@@ -96,7 +96,6 @@ setMethod(f="meanWaveform",
             
             for(clu in st@cellList)
             {
-            
               ## get the spike times
               spikeTimes<-st@res[which(st@clu==clu)]
               
@@ -136,7 +135,8 @@ setMethod(f="meanWaveform",
             sw@wfTimePoints<- seq(from = -sw@wfMsPerBin*dim(sw@wf)[1]/2+sw@wfMsPerBin/2, 
                                   to =sw@wfMsPerBin*dim(sw@wf)[1]/2-sw@wfMsPerBin/2, 
                                   by =sw@wfMsPerBin)
-            
+            rownames(sw@wf)<-sw@wfTimePoints
+           
             if(length(sw@wfCluId)!=dim(sw@wf)[2])
               stop("problem with the dimensions of sw@wf and length of sw@wfCluId in meanWavefrom()")
             
