@@ -96,6 +96,7 @@ setMethod(f="meanWaveform",
             
             for(clu in st@cellList)
             {
+              print(clu)
               ## get the spike times
               spikeTimes<-st@res[which(st@clu==clu)]
               

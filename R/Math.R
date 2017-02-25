@@ -20,21 +20,30 @@ modeRelectro <- function(x) {
 
 #' Returns possible pairs from one or two vectors of values
 #' 
-#' If only on vector of values is given, all possible pairs within these values are returned.
-#' If two vectors of values are given, only pairs across the two vectors are returned.
+#' If only one vector of values is given, all unique pairs within these values are returned.
+#' For example 2-3 is there but not 3-2.
+#' 
+#' If two vectors of values are given, all possible combinations of the two vectors are returned.
+#' For example 2-2 if both vectors contain number 2, 2-3 and 3-2 would be included if 2 and 3 are in both vectors.
 #' 
 #' @param cl1 Numeric vector containing a vector of values
 #' @param cl2 Optional argument containing a second vector of values
+#' @param excludeOneNumberPair Logical indicating whether to include pairs with the same number when two vectors are used (e.g 2-2).
 #' @return A data.frame containing the pairs
 #' @examples makePairs(cl1=1:10)
-makePairs<-function(cl1="",cl2=NULL){
+makePairs<-function(cl1="",cl2=NULL,excludeOneNumberPair=TRUE){
   if(is.null(cl2)){
     m<-combn(cl1,m=2)
-    data.frame(Var1=m[1,],Var2=m[2,])
+    df<-data.frame(Var1=m[1,],Var2=m[2,])
   }
   else{
-    expand.grid(cl1,cl2)
+    df<-expand.grid(cl1,cl2)
+    if(excludeOneNumberPair==TRUE)
+    {
+      df<-df[which(df[,1]!=df[,2]),]
+    }
   }
+  return(df)
 }
 
 #' Smooth the values in a numeric vector using a Gaussian kernel

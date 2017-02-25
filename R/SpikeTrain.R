@@ -514,6 +514,7 @@ setMethod(f="spikeTimeCrosscorrelationEvents",
                                    st@crossEventsMsPerBin*nBins/2,
                                    st@crossEventsMsPerBin)
             st@crossEventsProbability=probability
+            rownames(st@crossEvents)<-st@crossEventsTimePoints
             return(st)
           }
           )
@@ -608,6 +609,7 @@ setMethod(f="spikeTimeCrosscorrelation",
             st@crossTimePoints=seq(-st@crossMsPerBin*nBins/2+st@crossMsPerBin/2,
                                    st@crossMsPerBin*nBins/2,
                                    st@crossMsPerBin)
+            rownames(st@cross)<-st@crossTimePoints
             st@crossProbability=probability
             return(st)
           })
@@ -806,6 +808,38 @@ setMethod(f="setCellList",
           }
 )
 
+
+
+#' Set the list of cell pairs to limit the analysis to these cell pairs
+#'
+#' Only these cell pairs will be considered for analysis.
+#'
+#' @param st SpikeTrain object
+#' @param cellPairList Data.frame with 2 columns containing the clu id of the neurons, one pair per row
+#' @return a SpikeTrain object with a new cellPairList.
+#'
+#' @docType methods
+#' @rdname setCellPairList-methods
+setGeneric(name="setCellPairList",
+           def=function(st,cellPairList)
+           {standardGeneric("setCellPairList")})
+
+#' @rdname setCellPairList-methods
+#' @aliases setCellPairList,ANY,ANY-method
+setMethod(f="setCellPairList",
+          signature = "SpikeTrain",
+          definition=function(st,cellPairList)
+          {
+            if(class(cellPairList)!="data.frame")
+              stop("setCellPairList: cellPairList is not a data.frame")
+            if(length(cellPairList[,1])==0)
+              stop("setCellPairList: length(cellPairList[,1]==0)")
+            if(dim(cellPairList)[2]!=2)
+              stop("setCellPairList: dim(cellPairList)[2] != 2")
+            st@cellPairList<-cellPairList
+            return(st)
+          }
+)
 
 
 
