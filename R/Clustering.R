@@ -112,10 +112,17 @@ deleteCluster<-function(rs,clu)
 #' the total number of clusters in the recording session.
 #'
 #' @param rs RecSession
+#' @param overwrite Logical indicating whether to run the function if thee
+#' main .res and .clu files already exist.
 #'
-mergeTetrodeSpecificResCluFiles<-function(rs){
+mergeTetrodeSpecificResCluFiles<-function(rs,overwrite=FALSE){
   if(class(rs)!="RecSession")
     stop("mergeTetrodeSpecificResCluFiles, the class of rs should be RecSession")
+  # do nothing if already clustered and overwirte is false
+  if(overwrite==FALSE & rs@clustered==TRUE)
+  {
+    return()
+  }
   mclu<-vector()
   mres<-vector()
   preClu=0

@@ -155,3 +155,30 @@ test_that("Crosscorrelation between neurons",{
   
 })
 
+context("Spike-time autocorrelation center of mass")
+test_that("Crosscorrelation between neurons",{
+  st<-new("SpikeTrain")
+  st<-setSpikeTrain(st,res=c(20000,20100),clu=c(1,2),samplingRate=20000)
+  st@auto<-matrix(c(0,0,0,0,1,0),ncol = 1)
+  st@autoTimePoints<-c(-2.5,-1.5,-0.5,0.5,1.5,2.5)
+  st<-spikeTimeAutocorrelationCenterOfMass(st)     
+  expect_equal(st@autoCOM,1.5)
+  
+  st@auto<-matrix(c(0,0,0,0,1,1),ncol = 1)
+  st@autoTimePoints<-c(-2.5,-1.5,-0.5,0.5,1.5,2.5)
+  st<-spikeTimeAutocorrelationCenterOfMass(st)     
+  expect_equal(st@autoCOM,2)
+
+
+  st@auto<-matrix(c(0,0,0,1,0,0),ncol = 1)
+  st@autoTimePoints<-c(-2.5,-1.5,-0.5,0.5,1.5,2.5)
+  st<-spikeTimeAutocorrelationCenterOfMass(st)     
+  expect_equal(st@autoCOM,0.5)
+
+  st@auto<-matrix(c(0,0,0,0,0,0),ncol = 1)
+  st@autoTimePoints<-c(-2.5,-1.5,-0.5,0.5,1.5,2.5)
+  st<-spikeTimeAutocorrelationCenterOfMass(st)     
+  expect_equal(st@autoCOM, NaN)
+})
+
+

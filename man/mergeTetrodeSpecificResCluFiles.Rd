@@ -4,10 +4,13 @@
 \alias{mergeTetrodeSpecificResCluFiles}
 \title{Merge tetrode specific clu and res file into a main res and clu file}
 \usage{
-mergeTetrodeSpecificResCluFiles(rs)
+mergeTetrodeSpecificResCluFiles(rs, overwrite = FALSE)
 }
 \arguments{
 \item{rs}{RecSession}
+
+\item{overwrite}{Logical indicating whether to run the function if thee
+main .res and .clu files already exist.}
 }
 \description{
 This is run after the clustering of all tetrodes is done. It create

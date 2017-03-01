@@ -7,6 +7,6 @@ importFrom("graphics", "axis", "close.screen", "image", "lines",
 importFrom("methods", "new")
 importFrom("stats", "complete.cases", "cor", "cov", "lm",
              "mahalanobis", "median", "pnorm", "prcomp", "predict",
-             "quantile", "rnorm", "rpois", "runif", "sd")
-importFrom("utils", "combn", "head", "read.table", "tar",
+             "quantile", "rnorm", "rpois", "runif", "sd","ccf")
+importFrom("utils", "tail", "combn", "head", "read.table", "tar",
              "write.table")

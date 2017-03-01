@@ -56,6 +56,8 @@ The spike at the intdex is to be considered for analysis}
 
 \item{\code{autoProbability}}{Logical, whether the spike-time autocorrelation contains probability values or spike count}
 
+\item{\code{autoCOM}}{Center of mass of the positive half of each spike-time autocorrelation}
+
 \item{\code{cross}}{Matrix holding spike-time crosscorrelation between spikes and events}
 
 \item{\code{crossMsPerBin}}{Ms per bin in spike-time crosscorrelation with events}

@@ -4,19 +4,25 @@
 \alias{makePairs}
 \title{Returns possible pairs from one or two vectors of values}
 \usage{
-makePairs(cl1 = "", cl2 = NULL)
+makePairs(cl1 = "", cl2 = NULL, excludeOneNumberPair = TRUE)
 }
 \arguments{
 \item{cl1}{Numeric vector containing a vector of values}
 
 \item{cl2}{Optional argument containing a second vector of values}
+
+\item{excludeOneNumberPair}{Logical indicating whether to include pairs with the same number when two vectors are used (e.g 2-2).}
 }
 \value{
 A data.frame containing the pairs
 }
 \description{
-If only on vector of values is given, all possible pairs within these values are returned.
-If two vectors of values are given, only pairs across the two vectors are returned.
+If only one vector of values is given, all unique pairs within these values are returned.
+For example 2-3 is there but not 3-2.
+}
+\details{
+If two vectors of values are given, all possible combinations of the two vectors are returned.
+For example 2-2 if both vectors contain number 2, 2-3 and 3-2 would be included if 2 and 3 are in both vectors.
 }
 \examples{
 makePairs(cl1=1:10)
