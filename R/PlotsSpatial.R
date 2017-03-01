@@ -19,6 +19,7 @@
 #' @param plot.axis Whether to plot the axes or not (TRUE or FALSE)
 #' @param xlab Name to display under the x axis
 #' @param ylab Name to display at the left of the y axis
+#' @param col The color of the spikes
 spikeOnPathPlot <- function(sop,clu,name="",
                         outma=c(2.0,2.0,2.0,2.0),margin=c(1.5,1.5,1,1),
                         cex.name=0.6,cex.point=0.5,
@@ -26,12 +27,13 @@ spikeOnPathPlot <- function(sop,clu,name="",
                         mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),
                         axis.x.pos=0,axis.y.pos=0,
                         plot.axis=TRUE,
-                        xlab="",ylab="")
+                        xlab="",ylab="",
+                        col="red")
 {
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
   plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
   lines(sop$xPath,sop$yPath,type='l',xlab=xlab,ylab=ylab)
-  points(sop$xSpike[which(sop$cluSpike==clu)],sop$ySpike[which(sop$cluSpike==clu)],col="red",
+  points(sop$xSpike[which(sop$cluSpike==clu)],sop$ySpike[which(sop$cluSpike==clu)],col=col,
          pch=20,cex=cex.point)
   if(plot.axis){
     axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=0.60,mgp=mgp.x)

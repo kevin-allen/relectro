@@ -1,4 +1,4 @@
-FFTW3_LIBS = -lfftw3
+FFTW3_LIBS = -lfftw3 
 PKG_LIBS=$(FFTW3_LIBS)
 
 all: $(SHLIB)
