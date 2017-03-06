@@ -3,8 +3,8 @@
 \docType{methods}
 \name{shiftHdRandom}
 \alias{shiftHdRandom}
-\alias{shiftHdRandom,Positrack-method}
 \alias{shiftHdRandom,ANY,ANY-method}
+\alias{shiftHdRandom,Positrack-method}
 \title{Shift the head direction data of the animal of a random amount larger than the value of minShiftMs}
 \usage{
 shiftHdRandom(pt)
@@ -21,3 +21,4 @@ Positrack object with shifted head direction (hd) values
 This is used to do shuffling. The hd values are shifted in time. 
 Only valid values are shifted.
 }
+

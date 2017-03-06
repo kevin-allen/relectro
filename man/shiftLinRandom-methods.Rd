@@ -3,8 +3,8 @@
 \docType{methods}
 \name{shiftLinRandom}
 \alias{shiftLinRandom}
-\alias{shiftLinRandom,Positrack-method}
 \alias{shiftLinRandom,ANY,ANY-method}
+\alias{shiftLinRandom,Positrack-method}
 \title{Shift the linear position data of the animal of a random amount larger than the value of minShiftMs}
 \usage{
 shiftLinRandom(pt)
@@ -21,3 +21,4 @@ Positrack object with shifted linear position (lin) values
 This is used to do shuffling. The lin values are shifted in time. 
 Only valid values are shifted.
 }
+

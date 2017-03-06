@@ -20,3 +20,4 @@ The clusters 1 from different tetrodes are merged. The other
 clusters are not merged. They will be numbered from 2 to N, where N is
 the total number of clusters in the recording session.
 }
+

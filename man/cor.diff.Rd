@@ -18,3 +18,4 @@ cor.diff(r1, n1, r2, n2)
 \description{
 Perform r-to-Z transform to get significance of difference between two correlation coefficients
 }
+

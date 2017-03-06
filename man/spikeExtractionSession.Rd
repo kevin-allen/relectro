@@ -62,3 +62,4 @@ The spike times of a tetrode are saved in sessionName.res.tetrodeNo.
 The spike features are saved in sessionName.fet.tetrodeNo.
 The spike waveform (in binary format) are saved in sessionName.spk.tetrodeNo.
 }
+

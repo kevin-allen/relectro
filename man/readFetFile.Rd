@@ -15,3 +15,4 @@ A matrix with the spike features, one spike per row
 \description{
 Read a file with the spike features. Uses a c function for speed.
 }
+

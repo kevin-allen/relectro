@@ -3,8 +3,8 @@
 \docType{methods}
 \name{containsStimulation}
 \alias{containsStimulation}
-\alias{containsStimulation,RecSession-method}
 \alias{containsStimulation,ANY,ANY-method}
+\alias{containsStimulation,RecSession-method}
 \title{Check if the session had a trial in a given stimulation type}
 \usage{
 containsStimulation(rs, stimulation = "")
@@ -22,3 +22,4 @@ TRUE or FALSE
 \description{
 This will check whether the value of stimulation is in the stim vector.
 }
+

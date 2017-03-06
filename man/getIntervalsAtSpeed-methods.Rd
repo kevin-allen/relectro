@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getIntervalsAtSpeed}
 \alias{getIntervalsAtSpeed}
-\alias{getIntervalsAtSpeed,Positrack-method}
 \alias{getIntervalsAtSpeed,ANY,ANY-method}
+\alias{getIntervalsAtSpeed,Positrack-method}
 \title{Get time intervals at which the speed of the animal was withing a specified ranged}
 \usage{
 getIntervalsAtSpeed(pt, minSpeed, maxSpeed)
@@ -24,3 +24,4 @@ matrix with the time intervals
 \description{
 The intervals are in sample values of the electrophysiological data
 }
+

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{refractoryRatio}
 \alias{refractoryRatio}
-\alias{refractoryRatio,SpikeTrain-method}
 \alias{refractoryRatio,ANY,ANY-method}
+\alias{refractoryRatio,SpikeTrain-method}
 \title{Get refractory ratio of each cluster from its spike-time autocorrelation}
 \usage{
 refractoryRatio(st, refractoryMs = 1.5, binSizeMs = 0.5,
@@ -35,3 +35,4 @@ This is the ratio between the mean number of spikes falling in the bins of the r
 compared to the max number of spikes falling in one bin of the control period outside the refractory period.
 Note that the spike-time autocorrelations in the SpikeTrain object will be modified.
 }
+

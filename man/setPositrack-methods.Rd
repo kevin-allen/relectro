@@ -3,8 +3,8 @@
 \docType{methods}
 \name{setPositrack}
 \alias{setPositrack}
-\alias{setPositrack,Positrack-method}
 \alias{setPositrack,ANY,ANY-method}
+\alias{setPositrack,Positrack-method}
 \title{set position values from arguments}
 \usage{
 setPositrack(pt, pxX, pxY, hd, resSamplesPerWhlSample, samplingRateDat, pxPerCm)
@@ -33,3 +33,4 @@ Positrack object
 \description{
 This function also use the .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm files
 }
+

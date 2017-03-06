@@ -23,3 +23,4 @@ The two vectors are shifted by the same amount.
 \examples{
 shiftPositionVectors(x=1:100,y=201:300, timePerSampleRes=400, minMvMs = 1000, samplingRate=20000)
 }
+

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{smoothhd}
 \alias{smoothhd}
-\alias{smoothhd,Positrack-method}
 \alias{smoothhd,ANY,ANY-method}
+\alias{smoothhd,Positrack-method}
 \title{Apply some smoothing to the hd array}
 \usage{
 smoothhd(pt, sd)
@@ -24,3 +24,4 @@ A Gaussian kernel is used for smoothing
 This function is not working at the moment. A warning message will appear
 The c function needs to be written
 }
+

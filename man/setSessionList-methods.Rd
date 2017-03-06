@@ -3,8 +3,8 @@
 \docType{methods}
 \name{setSessionList}
 \alias{setSessionList}
-\alias{setSessionList,ElectroProject-method}
 \alias{setSessionList,ANY,ANY-method}
+\alias{setSessionList,ElectroProject-method}
 \title{Create a list of RecSession objects for the ElectroProject}
 \usage{
 setSessionList(ep, loadSessions = TRUE)
@@ -24,3 +24,4 @@ Will list directories in the project directories.
 Only directories with an hyphen in their names are considered recSession directories.
 So only recording session directories should have a hyphen in their names
 }
+

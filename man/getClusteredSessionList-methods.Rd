@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getClusteredSessionList}
 \alias{getClusteredSessionList}
-\alias{getClusteredSessionList,ElectroProject-method}
 \alias{getClusteredSessionList,ANY,ANY-method}
+\alias{getClusteredSessionList,ElectroProject-method}
 \title{Return a list of clustered RecSession objects}
 \usage{
 getClusteredSessionList(ep)
@@ -20,3 +20,4 @@ list of clustered RecSession objects
 \description{
 Return a list of clustered RecSession objects
 }
+

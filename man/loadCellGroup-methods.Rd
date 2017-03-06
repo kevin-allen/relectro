@@ -3,8 +3,8 @@
 \docType{methods}
 \name{loadCellGroup}
 \alias{loadCellGroup}
-\alias{loadCellGroup,CellGroup-method}
 \alias{loadCellGroup,ANY,ANY-method}
+\alias{loadCellGroup,CellGroup-method}
 \title{Load the information regarding a group of cells}
 \usage{
 loadCellGroup(cg)
@@ -24,3 +24,4 @@ The object also load the brain region associated with each cell.
 This infomration is read from the .desel file and the clu file
 of each tetrode.
 }
+

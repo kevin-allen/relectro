@@ -3,8 +3,8 @@
 \docType{methods}
 \name{setSpikeTrain}
 \alias{setSpikeTrain}
-\alias{setSpikeTrain,SpikeTrain-method}
 \alias{setSpikeTrain,ANY,ANY-method}
+\alias{setSpikeTrain,SpikeTrain-method}
 \title{Set new spike trains}
 \usage{
 setSpikeTrain(st, res, clu, samplingRate)
@@ -26,3 +26,4 @@ SpikeTrain object with the instantaneous firing rate
 \description{
 This function is used to set spike trains
 }
+

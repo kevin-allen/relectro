@@ -3,8 +3,8 @@
 \docType{methods}
 \name{speedScore}
 \alias{speedScore}
-\alias{speedScore,SpatialProperties2d-method}
 \alias{speedScore,ANY,ANY-method}
+\alias{speedScore,SpatialProperties2d-method}
 \title{Speed scores from spike train and positrack}
 \usage{
 speedScore(sp, st, pt, minSpeed, maxSpeed, runLm = F)
@@ -32,3 +32,4 @@ If runLm argument was TRUE, then speedRateSlope and peedRateIntercept will also 
 \description{
 Speed scores from spike train and positrack
 }
+

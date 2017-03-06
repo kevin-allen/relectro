@@ -22,3 +22,4 @@ RecSessionListTrialPlot(sessionList, outma = c(1, 1, 0.5, 0.5),
 \description{
 Easy way to visualize the environment used in each trial of a list of recording sessions
 }
+

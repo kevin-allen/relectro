@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getIntervalsEnvironment}
 \alias{getIntervalsEnvironment}
-\alias{getIntervalsEnvironment,RecSession-method}
 \alias{getIntervalsEnvironment,ANY,ANY-method}
+\alias{getIntervalsEnvironment,RecSession-method}
 \title{Get the time intervals in sample values for trials in a given environment}
 \usage{
 getIntervalsEnvironment(rs, environment = "lt")
@@ -22,3 +22,4 @@ matrix with 2 columns containing the start and end of each trial in the environm
 \description{
 Get the time intervals in sample values for trials in a given environment
 }
+

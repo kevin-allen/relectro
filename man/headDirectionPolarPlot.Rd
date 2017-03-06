@@ -39,3 +39,4 @@ headDirectionPolarPlot(histo, outma = c(0.5, 0.5, 0.5, 0.5), margin = c(0.5,
 \description{
 Polar representation of firing rate using the polar.plot function of the plotrix package
 }
+

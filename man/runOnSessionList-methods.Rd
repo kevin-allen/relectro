@@ -3,8 +3,8 @@
 \docType{methods}
 \name{runOnSessionList}
 \alias{runOnSessionList}
-\alias{runOnSessionList,ElectroProject-method}
 \alias{runOnSessionList,ANY,ANY-method}
+\alias{runOnSessionList,ElectroProject-method}
 \title{Running a function on a set of recording sessions}
 \usage{
 runOnSessionList(ep, sessionList, fnct = function(x) {     NA }, save = T,
@@ -47,3 +47,4 @@ If save is set to FALSE, the data returned by the lapply function will not be sa
 If overwrite is set to TRUE, previous data will be overwrite when saving the data.
 If overwrite is set to FALSE, the new data will be appended to the old one.
 }
+

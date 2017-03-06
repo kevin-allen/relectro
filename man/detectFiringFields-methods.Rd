@@ -3,8 +3,8 @@
 \docType{methods}
 \name{detectFiringFields}
 \alias{detectFiringFields}
-\alias{detectFiringFields,SpatialProperties2d-method}
 \alias{detectFiringFields,ANY,ANY-method}
+\alias{detectFiringFields,SpatialProperties2d-method}
 \title{Detect firing fields in the firing rate maps of a SpatialProperties2d object}
 \usage{
 detectFiringFields(sp, minAreaCm2, rateThresholds)
@@ -26,3 +26,4 @@ matrix with the field information (clu, xcom, ycom, peak.rate, area in cm^2)
 \description{
 Detect firing fields in the firing rate maps of a SpatialProperties2d object
 }
+

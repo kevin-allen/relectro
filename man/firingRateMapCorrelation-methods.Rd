@@ -3,8 +3,8 @@
 \docType{methods}
 \name{firingRateMapCorrelation}
 \alias{firingRateMapCorrelation}
-\alias{firingRateMapCorrelation,SpatialProperties2d-method}
 \alias{firingRateMapCorrelation,ANY,ANY-method}
+\alias{firingRateMapCorrelation,SpatialProperties2d-method}
 \title{Calculate a Pearson correlation coefficients between the firing rate maps of two SpatialProperties2d objects}
 \usage{
 firingRateMapCorrelation(sp1, sp2)
@@ -28,3 +28,4 @@ If the maps are made with different Positrack objects, make sure that the sp@red
 Also make sure that the maps of the 2 SpatialProperties2d objects have the same dimensions by using the 
 arguments nRowMap and nColMap when calling firingRateMap2d().
 }
+

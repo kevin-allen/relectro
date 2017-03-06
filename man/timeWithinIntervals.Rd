@@ -21,3 +21,4 @@ Only time points that are within the limit of the interval will return TRUE.
 For example time point 2 is not in the interval 2 4.
 Only 3 would return TRUE in this case.
 }
+

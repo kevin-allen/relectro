@@ -3,8 +3,8 @@
 \docType{methods}
 \name{isolationDistance}
 \alias{isolationDistance}
-\alias{isolationDistance,SpikeTrain-method}
 \alias{isolationDistance,ANY,ANY-method}
+\alias{isolationDistance,SpikeTrain-method}
 \title{Get the isolation distance of each cluster}
 \usage{
 isolationDistance(st, cg)
@@ -29,3 +29,4 @@ greater than the number of noise spikes.
 \details{
 From Schmitzer-Torbert et al. 2005
 }
+

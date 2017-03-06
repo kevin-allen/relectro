@@ -31,3 +31,4 @@ It calls identifySpikeTimes() to get the spike times and other parameters of the
 \details{
 If there are low frequency components in the signal, they should be filtered out.
 }
+

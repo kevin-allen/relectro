@@ -3,8 +3,8 @@
 \docType{methods}
 \name{containsEnvironment}
 \alias{containsEnvironment}
-\alias{containsEnvironment,RecSession-method}
 \alias{containsEnvironment,ANY,ANY-method}
+\alias{containsEnvironment,RecSession-method}
 \title{Check if the session had a trial in a given environment}
 \usage{
 containsEnvironment(rs, environment = "")
@@ -22,3 +22,4 @@ TRUE or FALSE
 \description{
 This will check whether the value of environment is in the env vector.
 }
+

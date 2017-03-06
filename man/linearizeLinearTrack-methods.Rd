@@ -2,9 +2,9 @@
 % Please edit documentation in R/Positrack.R
 \docType{methods}
 \name{linearzeLinearTrack}
+\alias{linearizeLinearTrack,ANY,ANY-method}
 \alias{linearzeLinearTrack}
 \alias{linearzeLinearTrack,Positrack-method}
-\alias{linearizeLinearTrack,ANY,ANY-method}
 \title{Linearize the position data}
 \usage{
 linearzeLinearTrack(pt)
@@ -22,3 +22,4 @@ This is usually done if the animal ran on a linear track.
 The regression line of the position data is calculated and the 
 closest point on the line is found for each 2D coordinate.
 }
+

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTriggeredHeadDirectionHisto}
 \alias{spikeTriggeredHeadDirectionHisto}
-\alias{spikeTriggeredHeadDirectionHisto,HeadDirection-method}
 \alias{spikeTriggeredHeadDirectionHisto,ANY,ANY-method}
+\alias{spikeTriggeredHeadDirectionHisto,HeadDirection-method}
 \title{Calculate the spike-triggered head-direction histogram using a HeadDirection, SpikeTrain and Positrack objects}
 \usage{
 spikeTriggeredHeadDirectionHisto(hd, st, pt, minIsiMs, maxIsiMs)
@@ -38,3 +38,4 @@ The amount of smoothing is determined by slots smoothOccupancySd and smoothRateH
 
 You can set the temporal limit for the data used to construct the histogram with minIsiMs and maxIsiMs
 }
+

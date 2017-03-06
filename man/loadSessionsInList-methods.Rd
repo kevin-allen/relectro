@@ -3,8 +3,8 @@
 \docType{methods}
 \name{loadSessionsInList}
 \alias{loadSessionsInList}
-\alias{loadSessionsInList,ElectroProject-method}
 \alias{loadSessionsInList,ANY,ANY-method}
+\alias{loadSessionsInList,ElectroProject-method}
 \title{Create a List of RecSessions objects from the SessionNameList}
 \usage{
 loadSessionsInList(ep)
@@ -20,3 +20,4 @@ ElectroProject object with RecSession loaded
 \description{
 The RecSession objects will be initialized.
 }
+

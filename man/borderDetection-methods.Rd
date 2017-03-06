@@ -3,8 +3,8 @@
 \docType{methods}
 \name{borderDetection}
 \alias{borderDetection}
-\alias{borderDetection,SpatialProperties2d-method}
 \alias{borderDetection,ANY,ANY-method}
+\alias{borderDetection,SpatialProperties2d-method}
 \title{Detect the border pixels in an environment and return
 a matrix with border pixels identified.}
 \usage{
@@ -24,3 +24,4 @@ A matrix with the border pixels set to non negative positive values
 \description{
 Call firingRateMap2d() to construct the map first before calling this function
 }
+

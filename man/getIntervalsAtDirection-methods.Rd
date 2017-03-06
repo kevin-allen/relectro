@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getIntervalsAtDirection}
 \alias{getIntervalsAtDirection}
-\alias{getIntervalsAtDirection,Positrack-method}
 \alias{getIntervalsAtDirection,ANY,ANY-method}
+\alias{getIntervalsAtDirection,Positrack-method}
 \title{Get time intervals at which the animal ran in a given direction (0 or 1)}
 \usage{
 getIntervalsAtDirection(pt, direction)
@@ -23,3 +23,4 @@ matrix with the time intervals
 The intervals are in sample values of the electrophysiological data.
 The direction is based on the direction of movement in 1D environment.
 }
+

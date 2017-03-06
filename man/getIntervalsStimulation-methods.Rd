@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getIntervalsStimulation}
 \alias{getIntervalsStimulation}
-\alias{getIntervalsStimulation,RecSession-method}
 \alias{getIntervalsStimulation,ANY,ANY-method}
+\alias{getIntervalsStimulation,RecSession-method}
 \title{Get the time intervals in sample values for trials for a given stimulation}
 \usage{
 getIntervalsStimulation(rs, stimulation = "lt")
@@ -22,3 +22,4 @@ matrix with 2 columns containing the start and end of each trial in the stimulat
 \description{
 Get the time intervals in sample values for trials for a given stimulation
 }
+
