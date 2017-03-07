@@ -17,7 +17,7 @@ If you want a different channel for each trial, give a numeric vector with the l
 
 \item{maxUpDiffRes}{Maximum difference between successive up for which position will be interpolated}
 
-\item{overwirte}{Logical indicating whether to recreate a whd file if one already exists}
+\item{overwrite}{Logical indicating whether to recreate a whd file if one already exists}
 }
 \description{
 The tracking system called Positrack creates files with the extension .positrack 
