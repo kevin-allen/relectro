@@ -1,8 +1,8 @@
 #' Plot a boxplot with 2 factors
-#' 
+#'
 #' Just a wrapper around boxplot function.
 #' To set which level is plot first, consider using the function factor and set the argument levels.
-#' 
+#'
 #' @param data data.frame with the data
 #' @param dv Dependent variable. The one you want on the y-axis
 #' @param iv1 First independent variable
@@ -48,9 +48,9 @@ boxplotTwoFactors <- function(data,
 }
 
 #' Plot points in 2d
-#' 
+#'
 #' Just a wrapper around plot and points functions.
-#' 
+#'
 #' @param data data.frame with the data
 #' @param v1 Name of the variable to plot on the x axis
 #' @param v2 Name of the variable to plot on the y axis
@@ -100,7 +100,7 @@ plotPoints <- function(data,v1="v1",v2="v2",axis.y.pos=-.2,axis.x.pos=-.2,axis.y
 
 
 #' Plot a single spike-time autocorrelation
-#' 
+#'
 #' @param x Numeric vectors with the x values
 #' @param y Numeric vectors with the y values
 #' @param name Character vectors containing the name of the graph
@@ -164,7 +164,7 @@ spikeTimeAutocorrelationPlot <- function(x,y,name="",
 }
 
 #' Plot several spike-time autocorrelation plot on the same page
-#' 
+#'
 #' @param autos A matrix containing autocorrelations
 #' @param timePoints A numerical vector with the time point for each value of the autocorrelation
 #' @param type Type of plot: 'l' for line or 'h' for barplot/histogram
@@ -185,7 +185,7 @@ spikeTimeAutocorrelationsPlot<-function(autos,timePoints,type,names,ncol=5,nrow=
   for (i in 1:nCells){
     if(index==1)
     {
-      split.screen(m)  
+      split.screen(m)
     }
     screen(index)
     ## insert your plot function here
@@ -201,15 +201,15 @@ spikeTimeAutocorrelationsPlot<-function(autos,timePoints,type,names,ncol=5,nrow=
 }
 
 #' Plot function to display the recording trials of each recording session in a sessionList
-#' 
+#'
 #' Easy way to visualize the environment used in each trial of a list of recording sessions
-#' 
+#'
 #' @param sessionList List of RecSession objects
 #' @param outma outma for setting par
 #' @param margin margin for setting par
 #' @param mgp.x mgp.x for setting par of xaxis
 #' @param mgp.y mgp.y for setting par of yaxis
-RecSessionListTrialPlot<- function(sessionList,
+recSessionListTrialPlot<- function(sessionList,
                                    outma=c(1,1,0.5,0.5),
                                    margin=c(1.5,1.5,1,0.3),
                                    mgp.x=c(0.4,0.2,0),
@@ -246,5 +246,4 @@ RecSessionListTrialPlot<- function(sessionList,
   ## add title for x and y axis
   graphics::title(xlab="Sessions",mgp=mgp.x,cex=0.6)
   graphics::title(ylab="Time (min)",mgp=mgp.y,cex=0.6)
-  
 }
