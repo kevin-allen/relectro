@@ -10,7 +10,7 @@ Autocorrelation is performed on the firing rate maps of the SpatialProperties2d 
 Fields are detected as when one wants to calculate grid scores. 
 Then the region with the 6 fields surrounding the center is kept
 The rotated copy of the region are stored in slot autosDoughnutRotate
-Usefull to test the different steps of the calculation of the grid score.}
+Useful to test the different steps of the calculation of the grid score.}
 \usage{
 autocorrelationDoughnutRotate(sp)
 
@@ -28,6 +28,6 @@ Autocorrelation is performed on the firing rate maps of the SpatialProperties2d 
 Fields are detected as when one wants to calculate grid scores. 
 Then the region with the 6 fields surrounding the center is kept
 The rotated copy of the region are stored in slot autosDoughnutRotate
-Usefull to test the different steps of the calculation of the grid score.
+Useful to test the different steps of the calculation of the grid score.
 }
 

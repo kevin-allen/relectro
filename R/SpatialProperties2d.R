@@ -747,7 +747,7 @@ setMethod(f="mapSpatialAutocorrelation",
 #'
 #' The autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 #' Fields are detected as when one wants to calculate grid scores
-#' Usefull to test the different steps of the calculation of the grid score.
+#' Useful to test the different steps of the calculation of the grid score.
 #' 
 #' @param sp SpatialProperties2d object
 #' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDetect
@@ -786,7 +786,7 @@ setMethod(f="autocorrelationNoFields",
 #' Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 #' Fields are detected as when one wants to calculate grid scores. 
 #' Then the region with the 6 fields surrounding the center is kept
-#' Usefull to test the different steps of the calculation of the grid score.
+#' Useful to test the different steps of the calculation of the grid score.
 #' 
 #' @param sp SpatialProperties2d object
 #' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDoughnut
@@ -827,7 +827,7 @@ setMethod(f="autocorrelationDoughnut",
 #' Fields are detected as when one wants to calculate grid scores. 
 #' Then the region with the 6 fields surrounding the center is kept
 #' The rotated copy of the region are stored in slot autosDoughnutRotate
-#' Usefull to test the different steps of the calculation of the grid score.
+#' Useful to test the different steps of the calculation of the grid score.
 #' 
 #' @param sp SpatialProperties2d object
 #' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDoughnutRotate
