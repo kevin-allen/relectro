@@ -34,3 +34,4 @@ The spikes occurring almost simultaneously on different channels are merged with
 mergeSimultaneousSpikes().
 Assumes any low frequency components were filtered out before calling this function.
 }
+

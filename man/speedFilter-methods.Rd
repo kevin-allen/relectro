@@ -3,8 +3,8 @@
 \docType{methods}
 \name{speedFilter}
 \alias{speedFilter}
-\alias{speedFilter,Positrack-method}
 \alias{speedFilter,ANY,ANY-method}
+\alias{speedFilter,Positrack-method}
 \title{Set position data to NA for which the animal speed was not between a given range}
 \usage{
 speedFilter(pt, minSpeed, maxSpeed)
@@ -25,3 +25,4 @@ Positrack object with invalid values outside the speed range.
 The slots x, y, hd, speed are affected.
 Please note that the speed array is affected.
 }
+

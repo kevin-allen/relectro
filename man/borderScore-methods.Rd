@@ -3,8 +3,8 @@
 \docType{methods}
 \name{borderScore}
 \alias{borderScore}
-\alias{borderScore,SpatialProperties2d-method}
 \alias{borderScore,ANY,ANY-method}
+\alias{borderScore,SpatialProperties2d-method}
 \title{Calculate border scores from the firing maps}
 \usage{
 borderScore(sp, border = "rectangular")
@@ -22,3 +22,4 @@ SpatialProperties2d object with the border scores in the slot borderScore
 \description{
 Calculate border scores from the firing maps
 }
+

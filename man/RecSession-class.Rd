@@ -2,8 +2,8 @@
 % Please edit documentation in R/RecSession.R
 \docType{class}
 \name{RecSession-class}
-\alias{RecSession-class}
 \alias{RecSession}
+\alias{RecSession-class}
 \title{A S4 class to represent a recording session.}
 \description{
 A RecSession object contains a description of the recording session.

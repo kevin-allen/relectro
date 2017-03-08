@@ -3,8 +3,8 @@
 \docType{methods}
 \name{copyDatabase}
 \alias{copyDatabase}
-\alias{copyDatabase,ElectroProject-method}
 \alias{copyDatabase,ANY,ANY-method}
+\alias{copyDatabase,ElectroProject-method}
 \title{Create a copy of the data from an experiment}
 \usage{
 copyDatabase(ep, sessionList, copyType = "medium", extensions, destination,
@@ -37,3 +37,4 @@ List of files exported if copyType is set to medium
 .res_samples_per_whl_sample .sampling_rate_dat, .whl .whd
 Also includes the tetrode specific .clu. and .res. files
 }
+

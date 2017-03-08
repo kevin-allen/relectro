@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getIsEarlyProcessed}
 \alias{getIsEarlyProcessed}
-\alias{getIsEarlyProcessed,RecSession-method}
 \alias{getIsEarlyProcessed,ANY,ANY-method}
+\alias{getIsEarlyProcessed,RecSession-method}
 \title{Has the spike extraction been run on the recording session?}
 \usage{
 getIsEarlyProcessed(rs)
@@ -20,3 +20,4 @@ TRUE or FALSE
 \description{
 Has the spike extraction been run on the recording session?
 }
+

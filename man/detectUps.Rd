@@ -20,3 +20,4 @@ Detect the positive deflection of a ttl pulse in a vector
 \examples{
  detectUps(x=c(rep(0,10),rep(20000,10)))
 }
+

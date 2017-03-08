@@ -3,8 +3,8 @@
 \docType{methods}
 \name{hdHistoAsDataFrame}
 \alias{hdHistoAsDataFrame}
-\alias{hdHistoAsDataFrame,HeadDirection-method}
 \alias{hdHistoAsDataFrame,ANY,ANY-method}
+\alias{hdHistoAsDataFrame,HeadDirection-method}
 \title{Return the hd histos as a data.frame}
 \usage{
 hdHistoAsDataFrame(hd)
@@ -20,3 +20,4 @@ data.frame with the rate-head direction histograms. Column names are clu.id, deg
 \description{
 Return the hd histos as a data.frame
 }
+

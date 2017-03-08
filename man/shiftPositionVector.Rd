@@ -21,3 +21,4 @@ Shift a the values of a vector by a random amount that is at least as large as t
 \examples{
 shiftPositionVector(x=1:100, timePerSampleRes=400, minMvMs = 1000, samplingRate=20000)
 }
+

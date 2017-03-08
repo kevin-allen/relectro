@@ -27,3 +27,4 @@ For example 2-2 if both vectors contain number 2, 2-3 and 3-2 would be included 
 \examples{
 makePairs(cl1=1:10)
 }
+

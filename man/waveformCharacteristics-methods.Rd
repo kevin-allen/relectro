@@ -3,8 +3,8 @@
 \docType{methods}
 \name{waveformCharacteristics}
 \alias{waveformCharacteristics}
-\alias{waveformCharacteristics,SpikeWaveform-method}
 \alias{waveformCharacteristics,ANY,ANY-method}
+\alias{waveformCharacteristics,SpikeWaveform-method}
 \title{Calculate waveform characteristics from the mean waveform of each cluster.}
 \usage{
 waveformCharacteristics(sw)
@@ -26,3 +26,4 @@ peak from baseline before trough,
 peak from baseline after trough,
 peak amplitude assymetry
 }
+

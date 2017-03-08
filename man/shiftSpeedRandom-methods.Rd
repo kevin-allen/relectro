@@ -3,8 +3,8 @@
 \docType{methods}
 \name{shiftSpeedRandom}
 \alias{shiftSpeedRandom}
-\alias{shiftSpeedRandom,Positrack-method}
 \alias{shiftSpeedRandom,ANY,ANY-method}
+\alias{shiftSpeedRandom,Positrack-method}
 \title{Shift the speed of the animal of a random amount larger than the value of minShiftMs}
 \usage{
 shiftSpeedRandom(pt)
@@ -21,3 +21,4 @@ Positrack object with shifted speed values
 This is used to do shuffling. The speed values are shifted in time. 
 Only valid values are shifted.
 }
+

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTimeCrosscorrelationAsDataFrame}
 \alias{spikeTimeCrosscorrelationAsDataFrame}
-\alias{spikeTimeCrosscorrelationAsDataFrame,SpikeTrain-method}
 \alias{spikeTimeCrosscorrelationAsDataFrame,ANY,ANY-method}
+\alias{spikeTimeCrosscorrelationAsDataFrame,SpikeTrain-method}
 \title{Get spike-time crosscorelation between cells as data.frame}
 \usage{
 spikeTimeCrosscorrelationAsDataFrame(st)
@@ -20,3 +20,4 @@ data.frame with spike-time crosscorrelation between neurons
 \description{
 Get spike-time crosscorelation between cells as data.frame
 }
+

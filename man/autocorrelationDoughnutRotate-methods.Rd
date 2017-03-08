@@ -3,8 +3,8 @@
 \docType{methods}
 \name{autocorrelationDoughnutRotate}
 \alias{autocorrelationDoughnutRotate}
-\alias{autocorrelationDoughnutRotate,SpatialProperties2d-method}
 \alias{autocorrelationDoughnutRotate,ANY,ANY-method}
+\alias{autocorrelationDoughnutRotate,SpatialProperties2d-method}
 \title{Get the rotated region of the spatial autocorrelation of the firing rate maps when calculating grid scores
 Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 Fields are detected as when one wants to calculate grid scores. 
@@ -30,3 +30,4 @@ Then the region with the 6 fields surrounding the center is kept
 The rotated copy of the region are stored in slot autosDoughnutRotate
 Usefull to test the different steps of the calculation of the grid score.
 }
+

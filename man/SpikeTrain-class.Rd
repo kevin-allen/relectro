@@ -2,8 +2,8 @@
 % Please edit documentation in R/SpikeTrain.R
 \docType{class}
 \name{SpikeTrain-class}
-\alias{SpikeTrain-class}
 \alias{SpikeTrain}
+\alias{SpikeTrain-class}
 \title{A S4 class to represent the spike trains of one recording session}
 \description{
 This class is used to analyse the spike trains of neurons. You can calculate mean firing rates,

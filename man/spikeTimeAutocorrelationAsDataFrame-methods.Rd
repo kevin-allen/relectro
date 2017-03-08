@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTimeAutocorrelationAsDataFrame}
 \alias{spikeTimeAutocorrelationAsDataFrame}
-\alias{spikeTimeAutocorrelationAsDataFrame,SpikeTrain-method}
 \alias{spikeTimeAutocorrelationAsDataFrame,ANY,ANY-method}
+\alias{spikeTimeAutocorrelationAsDataFrame,SpikeTrain-method}
 \title{Get spike-time autocorrelation as data.frame}
 \usage{
 spikeTimeAutocorrelationAsDataFrame(st)
@@ -20,3 +20,4 @@ data.frame with spike-time autocorrelation
 \description{
 Get spike-time autocorrelation as data.frame
 }
+

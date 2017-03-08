@@ -3,8 +3,8 @@
 \docType{methods}
 \name{brainRegionFromCluNo}
 \alias{brainRegionFromCluNo}
-\alias{brainRegionFromCluNo,CellGroup-method}
 \alias{brainRegionFromCluNo,ANY,ANY-method}
+\alias{brainRegionFromCluNo,CellGroup-method}
 \title{Get the brain region from a list of cluNo}
 \usage{
 brainRegionFromCluNo(cg, cluNo)
@@ -22,3 +22,4 @@ Character vector with be name of the brain region for each cluNo
 \description{
 Get the brain region from a list of cluNo
 }
+

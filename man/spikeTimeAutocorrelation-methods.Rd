@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTimeAutocorrelation}
 \alias{spikeTimeAutocorrelation}
-\alias{spikeTimeAutocorrelation,SpikeTrain-method}
 \alias{spikeTimeAutocorrelation,ANY,ANY-method}
+\alias{spikeTimeAutocorrelation,SpikeTrain-method}
 \title{Calculate the spike-time autocorrelation}
 \usage{
 spikeTimeAutocorrelation(st, binSizeMs, windowSizeMs, probability)
@@ -30,3 +30,4 @@ The number of spikes or probability to observe a spike around the reference spik
 You can set the bins size in ms and and the time window for which you want to do the analysis on.
 The results are saved in the slot auto and autoTimePoints.
 }
+

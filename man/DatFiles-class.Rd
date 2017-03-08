@@ -2,8 +2,8 @@
 % Please edit documentation in R/DatFiles.R
 \docType{class}
 \name{DatFiles-class}
-\alias{DatFiles-class}
 \alias{DatFiles}
+\alias{DatFiles-class}
 \title{A class representing one or more .dat files}
 \description{
 This class is used to read data from one or several .dat files.

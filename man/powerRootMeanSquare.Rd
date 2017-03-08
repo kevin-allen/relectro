@@ -19,3 +19,4 @@ Numeric, root mean square of all windows
 \description{
 Calculate the root mean square within a sliding window
 }
+

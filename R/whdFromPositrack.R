@@ -15,7 +15,7 @@
 #' @param ttlChannel Channel with the ttl signal in the .dat files. By default it is the last channel. Channel numbers start at 0.
 #' If you want a different channel for each trial, give a numeric vector with the list of channel.
 #' @param maxUpDiffRes Maximum difference between successive up for which position will be interpolated
-#' @param overwirte Logical indicating whether to recreate a whd file if one already exists
+#' @param overwrite Logical indicating whether to recreate a whd file if one already exists
 whdFromPositrack<-function(rs,
                            resSamplesPerWhdSample=400,
                            ttlChannel=NA,

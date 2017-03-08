@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getRecSessionObjects}
 \alias{getRecSessionObjects}
-\alias{getRecSessionObjects,RecSession-method}
 \alias{getRecSessionObjects,ANY,ANY-method}
+\alias{getRecSessionObjects,RecSession-method}
 \title{Load a set of objects that are session specific}
 \usage{
 getRecSessionObjects(rs)
@@ -26,3 +26,4 @@ just call this function and a list of objects are returned.
 \details{
 If you just want to use one or two objects, the code might run faster if you load what you need manually.
 }
+

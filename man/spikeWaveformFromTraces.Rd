@@ -25,3 +25,4 @@ Create the spike waveform array
  Returns a 3D array with the waveforms of each spike for each channel.
  array[spike,time,channel]
 }
+

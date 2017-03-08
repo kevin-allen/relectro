@@ -3,8 +3,8 @@
 \docType{methods}
 \name{percentileFiringRateMaps}
 \alias{percentileFiringRateMaps}
-\alias{percentileFiringRateMaps,SpatialProperties2d-method}
 \alias{percentileFiringRateMaps,ANY,ANY-method}
+\alias{percentileFiringRateMaps,SpatialProperties2d-method}
 \title{Get a given percentile from the firing rate maps of a SpatialProperties2d object}
 \usage{
 percentileFiringRateMaps(sp, percentile)
@@ -22,3 +22,4 @@ Numeric vector with the xth percentile of the firing rate maps
 \description{
 Get a given percentile from the firing rate maps of a SpatialProperties2d object
 }
+

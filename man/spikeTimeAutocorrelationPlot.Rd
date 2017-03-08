@@ -53,3 +53,4 @@ spikeTimeAutocorrelationPlot(x, y, name = "", axis.y.pos = NA,
 \description{
 Plot a single spike-time autocorrelation
 }
+

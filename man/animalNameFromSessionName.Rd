@@ -15,3 +15,4 @@ Character vector with animal name
 \description{
 Assumes the session name is in the format name-date-rest
 }
+

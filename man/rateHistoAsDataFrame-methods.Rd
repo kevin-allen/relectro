@@ -3,8 +3,8 @@
 \docType{methods}
 \name{rateHistoAsDataFrame}
 \alias{rateHistoAsDataFrame}
-\alias{rateHistoAsDataFrame,SpatialProperties1d-method}
 \alias{rateHistoAsDataFrame,ANY,ANY-method}
+\alias{rateHistoAsDataFrame,SpatialProperties1d-method}
 \title{Return the firing rate histograms as a data.frame.}
 \usage{
 rateHistoAsDataFrame(sp1)
@@ -20,3 +20,4 @@ data.frame with the firing rate histograms
 \description{
 The column names in the data.frame are clu.id, x, rate.
 }
+

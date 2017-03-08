@@ -41,3 +41,4 @@ Use this to get a qualitative impression of the spike detection.
 \details{
 Filtering might create some artefacts at the very beginning and end of traces.
 }
+

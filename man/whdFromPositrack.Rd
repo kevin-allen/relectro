@@ -17,7 +17,7 @@ If you want a different channel for each trial, give a numeric vector with the l
 
 \item{maxUpDiffRes}{Maximum difference between successive up for which position will be interpolated}
 
-\item{overwirte}{Logical indicating whether to recreate a whd file if one already exists}
+\item{overwrite}{Logical indicating whether to recreate a whd file if one already exists}
 }
 \description{
 The tracking system called Positrack creates files with the extension .positrack 
@@ -30,3 +30,4 @@ are used to synchronize the position and electrophysiological data. By default, 
 pulses are on the last channel in the .dat files.
 This function runs on a single recording session
 }
+

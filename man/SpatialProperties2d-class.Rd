@@ -2,8 +2,8 @@
 % Please edit documentation in R/SpatialProperties2d.R
 \docType{class}
 \name{SpatialProperties2d-class}
-\alias{SpatialProperties2d-class}
 \alias{SpatialProperties2d}
+\alias{SpatialProperties2d-class}
 \title{A S4 class to analyze spatial properties in 2D environments}
 \description{
 Use to get firing rate maps of neurons in an open field.

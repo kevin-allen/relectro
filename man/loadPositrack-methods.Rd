@@ -3,8 +3,8 @@
 \docType{methods}
 \name{loadPositrack}
 \alias{loadPositrack}
-\alias{loadPositrack,Positrack-method}
 \alias{loadPositrack,ANY,ANY-method}
+\alias{loadPositrack,Positrack-method}
 \title{Load position data from the .whl and .whd files}
 \usage{
 loadPositrack(pt)
@@ -22,3 +22,4 @@ This function also use the .res_samples_per_whl_sample, .sampling_rate_dat and .
 Some smoothing is done on the x and y data.
 Slots x and y are in cm.
 }
+

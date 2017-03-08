@@ -18,3 +18,4 @@ The deleted cluster is assigned a value of 1 in the clu file.
 Don't forget to recreate the new session wide clu and res file with
 the function mergeTetrodeSpecificResCluFiles()
 }
+

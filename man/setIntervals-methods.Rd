@@ -3,8 +3,8 @@
 \docType{methods}
 \name{setIntervals}
 \alias{setIntervals}
-\alias{setIntervals,SpikeTrain-method}
 \alias{setIntervals,ANY,ANY-method}
+\alias{setIntervals,SpikeTrain-method}
 \title{Set time intervals to limit the period used in the analysis}
 \usage{
 setIntervals(st, s, e)
@@ -30,3 +30,4 @@ These intervals are used in SpikeTrain methods and also in
 methods of other classes (SaptialProperties2d, SpatialProperties1d, HeadDirection, etc.).
 By default, the intervals are set from 0 to time point of the last recorded spike.
 }
+

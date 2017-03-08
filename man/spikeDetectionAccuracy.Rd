@@ -25,3 +25,4 @@ probabilityDetectedTrue: Probability that a detected spike is a true spike
 \description{
 Assess the quality of spike detection with simulated data.
 }
+

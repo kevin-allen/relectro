@@ -2,8 +2,8 @@
 % Please edit documentation in R/Positrack.R
 \docType{class}
 \name{Positrack-class}
-\alias{Positrack-class}
 \alias{Positrack}
+\alias{Positrack-class}
 \title{An S4 class representing the path of an animal during a recording session}
 \description{
 This class is used to manipulate and represent the position data of the animal.

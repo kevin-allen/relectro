@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getSessionListFromSessionNames}
 \alias{getSessionListFromSessionNames}
-\alias{getSessionListFromSessionNames,ElectroProject-method}
 \alias{getSessionListFromSessionNames,ANY,ANY-method}
+\alias{getSessionListFromSessionNames,ElectroProject-method}
 \title{Return a list of RecSession objects from a character vectors containing session names}
 \usage{
 getSessionListFromSessionNames(ep, sessionNames)
@@ -22,3 +22,4 @@ list of RecSession objects
 \description{
 Return a list of RecSession objects from a character vectors containing session names
 }
+

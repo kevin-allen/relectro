@@ -3,8 +3,8 @@
 \docType{methods}
 \name{speedRateTuningCurve}
 \alias{speedRateTuningCurve}
-\alias{speedRateTuningCurve,SpatialProperties2d-method}
 \alias{speedRateTuningCurve,ANY,ANY-method}
+\alias{speedRateTuningCurve,SpatialProperties2d-method}
 \title{Speed-rate tuning curve from spike train and positrack}
 \usage{
 speedRateTuningCurve(sp, st, pt, minSpeed, maxSpeed)
@@ -30,3 +30,4 @@ data.frame with the speed-rate tuning curves
 Uses the ifr of cells to calculate the mean firing rate of neurons 
 for different speed bands.
 }
+

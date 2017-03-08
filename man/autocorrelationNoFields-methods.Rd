@@ -3,8 +3,8 @@
 \docType{methods}
 \name{autocorrelationNoFields}
 \alias{autocorrelationNoFields}
-\alias{autocorrelationNoFields,SpatialProperties2d-method}
 \alias{autocorrelationNoFields,ANY,ANY-method}
+\alias{autocorrelationNoFields,SpatialProperties2d-method}
 \title{Calculate the spatial autocorrelation of the firing rate maps of neurons and removed the detected fields}
 \usage{
 autocorrelationNoFields(sp)
@@ -22,3 +22,4 @@ The autocorrelation is performed on the firing rate maps of the SpatialPropertie
 Fields are detected as when one wants to calculate grid scores
 Usefull to test the different steps of the calculation of the grid score.
 }
+

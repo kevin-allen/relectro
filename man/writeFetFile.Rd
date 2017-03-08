@@ -26,3 +26,4 @@ Write the fet file
  The first line of the fet file contains a single number indicating the number of features per spike
  The next lines are the features per spike, one spike per line.
 }
+

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{ifr}
 \alias{ifr}
-\alias{ifr,SpikeTrain-method}
 \alias{ifr,ANY,ANY-method}
+\alias{ifr,SpikeTrain-method}
 \title{Calculate the instantaneous firing rate from the spike trains.}
 \usage{
 ifr(st, windowSizeMs = 100, spikeBinMs = 1, kernelSdMs = 100)
@@ -30,3 +30,4 @@ A vector with the spike count in each bin is calculated.
 Then a gaussian kernel is applied to the spike count vector.
 Finally, the firing probability is integrated over a set window size and transform to a firing rate.
 }
+

@@ -15,3 +15,4 @@ Numeric of length 2 with the x and y coordinate of the center fo mass
 \description{
 The values returned are in indices with first bin being 1 and last being length(x)
 }
+
