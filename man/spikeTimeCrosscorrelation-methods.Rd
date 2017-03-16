@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTimeCrosscorrelation}
 \alias{spikeTimeCrosscorrelation}
-\alias{spikeTimeCrosscorrelation,ANY,ANY-method}
 \alias{spikeTimeCrosscorrelation,SpikeTrain-method}
+\alias{spikeTimeCrosscorrelation,ANY,ANY-method}
 \title{Calculate the spike-time crosscorrelation between the spike trains of cell pairs}
 \usage{
 spikeTimeCrosscorrelation(st, binSizeMs = 1, windowSizeMs = 200,
@@ -30,4 +30,3 @@ The spikes of cell 1 are used in turn as a reference spike.
 The number of spikes or probability to observe a spike of cell 2 around the reference spikes is calculated.
 You can set the bins size in ms and and the time window for which you want to do the analysis on.
 }
-

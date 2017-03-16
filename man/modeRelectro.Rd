@@ -15,4 +15,3 @@ The value in the vector with the highest frequency
 \description{
 This get you the value with the highest frequency in a vector
 }
-

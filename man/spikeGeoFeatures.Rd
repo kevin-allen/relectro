@@ -17,4 +17,3 @@ The features are amplitude, width, widthFirstHalf, widthSecondHalf, spikeAsymmet
 \description{
 The geometrical features are amplitude, width at 50% of amplitude, width first half, width second half and spike asymmetry
 }
-

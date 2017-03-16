@@ -21,4 +21,3 @@ Filtered copy of the argument data
 \description{
 Use a Butterworth filter.
 }
-

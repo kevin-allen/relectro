@@ -3,8 +3,8 @@
 \docType{methods}
 \name{ifrAssociation}
 \alias{ifrAssociation}
-\alias{ifrAssociation,ANY,ANY-method}
 \alias{ifrAssociation,SpikeTrain-method}
+\alias{ifrAssociation,ANY,ANY-method}
 \title{Calculate the correlation coefficient between the instantaneous firing rate of the neurons.}
 \usage{
 ifrAssociation(st)
@@ -21,4 +21,3 @@ data.frame with the clu.ids of pairs and correlation coefficient between the ins
 Call ifr(st) method before calling this function.
 Only the ifr falling withing the intervals set in the SpikeTime object will be considered.
 }
-

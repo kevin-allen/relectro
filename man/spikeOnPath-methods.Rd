@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeOnPath}
 \alias{spikeOnPath}
-\alias{spikeOnPath,ANY,ANY-method}
 \alias{spikeOnPath,SpatialProperties2d-method}
+\alias{spikeOnPath,ANY,ANY-method}
 \title{Return the data to plot spikes on the path of the animal}
 \usage{
 spikeOnPath(sp, st, pt)
@@ -25,4 +25,3 @@ List containing xPath, yPath, xSpike, ySpike, cluSpike
 Only data that fall within the intervals of the SpikeTrain object
 are used.
 }
-

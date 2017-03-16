@@ -19,4 +19,3 @@ firingRateMapsPlot(maps, names, ncol = 5, nrow = 6)
 Plot 2-dimensional representation of firing rate for several maps
 This is not currently being developed.
 }
-

@@ -17,4 +17,3 @@ colorScalePlot(outma = c(0.2, 0.2, 0.2, 0.2), margin = c(0, 1, 0, 1),
 \description{
 Plot a color scale that can be used beside the plots obtained with firingRateMapPlot()
 }
-

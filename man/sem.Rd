@@ -15,4 +15,3 @@ Numeric, standard error of the mean
 \description{
 The standard deviation divided by the square root of n
 }
-

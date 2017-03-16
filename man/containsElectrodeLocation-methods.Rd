@@ -3,8 +3,8 @@
 \docType{methods}
 \name{containsElectrodeLocation}
 \alias{containsElectrodeLocation}
-\alias{containsElectrodeLocation,ANY,ANY-method}
 \alias{containsElectrodeLocation,RecSession-method}
+\alias{containsElectrodeLocation,ANY,ANY-method}
 \title{Check if the session had an electrode in a particular brain area}
 \usage{
 containsElectrodeLocation(rs, location = "")
@@ -22,4 +22,3 @@ TRUE or FALSE
 \description{
 This will check whether the value of location is in the electrodeLocation vector.
 }
-

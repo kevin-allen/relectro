@@ -3,8 +3,8 @@
 \docType{methods}
 \name{gridScore}
 \alias{gridScore}
-\alias{gridScore,ANY,ANY-method}
 \alias{gridScore,SpatialProperties2d-method}
+\alias{gridScore,ANY,ANY-method}
 \title{Calculate the grid scores from the spatial autocorrelations}
 \usage{
 gridScore(sp)
@@ -20,4 +20,3 @@ SpatialProperties2d object with the grid scores in the slot gridScore
 \description{
 Calculate the grid scores from the spatial autocorrelations
 }
-

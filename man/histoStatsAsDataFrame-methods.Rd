@@ -3,8 +3,8 @@
 \docType{methods}
 \name{histoStatsAsDataFrame}
 \alias{histoStatsAsDataFrame}
-\alias{histoStatsAsDataFrame,ANY,ANY-method}
 \alias{histoStatsAsDataFrame,SpatialProperties1d-method}
+\alias{histoStatsAsDataFrame,ANY,ANY-method}
 \title{Return the histo stats as data.frame.}
 \usage{
 histoStatsAsDataFrame(sp1, shuffle)
@@ -22,4 +22,3 @@ data.frame with the statistics of the firing rate histograms
 \description{
 The column names in the data.frame are clu.id, x, rate.
 }
-

@@ -174,6 +174,7 @@ whdFromPositrack<-function(rs,
 #' in which the x, y position of the animal is recorded.
 #' Positrack also sends ttl pulses to the electrophysiological system that are then saved into a .dat file 
 #' This function test that the number of ttl pulses and the number of recorded video frames are the same
+#' It can be used to test for synchronization after recording every trial
 #' 
 #' @param datFileName Name of the dat file
 #' @param positrackFileName Name of the positrack file

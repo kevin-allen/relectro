@@ -58,4 +58,3 @@ plotPoints(data, v1 = "v1", v2 = "v2", axis.y.pos = -0.2,
 \description{
 Just a wrapper around plot and points functions.
 }
-

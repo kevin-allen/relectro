@@ -16,4 +16,3 @@ linearRatePlots(sp1, ncol = 5, nrow = 6)
 \description{
 In development
 }
-

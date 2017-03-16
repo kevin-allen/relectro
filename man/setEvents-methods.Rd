@@ -3,8 +3,8 @@
 \docType{methods}
 \name{setEvents}
 \alias{setEvents}
-\alias{setEvents,ANY,ANY-method}
 \alias{setEvents,SpikeTrain-method}
+\alias{setEvents,ANY,ANY-method}
 \title{Set some events for spike-time crosscorrelation to the events.}
 \usage{
 setEvents(st, events)
@@ -22,4 +22,3 @@ a SpikeTrain object with the events set
 \description{
 These events could be laser stimulation or some behavioural events
 }
-

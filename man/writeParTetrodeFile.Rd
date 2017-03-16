@@ -17,7 +17,7 @@ writeParTetrodeFile(rs, res, fet, tetrodeNumber)
 }
 \description{
 This is a legacy file created by Csicsvari detection programs
- relectro doesn't use it but it is useful if manual clustering is done with kluster or sgclust5b
+ relectro don't use it but it is useful if manual clustering is done with kluster or sgclust5b
 }
 \details{
 Here is an example            
@@ -31,4 +31,3 @@ Here is an example
 3 16        # number of principal components (features) per electrode, number of samples used for the PCA
 800.        # high pass filter frequency (in Hz)
 }
-

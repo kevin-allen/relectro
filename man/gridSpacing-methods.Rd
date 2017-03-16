@@ -3,8 +3,8 @@
 \docType{methods}
 \name{gridSpacing}
 \alias{gridSpacing}
-\alias{gridSpacing,ANY,ANY-method}
 \alias{gridSpacing,SpatialProperties2d-method}
+\alias{gridSpacing,ANY,ANY-method}
 \title{Calculate the grid spacing from the spatial autocorrelations}
 \usage{
 gridSpacing(sp)
@@ -20,4 +20,3 @@ SpatialProperties2d object with the grid spacing in the slot gridSpacing
 \description{
 Calculate the grid spacing from the spatial autocorrelations
 }
-

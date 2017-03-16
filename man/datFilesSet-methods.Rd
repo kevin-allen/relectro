@@ -3,8 +3,8 @@
 \docType{methods}
 \name{datFilesSet}
 \alias{datFilesSet}
-\alias{datFilesSet,ANY,ANY-method}
 \alias{datFilesSet,DatFiles-method}
+\alias{datFilesSet,ANY,ANY-method}
 \title{Function to set the parameters of a DatFile object}
 \usage{
 datFilesSet(df, fileNames, path, nChannels)
@@ -27,4 +27,3 @@ A DatFiles object with the values set.
 \description{
 Function to set the parameters of a DatFile object
 }
-

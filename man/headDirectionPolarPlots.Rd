@@ -18,4 +18,3 @@ headDirectionPolarPlots(histo, names, ncol = 5, nrow = 6)
 \description{
 Plot several polar plot with firing rate as a function of head direction
 }
-

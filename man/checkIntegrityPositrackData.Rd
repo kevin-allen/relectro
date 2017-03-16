@@ -25,4 +25,3 @@ Return 0 if all is ok and positive number if something is wrong
 \description{
 Check the integrity of positrack data read from positrack file.
 }
-

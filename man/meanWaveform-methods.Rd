@@ -3,8 +3,8 @@
 \docType{methods}
 \name{meanWaveform}
 \alias{meanWaveform}
-\alias{meanWaveform,ANY,ANY-method}
 \alias{meanWaveform,SpikeWaveform-method}
+\alias{meanWaveform,ANY,ANY-method}
 \title{Calculate the mean waveform of neurons in a recording session.}
 \usage{
 meanWaveform(sw, rs, st, cg, df, windowSizeMs = 3, divisorToMicroVolt = 7,
@@ -47,4 +47,3 @@ SpikeWaveform object with the mean waveform in wf matrix
 \description{
 Calculate the mean waveform of neurons in a recording session.
 }
-

@@ -19,4 +19,3 @@ matrix
 \description{
 Get the waveform matrix, one spike per row
 }
-

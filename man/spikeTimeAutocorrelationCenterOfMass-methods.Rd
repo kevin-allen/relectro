@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTimeAutocorrelationCenterOfMass}
 \alias{spikeTimeAutocorrelationCenterOfMass}
-\alias{spikeTimeAutocorrelationCenterOfMass,ANY,ANY-method}
 \alias{spikeTimeAutocorrelationCenterOfMass,SpikeTrain-method}
+\alias{spikeTimeAutocorrelationCenterOfMass,ANY,ANY-method}
 \title{Calculate spike-time autocorrelation center of mass}
 \usage{
 spikeTimeAutocorrelationCenterOfMass(st)
@@ -18,4 +18,3 @@ spikeTimeAutocorrelationCenterOfMass(st)
 Only the positive half of the spike-time autocorrelation is used.
 Only positive values should be returned by this function.
 }
-

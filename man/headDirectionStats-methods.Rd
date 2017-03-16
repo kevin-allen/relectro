@@ -3,8 +3,8 @@
 \docType{methods}
 \name{headDirectionStats}
 \alias{headDirectionStats}
-\alias{headDirectionStats,ANY,ANY-method}
 \alias{headDirectionStats,HeadDirection-method}
+\alias{headDirectionStats,ANY,ANY-method}
 \title{Calculate the head direction statistics for the head direction rate histograms with a HeadDirection, SpikeTrain and Positrack objects}
 \usage{
 headDirectionStats(hd, st, pt, newHisto = TRUE)
@@ -27,4 +27,3 @@ HeadDirection object with the statistics in the slots peakRates, vectorLength an
 \description{
 Calculate the head direction statistics for the head direction rate histograms with a HeadDirection, SpikeTrain and Positrack objects
 }
-

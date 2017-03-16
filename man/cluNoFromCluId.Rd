@@ -15,4 +15,3 @@ Numeric vectors with cluNo
 \description{
 Assumes the cluId is in the format name-date-rest_cluNo
 }
-

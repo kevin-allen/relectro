@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeDistanceMetric}
 \alias{spikeDistanceMetric}
-\alias{spikeDistanceMetric,ANY,ANY-method}
 \alias{spikeDistanceMetric,SpatialProperties2d-method}
+\alias{spikeDistanceMetric,ANY,ANY-method}
 \title{Get the spike distance metric of the spikes}
 \usage{
 spikeDistanceMetric(sp, st, pt, startIntervals, endIntervals,
@@ -32,4 +32,3 @@ Matrix with clu.id, interval.no, time.sec, distance.from.field.center
 \description{
 Score based on Hardcastle et al. 2015 Neuron
 }
-

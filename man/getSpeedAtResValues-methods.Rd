@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getSpeedAtResValues}
 \alias{getSpeedAtResValues}
-\alias{getSpeedAtResValues,ANY,ANY-method}
 \alias{getSpeedAtResValues,Positrack-method}
+\alias{getSpeedAtResValues,ANY,ANY-method}
 \title{Get the speed of the animal at given time points}
 \usage{
 getSpeedAtResValues(pt, res)
@@ -22,4 +22,3 @@ Vector with the speed at the different time points
 \description{
 The time points are in sample values of the electrophysiological data
 }
-
