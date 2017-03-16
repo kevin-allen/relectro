@@ -35,9 +35,8 @@ whdFromPositrack<-function(rs,
   if(is.na(rs@samplingRate))
     stop(paste("rs@samplingRate is NA"))
   if(file.exists(paste(rs@fileBase,"whd",sep="."))&overwrite==FALSE)
-  {
     return()
-  }
+  
   df<-new("DatFiles")
   df<-datFilesSet(df,
                   fileNames=paste(rs@trialNames,"dat",sep="."),
@@ -72,10 +71,10 @@ whdFromPositrack<-function(rs,
                                       lastSample = rs@trialEndRes[tIndex]))
     
     up<-detectUps(x) ## detect rising times of ttl pulses
-    if(checkIntegrityUp(up,samplingRate=rs@samplingRate)!=0)
+    
+    if(checkIntegrityUp(up,samplingRate=rs@samplingRate,datLengthSamples=rs@trialEndRes[tIndex])!=0)
       stop(paste("check of integrity of up failed"))
    
-    
     ######################################
     ## get the data from positrack file ##
     ######################################
@@ -169,6 +168,106 @@ whdFromPositrack<-function(rs,
 
 
 
+#' Test alignment of one dat and positrack file. 
+#' 
+#' The tracking system called Positrack creates files with the extension .positrack 
+#' in which the x, y position of the animal is recorded.
+#' Positrack also sends ttl pulses to the electrophysiological system that are then saved into a .dat file 
+#' This function test that the number of ttl pulses and the number of recorded video frames are the same
+#' 
+#' @param datFileName Name of the dat file
+#' @param positrackFileName Name of the positrack file
+#' @param numberChannelsDat Number of channels in the dat file
+#' @param ttlChannel Channel with the ttl signal in the .dat files.
+#' @param datSamplingRate Sampling rate for the .dat file.
+positrackDatAlignmentCheck<-function(datFileName,
+                           positrackFileName,
+                           numberChannelsDat=NA,
+                           ttlChannel=NA,
+                           datSamplingRate=20000)
+{
+  
+  #positrackFileName="/media/kevin/Elements/positrackAlign/test-14032017_01.positrack"
+  #datFileName="/media/kevin/Elements/positrackAlign/test-14032017_01.dat"
+  #ttlChannel=64
+  #numberChannelsDat=65
+  #datSamplingRate=20000
+  
+  
+  if(!file.exists(datFileName)){
+    stop(paste(datFileName, "is missing"))
+  }
+  if(!file.exists(positrackFileName)){
+    stop(paste(positrackFileName, "is missing"))
+  }
+  
+  if(length(unlist(strsplit(datFileName,split = "/")))>1){
+   dfn<-tail(unlist(strsplit(datFileName,split = "/")),n=1)
+   dfpath<-paste(unlist(strsplit(datFileName,split = "/"))[1:(length(unlist(strsplit(datFileName,split = "/")))-1)],collapse = "/")
+  } else {
+    dfn<-datFileName
+    dfpath<-""
+  }
+
+  print(paste("file:",dfn,"path:",dfpath))
+  df<-new("DatFiles")
+  df<-datFilesSet(df,
+                  fileNames=dfn,
+                  path=dfpath,
+                  nChannels=numberChannelsDat)
+  
+  print(paste("reading sycn channel",ttlChannel,"from",df@fileNames))
+  x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel,firstSample = 0,lastSample = df@samples-1))
+  up<-detectUps(x) ## detect rising times of ttl pulses
+  
+  if(checkIntegrityUp(up,samplingRate=datSamplingRate,datLengthSamples=df@samples-1)!=0)
+    stop(paste("check of integrity of up failed"))
+    
+  ######################################
+  ## get the data from positrack file ##
+  ######################################
+  if(!file.exists(positrackFileName))
+      stop(paste("file missing:",positrackFileName))
+  posi<-read.table(positrackFileName,header=T)  ## now assumes that there is a header
+  if(checkIntegrityPositrackData(posi)!=0)
+      stop(paste("check of integrity of positrack file failed"))
+    
+  #############################################
+  ### compare the .dat and .positrack data  ###
+  #############################################
+  lup<-length(up)
+  lposi<-length(posi$startProcTime)
+  print(paste("Number of ttl pulses:",lup))
+  print(paste("Number of frames in positrack file:",lposi))
+
+  
+  
+  interEventCor<-cor(diff(up),diff(posi$startProcTime))
+  print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
+  
+  if(lup!=lposi|interEventCor<0.85)  
+  { # try to align the frames using jitters
+    print(paste("length of up (",lup,") and positrack (",lposi,") differs"))
+    if(!is.list(x<-whdAlignedTtlPositrack(up,posi))){
+      print(paste("alignment failed"))
+      stop()
+    }      
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Try to realign the up part of ttl pulses from .dat file and the positrack frames for a single trial. 
 #' 
 #' One assumption that is made is that there is variability in the intervals between frames in the positrack software
@@ -188,21 +287,20 @@ whdAlignedTtlPositrack<-function(up,posi){
   dup<-diff(up)
   dposi<-diff(posi$startProcTime*20)
   minLength<-min(c(length(dup),length(dposi)))
-  print(paste("correlation first 500:",round(cor(head(dup,n=500),head(dposi,n=500)),3)))
-  print(paste("correlation last 500:",round(cor(dup[(minLength-500):minLength],dposi[(minLength-500):minLength]),3)))
+  cor1=cor(head(dup,n=500),head(dposi,n=500))
+  cor2=cor(dup[(minLength-500):minLength],dposi[(minLength-500):minLength])
+  print(paste("correlation first 500:",round(cor1,3)))
+  print(paste("correlation last 500:",round(cor2,3)))
   print(paste("length of up:",length(up)))
   print(paste("length of posi:",length(posi$no)))
-  
-  if(length(up)==length(posi$no)){
+  if(length(up)==length(posi$no)&cor1>0.95&cor2>0.95){
     print("Alignment appears ok")
     return(list(up=up,posi=posi))
   }
-  
   if(abs(length(up)-length(posi$no))>10){
     print("The alignment problem is for more than 10 frames, no solution implemented for this yet")
     return(NA)
   }
-    
   ## visualize the situation
   dup<-diff(up)
   dposi<-diff(posi$startProcTime*20)
@@ -376,26 +474,34 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
 #' @param up Time stamps of the ttl pulses of tracking system
 #' @param maxInterUpDelay Maximal delay between ups that will be allowed
 #' @param samplingRate Sampling rate for the time point in up file
+#' @param datLengthSamples Number of samples in the .dat file
 #' @return Return 0 if all is ok and positive number if something is wrong
-checkIntegrityUp<-function(up,maxInterUpDelay=1000,samplingRate=20000){
-  
+checkIntegrityUp<-function(up,maxInterUpDelay=1000,samplingRate=20000,datLengthSamples){
   d<-diff(up)
   print(paste("Minimum delay between up", min(d)/samplingRate*1000, "ms"))
   print(paste("Maximum delay between up", max(d)/samplingRate*1000, "ms"))
-        
   if(any(diff(up)<1*samplingRate/1000)){
     print(paste("There are up intervals shorter than 1 ms"))
     print(paste("The first case occured at index",head(which(diff(up)<20),n=1)))
     print(paste("Assuming 50 hz, this is", head(which(diff(up)<20),n=1)/50,"sec in the trial"))
     return(1)
   }
-  
   if(any(diff(up)>maxInterUpDelay*samplingRate/1000)){
     print(paste("There are up intervals larger than",maxInterUpDelay))
     print(paste("The first case occured at index",head(which(diff(up)>maxInterUpDelay*samplingRate/1000),n=1)))
     return(1)
   }
-  
-  
+  fromStart=head(up,n=1)/samplingRate
+  print(paste("First up is",fromStart, "seconds from the beginning of dat file"))
+  if(fromStart<0.200){
+    print(paste("The first up is less than 200 ms from the start of the dat file"))
+    return(1)
+  }
+  fromEnd=(datLengthSamples-tail(up,n=1))/samplingRate
+  print(paste("Last up is",fromEnd, "seconds from the end of the dat file"))
+  if(fromEnd<0.200){
+    print(paste("The last up",tail(up,n=1),"is less than 200 ms from the end of the dat file",datLengthSamples))
+    return(1)
+  }
   return(0)  
 }
