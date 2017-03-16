@@ -187,13 +187,20 @@ positrackDatAlignmentCheck<-function(datFileName,
                            ttlChannel=NA,
                            datSamplingRate=20000)
 {
+
+  # for testing  
+  # positrackFileName="/home/kevin/test-16032017_01.positrack"
+  # datFileName="/home/kevin/test-16032017_01.dat"
+  # ttlChannel=48
+  # numberChannelsDat=49
+  # datSamplingRate=20000
   
-  #positrackFileName="/media/kevin/Elements/positrackAlign/test-14032017_01.positrack"
-  #datFileName="/media/kevin/Elements/positrackAlign/test-14032017_01.dat"
-  #ttlChannel=64
-  #numberChannelsDat=65
-  #datSamplingRate=20000
   
+  print(paste("dat file:",datFileName))
+  print(paste("positrack file:",positrackFileName))
+  print(paste("numberChannelsDat:",numberChannelsDat))
+  print(paste("ttlChannel:",ttlChannel))
+  print(paste("datSamplingRate:",datSamplingRate))
   
   if(!file.exists(datFileName)){
     stop(paste(datFileName, "is missing"))
@@ -209,18 +216,15 @@ positrackDatAlignmentCheck<-function(datFileName,
     dfn<-datFileName
     dfpath<-""
   }
-
-  print(paste("file:",dfn,"path:",dfpath))
+  
   df<-new("DatFiles")
-  df<-datFilesSet(df,
-                  fileNames=dfn,
-                  path=dfpath,
-                  nChannels=numberChannelsDat)
+  df<-datFilesSet(df,fileNames=dfn,path=dfpath,nChannels=numberChannelsDat)
   
   print(paste("reading sycn channel",ttlChannel,"from",df@fileNames))
   x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel,firstSample = 0,lastSample = df@samples-1))
   up<-detectUps(x) ## detect rising times of ttl pulses
   
+  print("Check up integrity")
   if(checkIntegrityUp(up,samplingRate=datSamplingRate,datLengthSamples=df@samples-1)!=0)
     stop(paste("check of integrity of up failed"))
     
@@ -230,6 +234,7 @@ positrackDatAlignmentCheck<-function(datFileName,
   if(!file.exists(positrackFileName))
       stop(paste("file missing:",positrackFileName))
   posi<-read.table(positrackFileName,header=T)  ## now assumes that there is a header
+  print("Check positrack integrity")
   if(checkIntegrityPositrackData(posi)!=0)
       stop(paste("check of integrity of positrack file failed"))
     
@@ -241,12 +246,17 @@ positrackDatAlignmentCheck<-function(datFileName,
   print(paste("Number of ttl pulses:",lup))
   print(paste("Number of frames in positrack file:",lposi))
 
-  
-  
+  if(lup==lposi){
   interEventCor<-cor(diff(up),diff(posi$startProcTime))
   print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
-  
-  if(lup!=lposi|interEventCor<0.85)  
+  plot(diff(up)/20,diff(posi$startProcTime))
+  print("Difference between inter ttl and inter startProcTime")
+  print(summary(diff(up)/20-diff(posi$startProcTime)))
+  } else{
+    interEventCor=0
+  }
+    
+  if(lup!=lposi|interEventCor<0.50)  
   { # try to align the frames using jitters
     print(paste("length of up (",lup,") and positrack (",lposi,") differs"))
     if(!is.list(x<-whdAlignedTtlPositrack(up,posi))){
@@ -254,19 +264,8 @@ positrackDatAlignmentCheck<-function(datFileName,
       stop()
     }      
   }
+  print("Sychronization test passed")
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #' Try to realign the up part of ttl pulses from .dat file and the positrack frames for a single trial. 
