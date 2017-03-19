@@ -40,4 +40,3 @@ list containing trace, spikeTimes and cluId
 \description{
 Several different waveforms can be used. They are all generated from the same generic spike by adding gaussian noise to it.
 }
-

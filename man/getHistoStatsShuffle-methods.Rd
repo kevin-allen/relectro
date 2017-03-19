@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getHistoStatsShuffle}
 \alias{getHistoStatsShuffle}
-\alias{getHistoStatsShuffle,ANY,ANY-method}
 \alias{getHistoStatsShuffle,SpatialProperties1d-method}
+\alias{getHistoStatsShuffle,ANY,ANY-method}
 \title{Get random values for statistics of the firing rate histograms of neurons.}
 \usage{
 getHistoStatsShuffle(sp1, st, pt)
@@ -25,4 +25,3 @@ SpatialProperties1d object with the stats in the following slots: peakRateShuffl
 The random values are obtained by shifting the position data. See shiftLinRandom.
 The number of shufflings is nShufflings of the SpatialProperties1d object.
 }
-

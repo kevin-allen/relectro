@@ -3,8 +3,8 @@
 \docType{methods}
 \name{setInvalidOutsideInterval}
 \alias{setInvalidOutsideInterval}
-\alias{setInvalidOutsideInterval,ANY,ANY-method}
 \alias{setInvalidOutsideInterval,Positrack-method}
+\alias{setInvalidOutsideInterval,ANY,ANY-method}
 \title{Set position data outside time intervals to NA}
 \usage{
 setInvalidOutsideInterval(pt, s, e)
@@ -26,4 +26,3 @@ Positrack object with only valid value within the intervals.
 The slots x, y, hd, speed, lin and dir are affected.
 The intervals are in sample values of the electrophysiological data
 }
-

@@ -24,4 +24,3 @@ We search for points where there is a large difference between dup and dposi.
 The crosscorrelation function for the data points just after the large difference is calculated. 
 If the peak is before or after 0, then an up or a posi is removed.
 }
-

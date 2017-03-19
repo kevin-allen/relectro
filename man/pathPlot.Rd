@@ -43,4 +43,3 @@ pathPlot(pt, name = "", outma = c(2, 2, 2, 2), margin = c(1.5, 1.5, 1, 1),
 \description{
 Plot the animal path from a Positrack object
 }
-

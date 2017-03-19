@@ -2,8 +2,8 @@
 % Please edit documentation in R/CellGroup.R
 \docType{class}
 \name{CellGroup-class}
-\alias{CellGroup}
 \alias{CellGroup-class}
+\alias{CellGroup}
 \title{An S4 class representing a group of cells}
 \description{
 This class gets you the tetrode id and brain region associated with each cell of a recording session.
@@ -36,8 +36,8 @@ It also get the cluster id of the cell on its respective tetrode.
 
 \item{\code{brainRegion}}{region in which the cell was recorded}
 }}
+
 \examples{
 df<-new("CellGroup")
 
 }
-

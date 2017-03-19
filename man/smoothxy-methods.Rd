@@ -3,8 +3,8 @@
 \docType{methods}
 \name{smoothxy}
 \alias{smoothxy}
-\alias{smoothxy,ANY,ANY-method}
 \alias{smoothxy,Positrack-method}
+\alias{smoothxy,ANY,ANY-method}
 \title{Apply some smoothing to the x and y position data}
 \usage{
 smoothxy(pt, sd)
@@ -22,4 +22,3 @@ Positrack object with slots x and y smoothed.
 \description{
 A Gaussian kernel is used for smoothing
 }
-

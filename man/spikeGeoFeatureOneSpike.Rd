@@ -22,4 +22,3 @@ spike geometrical features (baseline,amplitude,spikeDuration, firstHalfSpikeDura
 \description{
 Get the geometrical features of a single waveform
 }
-

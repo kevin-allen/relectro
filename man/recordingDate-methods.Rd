@@ -3,8 +3,8 @@
 \docType{methods}
 \name{recordingDate}
 \alias{recordingDate}
-\alias{recordingDate,ANY,ANY-method}
 \alias{recordingDate,RecSession-method}
+\alias{recordingDate,ANY,ANY-method}
 \title{Get the recording date of a recSession, taken from session name}
 \usage{
 recordingDate(rs)
@@ -20,4 +20,3 @@ Date
 \description{
 Get the recording date of a recSession, taken from session name
 }
-

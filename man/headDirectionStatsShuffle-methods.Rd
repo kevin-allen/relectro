@@ -3,8 +3,8 @@
 \docType{methods}
 \name{headDirectionStatsShuffle}
 \alias{headDirectionStatsShuffle}
-\alias{headDirectionStatsShuffle,ANY,ANY-method}
 \alias{headDirectionStatsShuffle,HeadDirection-method}
+\alias{headDirectionStatsShuffle,ANY,ANY-method}
 \title{Calculate the random head direction statistics for the head direction rate histograms with 
 a HeadDirection, SpikeTrain and Positrack objects}
 \usage{
@@ -27,4 +27,3 @@ peakRatesShuffle, vectorLengthShuffle and meanDirectionShuffle
 Calculate the random head direction statistics for the head direction rate histograms with 
 a HeadDirection, SpikeTrain and Positrack objects
 }
-

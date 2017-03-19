@@ -3,8 +3,8 @@
 \docType{methods}
 \name{firingRateMapCenterOfMass}
 \alias{firingRateMapCenterOfMass}
-\alias{firingRateMapCenterOfMass,ANY,ANY-method}
 \alias{firingRateMapCenterOfMass,SpatialProperties2d-method}
+\alias{firingRateMapCenterOfMass,ANY,ANY-method}
 \title{Calculate the center of mass of the firing rate maps in a SpatialProperties2d object}
 \usage{
 firingRateMapCenterOfMass(sp)
@@ -20,4 +20,3 @@ matrix containing the center of mass of the firing rate maps
 \description{
 Calculate the center of mass of the firing rate maps in a SpatialProperties2d object
 }
-

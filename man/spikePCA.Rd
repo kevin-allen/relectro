@@ -21,4 +21,3 @@ Do PCA analysis on the spike waveforms, treating each channel independently
  Do PCA analysis from spike waveform, keep the first 3 or 4 principal components
  Combine the first components of each wire.
 }
-

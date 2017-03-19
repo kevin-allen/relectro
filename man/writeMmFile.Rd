@@ -20,4 +20,3 @@ This is a legacy file created by Csicsvari detection programs
  The content of the file is the mean and std of each feature. 
  Need to check if this is correct
 }
-

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{crossRefractoryRatio}
 \alias{crossRefractoryRatio}
-\alias{crossRefractoryRatio,ANY,ANY-method}
 \alias{crossRefractoryRatio,SpikeTrain-method}
+\alias{crossRefractoryRatio,ANY,ANY-method}
 \title{Get the cross refractory ratio of each cluster from its spike-time crosscorrelation}
 \usage{
 crossRefractoryRatio(st, refractoryMs = 1.5, binSizeMs = 0.5,
@@ -39,4 +39,3 @@ This is the ratio between the mean number of spikes falling in the bins of the r
 compared to the max number of spikes falling in one bin of the control period outside the refractory period.
 Note that the spike-time crosscorrelations in the SpikeTrain object will be modified.
 }
-

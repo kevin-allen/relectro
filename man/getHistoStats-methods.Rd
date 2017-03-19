@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getHistoStats}
 \alias{getHistoStats}
-\alias{getHistoStats,ANY,ANY-method}
 \alias{getHistoStats,SpatialProperties1d-method}
+\alias{getHistoStats,ANY,ANY-method}
 \title{Calculate spatial statistics of the firing rate histograms of neurons}
 \usage{
 getHistoStats(sp1, st, pt)
@@ -24,4 +24,3 @@ SpatialProperties1d object with the stats in the following slots: peakRate, info
 \description{
 Calculate spatial statistics of the firing rate histograms of neurons
 }
-

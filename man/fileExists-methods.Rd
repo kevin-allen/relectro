@@ -3,8 +3,8 @@
 \docType{methods}
 \name{fileExists}
 \alias{fileExists}
-\alias{fileExists,ANY,ANY-method}
 \alias{fileExists,RecSession-method}
+\alias{fileExists,ANY,ANY-method}
 \title{Check if the session directory contains a file ending with the value of the argument extension}
 \usage{
 fileExists(rs, extension = "")
@@ -22,4 +22,3 @@ TRUE or FALSE
 \description{
 By default test whether paste(rs@fileBase,extension,sep=".") exists
 }
-

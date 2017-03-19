@@ -21,4 +21,3 @@ and a refractory period ratio of the spike-time crosscorrelations involving this
 \details{
 The data.frame is returned within a list so that the function can be used with runOnSessionList
 }
-

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{mapsAsDataFrame}
 \alias{mapsAsDataFrame}
-\alias{mapsAsDataFrame,ANY,ANY-method}
 \alias{mapsAsDataFrame,SpatialProperties2d-method}
+\alias{mapsAsDataFrame,ANY,ANY-method}
 \title{Return the firing rate maps in a data.frame}
 \usage{
 mapsAsDataFrame(sp)
@@ -20,4 +20,3 @@ data.frame with the firing rate maps. Column names are clu.id, x, y, rate
 \description{
 Return the firing rate maps in a data.frame
 }
-

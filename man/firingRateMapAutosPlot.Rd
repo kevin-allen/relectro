@@ -18,4 +18,3 @@ firingRateMapAutosPlot(maps, names, ncol = 5, nrow = 6)
 \description{
 This is not currently being developed.
 }
-

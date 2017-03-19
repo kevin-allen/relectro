@@ -3,8 +3,8 @@
 \docType{methods}
 \name{directionFilter}
 \alias{directionFilter}
-\alias{directionFilter,ANY,ANY-method}
 \alias{directionFilter,Positrack-method}
+\alias{directionFilter,ANY,ANY-method}
 \title{Set position data to NA if animal's direction was not the one given in arguments}
 \usage{
 directionFilter(pt, direction)
@@ -23,4 +23,3 @@ Positrack object with only valid value in the specific direction.
 The slots x, y, hd, speed and lin are affected.
 Please note that this is not head direction but rather the direction of movement in 1D environment
 }
-
