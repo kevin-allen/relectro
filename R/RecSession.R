@@ -206,6 +206,137 @@ setMethod(f="loadRecSession",
           }
 )
 
+#' Set the data in a RecSession object with data passed as function arguments
+#'
+#'
+#' @param rs A RecSession object
+#' @param session Session name
+#' @param path Session directory path
+#' @param samplingRate Sampling rate in Hz
+#' @param nChannels Number of channels in the dat files.
+#' @param nTrials Number of trials
+#' @param nElectrodes Number of electrodes
+#' @param trialNames Names of each trials
+#' @param channelsTetrode Matrix containing the map of channel number for each tetrode, has 4 columns
+#' @param env List of environment names
+#' @param stim List of codes for stimulation
+#' @param electrodeLocation Brain region for each electrode
+#' @return RecSession
+#'
+#' @docType methods
+#' @rdname setRecSession-methods
+setGeneric(name="setRecSession",
+           def=function(rs,session,path,samplingRate,nChannels,nTrials,nElectrodes,
+                        trialNames,channelsTetrode,env,stim,electrodeLocation)
+           {standardGeneric("setRecSession")}
+)
+#' @rdname setRecSession-methods
+#' @aliases setRecSession,ANY,ANY-method
+setMethod(f="setRecSession",
+          signature="RecSession",
+          definition=function(rs,session,path,samplingRate,nChannels,nTrials,
+                              nElectrodes,trialNames,channelsTetrode,env,stim,electrodeLocation)
+          {
+            if(session=="")
+              stop("session is empty, you need to set a session name with session argument")
+            rs@session<-session
+            rs@path<-path
+            if(samplingRate!="")
+            {
+              if(samplingRate<1|samplingRate>48000)
+              {stop(paste("samplingRate is out of range:",samplingRate))}
+              rs@samplingRate<-samplingRate  
+            }
+            if(nChannels!=""){
+              if(nChannels<1){
+                stop(paste("nChannels is out of range:",nChannels))
+              }
+              rs@nChannels<-nChannels
+            }
+            if(nTrials!=""){
+              if(nTrials<1){
+                stop(paste("nTrials is out of range:",nTrials))
+              }
+              rs@nTrials<-nTrials
+            }
+            if(nElectrodes!=""){
+              if(nElectrodes<1){
+                stop(paste("nElectrodes is out of range:",nElectrodes))
+              }
+              rs@nElectrodes<-nElectrodes
+            }
+            if(length(trialNames)!=0){
+              if(length(trialNames)!=rs@nTrials)
+                stop(paste("length of trialNames is not equal to rs@nTrials"))
+              rs@trialNames<-trialNames
+            }
+            if(ncol(channelsTetrode)!=0){
+              if(class(channelsTetrode)!="matrix")
+                stop(paste("channelsTetrode should be a matrix but is a",class(channelsTetrode)))
+              if(ncol(channelsTetrode)!=4)
+                stop(paste("ncol(channelsTetrode) should be 4 but is",ncol(channelsTetrode)))
+              if(nrow(channelsTetrode)!=rs@nElectrodes)
+                stop(paste("nrow(channelsTetrode) should be rs@nElectrodes (",rs@nElectrodes,") but is", 
+                           nrow(channelsTetrode)))
+              rs@channelsTetrode<-channelsTetrode
+            }              
+            if(length(env)!=0)
+            {
+              if(length(env)!=rs@nTrials)
+                stop(paste("length(env) should be rs@nTrials (",rs@nTrials,") but is",lenth(env)))
+              rs@env<-env
+            }
+            if(length(stim)!=0)
+            {
+              if(length(stim)!=rs@nTrials)
+                stop(paste("length(stim) should be rs@nTrials (",rs@nTrials,") but is",length(stim)))
+              rs@stim<-stim
+            }
+            if(length(electrodeLocation)!=0)
+            {
+              if(length(electrodeLocation)!=rs@nElectrodes)
+                stop(paste("length(electrodeLocation) should be rs@nTrials (",rs@nElectrodes,") but is",lenth(electrodeLocation)))
+              rs@electrodeLocation<-electrodeLocation
+            }
+            
+            rs@clustered=FALSE
+            rs@earlyProcessed<-FALSE
+            rs@fileBase<-paste(rs@path,rs@session,sep="/")
+            rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
+            
+            return(rs)
+          }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Is the recording session clustered?
 #'
 #' @param rs A RecSession object
