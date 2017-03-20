@@ -25,6 +25,7 @@
 #' @slot channelsTetrode Matrix containing the channel numbers associated with each tetrode
 #' @slot clustered Logical indicating if the spikes are clustered
 #' @slot earlyProcessed Logical indicating if spike extraction has been done
+#' @slot pxPerCm Numeric representing the number of pixels per cm in the position data
 RecSession <- setClass(
   "RecSession", ## name of the class
   slots=c(session="character",
@@ -46,7 +47,8 @@ RecSession <- setClass(
           nTrials="numeric",
           channelsTetrode="matrix",
           clustered="logical",
-          earlyProcessed="logical"),  # cell list to limit the analysis to these cells
+          earlyProcessed="logical",
+          pxPerCm="numeric"),  # cell list to limit the analysis to these cells
   prototype = list(session="",path=""))
 
 #' Load the data regarding a recording session
@@ -162,6 +164,11 @@ setMethod(f="loadRecSession",
                 stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }
 
+            ## get the number of pixels per cm in tracking data
+            if(file.exists(paste(rs@fileBase,"px_per_cm",sep="."))){
+              rs@pxPerCm<-read.table(paste(rs@fileBase,"px_per_cm",sep="."))$V1
+            }
+            
             ## if early process was run on this one, get more informaiton from resofs file
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
             {
@@ -221,13 +228,14 @@ setMethod(f="loadRecSession",
 #' @param env List of environment names
 #' @param stim List of codes for stimulation
 #' @param electrodeLocation Brain region for each electrode
+#' @param pxPerCm Pixels per cm in position data
 #' @return RecSession
 #'
 #' @docType methods
 #' @rdname setRecSession-methods
 setGeneric(name="setRecSession",
            def=function(rs,session,path,samplingRate,nChannels,nTrials,nElectrodes,
-                        trialNames,channelsTetrode,env,stim,electrodeLocation)
+                        trialNames,channelsTetrode,env,stim,electrodeLocation,pxPerCm)
            {standardGeneric("setRecSession")}
 )
 #' @rdname setRecSession-methods
@@ -235,7 +243,7 @@ setGeneric(name="setRecSession",
 setMethod(f="setRecSession",
           signature="RecSession",
           definition=function(rs,session,path,samplingRate,nChannels,nTrials,
-                              nElectrodes,trialNames,channelsTetrode,env,stim,electrodeLocation)
+                              nElectrodes,trialNames,channelsTetrode,env,stim,electrodeLocation,pxPerCm)
           {
             if(session=="")
               stop("session is empty, you need to set a session name with session argument")
@@ -299,6 +307,13 @@ setMethod(f="setRecSession",
               rs@electrodeLocation<-electrodeLocation
             }
             
+            if(pxPerCm!=""){
+              if(pxPerCm<1){
+                stop(paste("pxPerCm is out of range:",pxPerCm))
+              }
+              rs@pxPerCm<-pxPerCm
+            }
+            
             rs@clustered=FALSE
             rs@earlyProcessed<-FALSE
             rs@fileBase<-paste(rs@path,rs@session,sep="/")
@@ -307,34 +322,6 @@ setMethod(f="setRecSession",
             return(rs)
           }
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #' Is the recording session clustered?
@@ -731,6 +718,7 @@ setMethod("show", "RecSession",
             print(object@channelsTetrode)
             print(paste("clustered:",object@clustered))
             print(paste("earlyProcessed:",object@earlyProcessed))
+            print(paste("pxPerCm:",object@pxPerCm))
           })
 
 
