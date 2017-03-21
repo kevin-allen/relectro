@@ -213,7 +213,81 @@ setMethod(f="loadRecSession",
           }
 )
 
-#' Set the data in a RecSession object with data passed as function arguments
+
+#' Create the session configuration files from a RecSession object
+#'
+#' This function create files with the following extension:
+#' .par .desen .desel .px_per_cm .sampling_rate_dat .stim
+#' 
+#' @param rs A RecSession object
+#'
+#' @docType methods
+#' @rdname saveRecSessionParameterFiles-methods
+setGeneric(name="saveRecSessionParameterFiles",
+           def=function(rs)
+           {standardGeneric("saveRecSessionParameterFiles")}
+)
+#' @rdname saveRecSessionParameterFiles-methods
+#' @aliases saveRecSessionParameterFiles,ANY,ANY-method
+setMethod(f="saveRecSessionParameterFiles",
+          signature="RecSession",
+          definition=function(rs)
+          {
+            if(rs@session=="")
+              stop("rs@session is empty")
+            if(!dir.exists(rs@path))
+              stop(paste("saveRecSessionParameterFiles:",rs@path,"does not exist"))
+            if(rs@fileBase=="")
+              stop(paste("saveRecSessionParameterFiles: rs@fileBase is empty"))
+            # write a par file
+            print(paste("create",paste(rs@fileBase,"par",sep=".")))
+            write(x=c(rs@nChannels, 16),file=paste(rs@fileBase,"par",sep="."),append = F,ncolumns = 2)
+            write(x=c(1000000/rs@samplingRate, 800),file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 2)
+            write(x=c(rs@nElectrodes,0),file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 2)
+            for(t in 1:rs@nElectrodes){
+              write(x =c(length(rs@channelsTetrode[t,which(!is.na(rs@channelsTetrode[t,]))]),
+                         rs@channelsTetrode[t,which(!is.na(rs@channelsTetrode[t,]))]),
+                    file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns =length(rs@channelsTetrode[t,which(!is.na(rs@channelsTetrode[t,]))])+1 )
+            }
+            write(x=rs@nTrials,file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 1)
+            write(x=rs@trialNames,file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 1)
+            # write .desen file
+            
+            if(length(rs@env)!=0){
+              print(paste("create",paste(rs@fileBase,"desen",sep=".")))
+              write(x=rs@env,
+                    file=paste(rs@fileBase,"desen",sep="."),
+                    ncolumns = 1)
+            }
+            # write .desel file
+            if(length(rs@electrodeLocation)!=0){
+              print(paste("create",paste(rs@fileBase,"desel",sep=".")))
+                write(x=rs@electrodeLocation,
+                    file=paste(rs@fileBase,"desel",sep="."),
+                    ncolumns = 1)
+            }
+            # write .sampling_rate_dat file
+            print(paste("create",paste(rs@fileBase,"sampling_rate_dat",sep=".")))
+            write(x=rs@samplingRate,
+                  file=paste(rs@fileBase,"sampling_rate_dat",sep="."),
+                  ncolumns = 1)
+            # write .px_per_cm file
+            print(paste("create",paste(rs@fileBase,"px_per_cm",sep=".")))
+            write(x=rs@pxPerCm,
+                  file=paste(rs@fileBase,"px_per_cm",sep="."),
+                  ncolumns = 1)
+            # write .stim file if needed
+            if(length(rs@stim)!=0){
+              print(paste("create",paste(rs@fileBase,"stim",sep=".")))
+            write(x=rs@stim,
+                  file=paste(rs@fileBase,"stim",sep="."),
+                  ncolumns = 1)
+            }
+        }
+)
+
+
+#' Set a RecSession object with data passed as arguments
 #'
 #'
 #' @param rs A RecSession object
@@ -249,6 +323,8 @@ setMethod(f="setRecSession",
               stop("session is empty, you need to set a session name with session argument")
             rs@session<-session
             rs@path<-path
+            rs@fileBase<-paste(rs@path,rs@session,sep="/")
+            rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
             if(samplingRate!="")
             {
               if(samplingRate<1|samplingRate>48000)

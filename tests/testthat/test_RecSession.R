@@ -7,7 +7,7 @@ test_that("RecSession",{
   ## set a RecObject                   ##
   #######################################
   rs<-new("RecSession")
-  setRecSession(rs,session="test-31012017-0103",
+  rs<-setRecSession(rs,session="test-31012017-0103",
                 path="/data/processing/test/test-31012017-0103",
                 samplingRate = 20000,
                 nChannels = 49,
@@ -17,11 +17,11 @@ test_that("RecSession",{
                 channelsTetrode = matrix(0:47,ncol = 4,byrow = TRUE),
                 env=c("sqr70","rest","sqr70"),
                 stim=c("none","none","none"),
-                electrodeLocation = rep("ca1",12))
+                electrodeLocation = rep("ca1",12),
+                pxPerCm = 10)
           
   ## not much testing done here
-  expect_equal(mean(pt@x),25.5)
-  expect_equal(mean(pt@y),25.5)
-
-  rm(pt,maxx,minx,maxy,miny,x,y,hd,sp1)
+  expect_equal(rs@session,"test-31012017-0103")
+  expect_equal(rs@pxPerCm,10)
+  rm(rs)
 })
