@@ -276,11 +276,11 @@ setMethod(f="saveRecSessionParameterFiles",
             write(x=rs@pxPerCm,
                   file=paste(rs@fileBase,"px_per_cm",sep="."),
                   ncolumns = 1)
-            # write .stim file if needed
+            # write .stimulation file if needed
             if(length(rs@stim)!=0){
-              print(paste("create",paste(rs@fileBase,"stim",sep=".")))
+              print(paste("create",paste(rs@fileBase,"stimulation",sep=".")))
             write(x=rs@stim,
-                  file=paste(rs@fileBase,"stim",sep="."),
+                  file=paste(rs@fileBase,"stimulation",sep="."),
                   ncolumns = 1)
             }
         }
@@ -367,7 +367,7 @@ setMethod(f="setRecSession",
             if(length(env)!=0)
             {
               if(length(env)!=rs@nTrials)
-                stop(paste("length(env) should be rs@nTrials (",rs@nTrials,") but is",lenth(env)))
+                stop(paste("length(env) should be rs@nTrials (",rs@nTrials,") but is",length(env)))
               rs@env<-env
             }
             if(length(stim)!=0)
@@ -379,7 +379,7 @@ setMethod(f="setRecSession",
             if(length(electrodeLocation)!=0)
             {
               if(length(electrodeLocation)!=rs@nElectrodes)
-                stop(paste("length(electrodeLocation) should be rs@nTrials (",rs@nElectrodes,") but is",lenth(electrodeLocation)))
+                stop(paste("length(electrodeLocation) should be rs@nElectrodes (",rs@nElectrodes,") but is",length(electrodeLocation)))
               rs@electrodeLocation<-electrodeLocation
             }
             
