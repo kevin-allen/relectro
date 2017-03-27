@@ -15,7 +15,7 @@ writeMmFile(rs, fet, tetrodeNumber)
 }
 \description{
 This is a legacy file created by Csicsvari detection programs
- relectro don't use it but it is usefull if manual clustering is done with sgclust5b
+ relectro doesn't use it but it is useful if manual clustering is done with sgclust5b
  
  The content of the file is the mean and std of each feature. 
  Need to check if this is correct

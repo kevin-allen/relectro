@@ -9,7 +9,7 @@
 Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 Fields are detected as when one wants to calculate grid scores. 
 Then the region with the 6 fields surrounding the center is kept
-Usefull to test the different steps of the calculation of the grid score.}
+Useful to test the different steps of the calculation of the grid score.}
 \usage{
 autocorrelationDoughnut(sp)
 
@@ -26,5 +26,5 @@ Calculate the spatial autocorrelation of the firing rate maps of neurons and get
 Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 Fields are detected as when one wants to calculate grid scores. 
 Then the region with the 6 fields surrounding the center is kept
-Usefull to test the different steps of the calculation of the grid score.
+Useful to test the different steps of the calculation of the grid score.
 }

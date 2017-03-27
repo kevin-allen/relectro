@@ -1,6 +1,8 @@
 #' Plot a spikes on the animal path
 #' 
-#' Plot the animal path from a Positrack object and the spikes in space from a SpatialProperties2d object
+#' Plot the animal path from a Positrack object and 
+#' the spikes in space from a SpatialProperties2d object.
+#' 
 #' 
 #' @param sop List containing the data to plot the spike on path, you can get this list with the function spikeOnPath
 #' It contains 4 objects: xSpike, ySpike, cluSpike, xPath and yPath 

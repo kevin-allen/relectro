@@ -446,7 +446,7 @@ identifySpikeTimes<-function(dataf,
 #'  Write the par file for each tetrode
 #'
 #'  This is a legacy file created by Csicsvari detection programs
-#'  relectro don't use it but it is usefull if manual clustering is done with kluster or sgclust5b
+#'  relectro don't use it but it is useful if manual clustering is done with kluster or sgclust5b
 #' 
 #'  Here is an example            
 #' 16 4 50     # total number of electrodes, number of electrodes for this group,  sampling interval (in microseconds)
@@ -493,7 +493,7 @@ writeParTetrodeFile<-function(rs,res,fet,tetrodeNumber){
 #'  Write the mm file for each tetrode
 #'
 #'  This is a legacy file created by Csicsvari detection programs
-#'  relectro don't use it but it is usefull if manual clustering is done with sgclust5b
+#'  relectro doesn't use it but it is useful if manual clustering is done with sgclust5b
 #'  
 #'  The content of the file is the mean and std of each feature. 
 #'  Need to check if this is correct

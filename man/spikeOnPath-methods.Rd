@@ -22,5 +22,6 @@ spikeOnPath(sp, st, pt)
 List containing xPath, yPath, xSpike, ySpike, cluSpike
 }
 \description{
-Return the data to plot spikes on the path of the animal
+Only data that fall within the intervals of the SpikeTrain object
+are used.
 }

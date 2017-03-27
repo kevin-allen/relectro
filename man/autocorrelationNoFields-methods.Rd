@@ -20,5 +20,5 @@ SpatialProperties2d object with the spatial autocorrelation in slot autosDetect
 \description{
 The autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 Fields are detected as when one wants to calculate grid scores
-Usefull to test the different steps of the calculation of the grid score.
+Useful to test the different steps of the calculation of the grid score.
 }

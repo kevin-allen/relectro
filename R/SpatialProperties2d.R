@@ -174,9 +174,12 @@ setMethod("show", "SpatialProperties2d",
 
 #' Return the data to plot spikes on the path of the animal
 #' 
-#' @param pt Positrack object
-#' @param st SpikeTrain object
+#' Only data that fall within the intervals of the SpikeTrain object
+#' are used.
+#' 
 #' @param sp SpatialProperties2d
+#' @param st SpikeTrain object
+#' @param pt Positrack object
 #' 
 #' @return List containing xPath, yPath, xSpike, ySpike, cluSpike
 #' 
@@ -198,6 +201,10 @@ setMethod(f="spikeOnPath",
               stop(paste("st@nSpikes==0 in firingRateMap2d",st@session))
             
             sp@cellList<-st@cellList
+            
+            ## set position data outside the SpikeTrain intervals to NA
+            pt<-setInvalidOutsideInterval(pt,s=st@startInterval,e=st@endInterval)
+            
             ## move data closer to 0, like done for firing rate maps
             if(sp@reduceSize==T){
               x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
@@ -231,7 +238,6 @@ setMethod(f="spikeOnPath",
             xSpike<-sp@xSpikes[which(sp@xSpikes!=-1.0&st@clu%in%st@cellList)]
             ySpike<-sp@ySpikes[which(sp@xSpikes!=-1.0&st@clu%in%st@cellList)]
             cluSpike<-st@clu[which(sp@xSpikes!=-1.0&st@clu%in%st@cellList)]
-            
             
             return(list(xPath=xPath,yPath=yPath,xSpike=xSpike,ySpike=ySpike,cluSpike=cluSpike))
           }
@@ -741,7 +747,7 @@ setMethod(f="mapSpatialAutocorrelation",
 #'
 #' The autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 #' Fields are detected as when one wants to calculate grid scores
-#' Usefull to test the different steps of the calculation of the grid score.
+#' Useful to test the different steps of the calculation of the grid score.
 #' 
 #' @param sp SpatialProperties2d object
 #' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDetect
@@ -780,7 +786,7 @@ setMethod(f="autocorrelationNoFields",
 #' Autocorrelation is performed on the firing rate maps of the SpatialProperties2d object.
 #' Fields are detected as when one wants to calculate grid scores. 
 #' Then the region with the 6 fields surrounding the center is kept
-#' Usefull to test the different steps of the calculation of the grid score.
+#' Useful to test the different steps of the calculation of the grid score.
 #' 
 #' @param sp SpatialProperties2d object
 #' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDoughnut
@@ -821,7 +827,7 @@ setMethod(f="autocorrelationDoughnut",
 #' Fields are detected as when one wants to calculate grid scores. 
 #' Then the region with the 6 fields surrounding the center is kept
 #' The rotated copy of the region are stored in slot autosDoughnutRotate
-#' Usefull to test the different steps of the calculation of the grid score.
+#' Useful to test the different steps of the calculation of the grid score.
 #' 
 #' @param sp SpatialProperties2d object
 #' @return SpatialProperties2d object with the spatial autocorrelation in slot autosDoughnutRotate

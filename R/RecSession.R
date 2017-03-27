@@ -25,6 +25,7 @@
 #' @slot channelsTetrode Matrix containing the channel numbers associated with each tetrode
 #' @slot clustered Logical indicating if the spikes are clustered
 #' @slot earlyProcessed Logical indicating if spike extraction has been done
+#' @slot pxPerCm Numeric representing the number of pixels per cm in the position data
 RecSession <- setClass(
   "RecSession", ## name of the class
   slots=c(session="character",
@@ -46,7 +47,8 @@ RecSession <- setClass(
           nTrials="numeric",
           channelsTetrode="matrix",
           clustered="logical",
-          earlyProcessed="logical"),  # cell list to limit the analysis to these cells
+          earlyProcessed="logical",
+          pxPerCm="numeric"),  # cell list to limit the analysis to these cells
   prototype = list(session="",path=""))
 
 #' Load the data regarding a recording session
@@ -162,6 +164,11 @@ setMethod(f="loadRecSession",
                 stop(paste("loadRecSession, samplingRate is out of range:",rs@samplingRate,rs@session))
             }
 
+            ## get the number of pixels per cm in tracking data
+            if(file.exists(paste(rs@fileBase,"px_per_cm",sep="."))){
+              rs@pxPerCm<-read.table(paste(rs@fileBase,"px_per_cm",sep="."))$V1
+            }
+            
             ## if early process was run on this one, get more informaiton from resofs file
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
             {
@@ -204,6 +211,193 @@ setMethod(f="loadRecSession",
             return(rs)
           }
 )
+
+
+#' Create the session configuration files from a RecSession object
+#'
+#' This function create files with the following extension:
+#' .par .desen .desel .px_per_cm .sampling_rate_dat .stim
+#' 
+#' @param rs A RecSession object
+#'
+#' @docType methods
+#' @rdname saveRecSessionParameterFiles-methods
+setGeneric(name="saveRecSessionParameterFiles",
+           def=function(rs)
+           {standardGeneric("saveRecSessionParameterFiles")}
+)
+#' @rdname saveRecSessionParameterFiles-methods
+#' @aliases saveRecSessionParameterFiles,ANY,ANY-method
+setMethod(f="saveRecSessionParameterFiles",
+          signature="RecSession",
+          definition=function(rs)
+          {
+            if(rs@session=="")
+              stop("rs@session is empty")
+            if(!dir.exists(rs@path))
+              stop(paste("saveRecSessionParameterFiles:",rs@path,"does not exist"))
+            if(rs@fileBase=="")
+              stop(paste("saveRecSessionParameterFiles: rs@fileBase is empty"))
+            # write a par file
+            print(paste("create",paste(rs@fileBase,"par",sep=".")))
+            write(x=c(rs@nChannels, 16),file=paste(rs@fileBase,"par",sep="."),append = F,ncolumns = 2)
+            write(x=c(1000000/rs@samplingRate, 800),file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 2)
+            write(x=c(rs@nElectrodes,0),file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 2)
+            for(t in 1:rs@nElectrodes){
+              write(x =c(length(rs@channelsTetrode[t,which(!is.na(rs@channelsTetrode[t,]))]),
+                         rs@channelsTetrode[t,which(!is.na(rs@channelsTetrode[t,]))]),
+                    file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns =length(rs@channelsTetrode[t,which(!is.na(rs@channelsTetrode[t,]))])+1 )
+            }
+            write(x=rs@nTrials,file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 1)
+            write(x=rs@trialNames,file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 1)
+            # write .desen file
+            
+            if(length(rs@env)!=0){
+              print(paste("create",paste(rs@fileBase,"desen",sep=".")))
+              write(x=rs@env,
+                    file=paste(rs@fileBase,"desen",sep="."),
+                    ncolumns = 1)
+            }
+            # write .desel file
+            if(length(rs@electrodeLocation)!=0){
+              print(paste("create",paste(rs@fileBase,"desel",sep=".")))
+                write(x=rs@electrodeLocation,
+                    file=paste(rs@fileBase,"desel",sep="."),
+                    ncolumns = 1)
+            }
+            # write .sampling_rate_dat file
+            print(paste("create",paste(rs@fileBase,"sampling_rate_dat",sep=".")))
+            write(x=rs@samplingRate,
+                  file=paste(rs@fileBase,"sampling_rate_dat",sep="."),
+                  ncolumns = 1)
+            # write .px_per_cm file
+            print(paste("create",paste(rs@fileBase,"px_per_cm",sep=".")))
+            write(x=rs@pxPerCm,
+                  file=paste(rs@fileBase,"px_per_cm",sep="."),
+                  ncolumns = 1)
+            # write .stimulation file if needed
+            if(length(rs@stim)!=0){
+              print(paste("create",paste(rs@fileBase,"stimulation",sep=".")))
+            write(x=rs@stim,
+                  file=paste(rs@fileBase,"stimulation",sep="."),
+                  ncolumns = 1)
+            }
+        }
+)
+
+
+#' Set a RecSession object with data passed as arguments
+#'
+#'
+#' @param rs A RecSession object
+#' @param session Session name
+#' @param path Session directory path
+#' @param samplingRate Sampling rate in Hz
+#' @param nChannels Number of channels in the dat files.
+#' @param nTrials Number of trials
+#' @param nElectrodes Number of electrodes
+#' @param trialNames Names of each trials
+#' @param channelsTetrode Matrix containing the map of channel number for each tetrode, has 4 columns
+#' @param env List of environment names
+#' @param stim List of codes for stimulation
+#' @param electrodeLocation Brain region for each electrode
+#' @param pxPerCm Pixels per cm in position data
+#' @return RecSession
+#'
+#' @docType methods
+#' @rdname setRecSession-methods
+setGeneric(name="setRecSession",
+           def=function(rs,session,path,samplingRate,nChannels,nTrials,nElectrodes,
+                        trialNames,channelsTetrode,env,stim,electrodeLocation,pxPerCm)
+           {standardGeneric("setRecSession")}
+)
+#' @rdname setRecSession-methods
+#' @aliases setRecSession,ANY,ANY-method
+setMethod(f="setRecSession",
+          signature="RecSession",
+          definition=function(rs,session,path,samplingRate,nChannels,nTrials,
+                              nElectrodes,trialNames,channelsTetrode,env,stim,electrodeLocation,pxPerCm)
+          {
+            if(session=="")
+              stop("session is empty, you need to set a session name with session argument")
+            rs@session<-session
+            rs@path<-path
+            rs@fileBase<-paste(rs@path,rs@session,sep="/")
+            rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
+            if(samplingRate!="")
+            {
+              if(samplingRate<1|samplingRate>48000)
+              {stop(paste("samplingRate is out of range:",samplingRate))}
+              rs@samplingRate<-samplingRate  
+            }
+            if(nChannels!=""){
+              if(nChannels<1){
+                stop(paste("nChannels is out of range:",nChannels))
+              }
+              rs@nChannels<-nChannels
+            }
+            if(nTrials!=""){
+              if(nTrials<1){
+                stop(paste("nTrials is out of range:",nTrials))
+              }
+              rs@nTrials<-nTrials
+            }
+            if(nElectrodes!=""){
+              if(nElectrodes<1){
+                stop(paste("nElectrodes is out of range:",nElectrodes))
+              }
+              rs@nElectrodes<-nElectrodes
+            }
+            if(length(trialNames)!=0){
+              if(length(trialNames)!=rs@nTrials)
+                stop(paste("length of trialNames is not equal to rs@nTrials"))
+              rs@trialNames<-trialNames
+            }
+            if(ncol(channelsTetrode)!=0){
+              if(class(channelsTetrode)!="matrix")
+                stop(paste("channelsTetrode should be a matrix but is a",class(channelsTetrode)))
+              if(ncol(channelsTetrode)!=4)
+                stop(paste("ncol(channelsTetrode) should be 4 but is",ncol(channelsTetrode)))
+              if(nrow(channelsTetrode)!=rs@nElectrodes)
+                stop(paste("nrow(channelsTetrode) should be rs@nElectrodes (",rs@nElectrodes,") but is", 
+                           nrow(channelsTetrode)))
+              rs@channelsTetrode<-channelsTetrode
+            }              
+            if(length(env)!=0)
+            {
+              if(length(env)!=rs@nTrials)
+                stop(paste("length(env) should be rs@nTrials (",rs@nTrials,") but is",length(env)))
+              rs@env<-env
+            }
+            if(length(stim)!=0)
+            {
+              if(length(stim)!=rs@nTrials)
+                stop(paste("length(stim) should be rs@nTrials (",rs@nTrials,") but is",length(stim)))
+              rs@stim<-stim
+            }
+            if(length(electrodeLocation)!=0)
+            {
+              if(length(electrodeLocation)!=rs@nElectrodes)
+                stop(paste("length(electrodeLocation) should be rs@nElectrodes (",rs@nElectrodes,") but is",length(electrodeLocation)))
+              rs@electrodeLocation<-electrodeLocation
+            }
+            
+            if(pxPerCm!=""){
+              if(pxPerCm<1){
+                stop(paste("pxPerCm is out of range:",pxPerCm))
+              }
+              rs@pxPerCm<-pxPerCm
+            }
+            
+            rs@clustered=FALSE
+            rs@earlyProcessed<-FALSE
+            rs@fileBase<-paste(rs@path,rs@session,sep="/")
+            rs@animalName<-unlist(strsplit(rs@session,"-"))[1]
+            
+            return(rs)
+          }
+)
+
 
 #' Is the recording session clustered?
 #'
@@ -599,6 +793,7 @@ setMethod("show", "RecSession",
             print(object@channelsTetrode)
             print(paste("clustered:",object@clustered))
             print(paste("earlyProcessed:",object@earlyProcessed))
+            print(paste("pxPerCm:",object@pxPerCm))
           })
 
 

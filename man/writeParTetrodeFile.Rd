@@ -17,7 +17,7 @@ writeParTetrodeFile(rs, res, fet, tetrodeNumber)
 }
 \description{
 This is a legacy file created by Csicsvari detection programs
- relectro don't use it but it is usefull if manual clustering is done with kluster or sgclust5b
+ relectro don't use it but it is useful if manual clustering is done with kluster or sgclust5b
 }
 \details{
 Here is an example            

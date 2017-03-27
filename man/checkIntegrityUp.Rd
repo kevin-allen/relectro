@@ -4,7 +4,8 @@
 \alias{checkIntegrityUp}
 \title{Check the integrity of the up.}
 \usage{
-checkIntegrityUp(up, maxInterUpDelay = 1000, samplingRate = 20000)
+checkIntegrityUp(up, maxInterUpDelay = 1000, samplingRate = 20000,
+  datLengthSamples)
 }
 \arguments{
 \item{up}{Time stamps of the ttl pulses of tracking system}
@@ -12,6 +13,8 @@ checkIntegrityUp(up, maxInterUpDelay = 1000, samplingRate = 20000)
 \item{maxInterUpDelay}{Maximal delay between ups that will be allowed}
 
 \item{samplingRate}{Sampling rate for the time point in up file}
+
+\item{datLengthSamples}{Number of samples in the .dat file}
 }
 \value{
 Return 0 if all is ok and positive number if something is wrong
