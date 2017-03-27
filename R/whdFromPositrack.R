@@ -109,7 +109,7 @@ whdFromPositrack<-function(rs,
     
     interEventCor<-cor(diff(up),diff(posi$startProcTime))
     print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
-    if(interEventCor<0.9)
+    if(interEventCor<0.6)
     {
       paste("The correlation between interUp and interPosi is below 0.8:",interEventCor)
       stop("Something is wrong with alignment")
@@ -245,12 +245,12 @@ whdAlignedTtlPositrack<-function(up,posi){
     cc<-ccf(dup[index:endIndex],dposi[index:endIndex])
     print(paste("peak crosscorrelation between", index, "and", endIndex, "is" ,round(cc$acf[which.max(cc$acf)],3),"at lag",cc$lag[which.max(cc$acf)]))
     ## Warning: the peak in cc$acf might be below 0.90 if there are two data point to remove to remove
-    if(cc$lag[which.max(cc$acf)]>0 & cc$acf[which.max(cc$acf)] > 0.85){
+    if(cc$lag[which.max(cc$acf)]>0 & cc$acf[which.max(cc$acf)] > 0.7){
       print(paste("Removing index in up",index))
       up<-up[0-index]
       removedUp=removedUp+1
       attempted=0
-    } else if(cc$lag[which.max(cc$acf)]<0 & cc$acf[which.max(cc$acf)] > 0.85){
+    } else if(cc$lag[which.max(cc$acf)]<0 & cc$acf[which.max(cc$acf)] > 0.7){
       print(paste("Removing index in posi",index))
       posi<-posi[0-index,]
       removedPosi=removedPosi+1

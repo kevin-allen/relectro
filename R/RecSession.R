@@ -90,7 +90,7 @@ setMethod(f="loadRecSession",
             rs@nChannels<-as.numeric(unlist(strsplit(par[1], split=" "))[1])
             rs@nElectrodes  <-as.numeric(unlist(strsplit(par[3], split=" "))[1])
             rs@nTrials<-as.numeric(par[rs@nElectrodes+4])
-
+            
             ## add tests in case of weird .par file
             if(length(rs@nChannels)!=1)
               stop(paste("rs@nChannels is not set correctly for",rs@session))
@@ -188,13 +188,12 @@ setMethod(f="loadRecSession",
                               path=rs@path,
                               nChannels=rs@nChannels),silent=TRUE)
               if(df@path!=""){
-                rs@trialStartRes<-c(0,cumsum(df@samples[1:(length(df@samples)-1)]))
-                rs@trialEndRes<-cumsum(df@samples[1:(length(df@samples))])-1  # -1 because we want the index
+                rs@trialStartRes<-head(c(0,cumsum(df@samples)),rs@nTrials)
+                rs@trialEndRes<-head(cumsum(df@samples),rs@nTrials)-1  # -1 because we want the index
                 if(length(rs@samplingRate)!=0){
                   rs@trialDurationSec<-(rs@trialEndRes-rs@trialStartRes)/rs@samplingRate
                   rs@sessionDurationSec<-sum(rs@trialDurationSec)
                 }
-              print(rs@trialStartRes)
               }
             }
 
