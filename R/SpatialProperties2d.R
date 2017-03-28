@@ -1375,7 +1375,7 @@ setMethod(f="mapsAsDataFrame",
           }
 )
 
-#' Return firing rate map statisitc as a data.frame
+#' Return firing rate map statisitcs as a data.frame
 #' 
 #' 
 #' @param sp SpatialProperties2d object
@@ -1413,7 +1413,7 @@ setMethod(f="statsAsDataFrame",
             if(shuffle==TRUE){
               if(length(sp@maps)==0)
                 stop("Need to call getMapStatsShuffle() before statsAsDataFrame with shuffle=T")
-              if(length(sp@infoScoreShuffl)==0)
+              if(length(sp@infoScoreShuffle)==0)
                 stop("Need to call getMapStatsShuffle() before statsAsDataFrame with shuffle=T")
               df<-data.frame(clu.id=paste(sp@session,sp@cellList,sep="_"),
                          peakRate=sp@peakRateShuffle,
