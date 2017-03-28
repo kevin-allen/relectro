@@ -11,8 +11,8 @@
 #' @slot animalName Name of the animal
 #' @slot samplingRate Sampling rate of the electrophysiological data
 #' @slot resofs Number of samples in each trial
-#' @slot env List of environments for each trial
-#' @slot stim List of stimulation types
+#' @slot environment List of environments for each trial
+#' @slot stimulation List of stimulation types
 #' @slot electrodeLocation List of electrode location, one per electrode
 #' @slot trialStartRes Sample at which a trial starts. Index starts at 0
 #' @slot trialEndRes Sample at which a trial ends. Index starts at 0
@@ -34,8 +34,8 @@ RecSession <- setClass(
           animalName="character",
           samplingRate="numeric",
           resofs="numeric",
-          env="character",
-          stim="character",
+          environment="character",
+          stimulation="character",
           electrodeLocation="character",
           trialStartRes="numeric",
           trialEndRes="numeric",
@@ -129,17 +129,17 @@ setMethod(f="loadRecSession",
 
             if(file.exists(paste(rs@fileBase,"desen",sep="."))){
               try(
-                rs@env<-as.character(read.table(paste(rs@fileBase,"desen",sep="."))$V1),
+                rs@environment<-as.character(read.table(paste(rs@fileBase,"desen",sep="."))$V1),
                 silent=F)
-              if(length(rs@env)!=length(rs@trialNames))
+              if(length(rs@environment)!=length(rs@trialNames))
                 stop(paste("loadRecSession, problem with length of par and desen files",rs@session))
             }
             
             if(file.exists(paste(rs@fileBase,"stimulation",sep="."))){
               try(
-                rs@stim<-as.character(read.table(paste(rs@fileBase,"stimulation",sep="."))$V1),
+                rs@stimulation<-as.character(read.table(paste(rs@fileBase,"stimulation",sep="."))$V1),
                 silent=F)
-              if(length(rs@stim)!=length(rs@trialNames))
+              if(length(rs@stimulation)!=length(rs@trialNames))
                 stop(paste("loadRecSession, problem with length of par and stimulation files",rs@session))
             }
 
@@ -216,7 +216,7 @@ setMethod(f="loadRecSession",
 #' Create the session configuration files from a RecSession object
 #'
 #' This function create files with the following extension:
-#' .par .desen .desel .px_per_cm .sampling_rate_dat .stim
+#' .par .desen .desel .px_per_cm .sampling_rate_dat .stimulation
 #' 
 #' @param rs A RecSession object
 #'
@@ -252,9 +252,9 @@ setMethod(f="saveRecSessionParameterFiles",
             write(x=rs@trialNames,file=paste(rs@fileBase,"par",sep="."),append = T,ncolumns = 1)
             # write .desen file
             
-            if(length(rs@env)!=0){
+            if(length(rs@environment)!=0){
               print(paste("create",paste(rs@fileBase,"desen",sep=".")))
-              write(x=rs@env,
+              write(x=rs@environment,
                     file=paste(rs@fileBase,"desen",sep="."),
                     ncolumns = 1)
             }
@@ -276,9 +276,9 @@ setMethod(f="saveRecSessionParameterFiles",
                   file=paste(rs@fileBase,"px_per_cm",sep="."),
                   ncolumns = 1)
             # write .stimulation file if needed
-            if(length(rs@stim)!=0){
+            if(length(rs@stimulation)!=0){
               print(paste("create",paste(rs@fileBase,"stimulation",sep=".")))
-            write(x=rs@stim,
+            write(x=rs@stimulation,
                   file=paste(rs@fileBase,"stimulation",sep="."),
                   ncolumns = 1)
             }
@@ -298,8 +298,8 @@ setMethod(f="saveRecSessionParameterFiles",
 #' @param nElectrodes Number of electrodes
 #' @param trialNames Names of each trials
 #' @param channelsTetrode Matrix containing the map of channel number for each tetrode, has 4 columns
-#' @param env List of environment names
-#' @param stim List of codes for stimulation
+#' @param environment List of environment names
+#' @param stimulation List of codes for stimulation
 #' @param electrodeLocation Brain region for each electrode
 #' @param pxPerCm Pixels per cm in position data
 #' @return RecSession
@@ -308,7 +308,7 @@ setMethod(f="saveRecSessionParameterFiles",
 #' @rdname setRecSession-methods
 setGeneric(name="setRecSession",
            def=function(rs,session,path,samplingRate,nChannels,nTrials,nElectrodes,
-                        trialNames,channelsTetrode,env,stim,electrodeLocation,pxPerCm)
+                        trialNames,channelsTetrode,environment,stim,electrodeLocation,pxPerCm)
            {standardGeneric("setRecSession")}
 )
 #' @rdname setRecSession-methods
@@ -316,7 +316,7 @@ setGeneric(name="setRecSession",
 setMethod(f="setRecSession",
           signature="RecSession",
           definition=function(rs,session,path,samplingRate,nChannels,nTrials,
-                              nElectrodes,trialNames,channelsTetrode,env,stim,electrodeLocation,pxPerCm)
+                              nElectrodes,trialNames,channelsTetrode,environment,stimulation,electrodeLocation,pxPerCm)
           {
             if(session=="")
               stop("session is empty, you need to set a session name with session argument")
@@ -363,17 +363,17 @@ setMethod(f="setRecSession",
                            nrow(channelsTetrode)))
               rs@channelsTetrode<-channelsTetrode
             }              
-            if(length(env)!=0)
+            if(length(environment)!=0)
             {
-              if(length(env)!=rs@nTrials)
-                stop(paste("length(env) should be rs@nTrials (",rs@nTrials,") but is",length(env)))
-              rs@env<-env
+              if(length(environment)!=rs@nTrials)
+                stop(paste("length(env) should be rs@nTrials (",rs@nTrials,") but is",length(environment)))
+              rs@environment<-environment
             }
-            if(length(stim)!=0)
+            if(length(stimulation)!=0)
             {
-              if(length(stim)!=rs@nTrials)
-                stop(paste("length(stim) should be rs@nTrials (",rs@nTrials,") but is",length(stim)))
-              rs@stim<-stim
+              if(length(stimulation)!=rs@nTrials)
+                stop(paste("length(stimulation) should be rs@nTrials (",rs@nTrials,") but is",length(stimulation)))
+              rs@stimulation<-stimulation
             }
             if(length(electrodeLocation)!=0)
             {
@@ -484,12 +484,12 @@ setMethod(f="containsEnvironment",
           signature="RecSession",
           definition=function(rs,environment="")
           {
-            return(any(rs@env==environment))
+            return(any(rs@environment==environment))
           })
 
 #' Check if the session had a trial in a given stimulation type
 #'
-#' This will check whether the value of stimulation is in the stim vector.
+#' This will check whether the value of stimulation is in the stimulation vector.
 #' 
 #' @param rs A RecSession object
 #' @param stimulation The name of a stimulation
@@ -507,7 +507,7 @@ setMethod(f="containsStimulation",
           signature="RecSession",
           definition=function(rs,stimulation="")
           {
-            return(any(rs@stim==stimulation))
+            return(any(rs@stimulation==stimulation))
           })
 
 
@@ -586,12 +586,12 @@ setMethod(f="getIntervalsEnvironment",
               print("trialStartRes is not set")
               return()
             }
-            if(!environment%in%rs@env){
+            if(!environment%in%rs@environment){
               print("environment not used in the session")
               return()
             }
-          return(matrix(data=c(rs@trialStartRes[which(rs@env==environment)],rs@trialEndRes[which(rs@env==environment)]),ncol=2,
-                 dimnames=list(rep(environment,length(which(rs@env==environment))),c("start","end"))))
+          return(matrix(data=c(rs@trialStartRes[which(rs@environment==environment)],rs@trialEndRes[which(rs@environment==environment)]),ncol=2,
+                 dimnames=list(rep(environment,length(which(rs@environment==environment))),c("start","end"))))
           })
 
 #' Get the time intervals in sample values for trials for a given stimulation
@@ -616,12 +616,12 @@ setMethod(f="getIntervalsStimulation",
               print("trialStartRes is not set")
               return()
             }
-            if(!stimulation%in%rs@stim){
+            if(!stimulation%in%rs@stimulation){
               print("stimulation not used in the session")
               return()
             }
-          return(matrix(data=c(rs@trialStartRes[which(rs@stim==stimulation)],rs@trialEndRes[which(rs@stim==stimulation)]),ncol=2,
-                 dimnames=list(rep(stimulation,length(which(rs@stim==stimulation))),c("start","end"))))
+          return(matrix(data=c(rs@trialStartRes[which(rs@stimulation==stimulation)],rs@trialEndRes[which(rs@stimulation==stimulation)]),ncol=2,
+                 dimnames=list(rep(stimulation,length(which(rs@stimulation==stimulation))),c("start","end"))))
           })
 
 #' Load a set of objects that are session specific
@@ -769,13 +769,13 @@ setMethod("show", "RecSession",
             print(paste("samplingRate:",object@samplingRate,"Hz"))
             print(paste("nChannels:",object@nChannels))
             print(paste("nTrials:",object@nTrials))
-            if(length(object@env)!=0){
-              print(paste("env:"))
-              print(paste(object@env))
+            if(length(object@environment)!=0){
+              print(paste("environment:"))
+              print(paste(object@environment))
             }
-            if(length(object@stim)!=0){
-              print(paste("stim:"))
-              print(paste(object@stim))
+            if(length(object@stimulation)!=0){
+              print(paste("stimulation:"))
+              print(paste(object@stimulation))
             }
             print(paste("nElectrodes:",object@nElectrodes))
             if(length(object@electrodeLocation)!=0){
