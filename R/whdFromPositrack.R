@@ -108,7 +108,7 @@ whdFromPositrack<-function(rs,
     
     interEventCor<-cor(diff(up),diff(posi$startProcTime))
     print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
-    if(interEventCor<0.6)
+    if(interEventCor<0.8)
     {
       paste("The correlation between interUp and interPosi is below 0.8:",interEventCor)
       stop("Something is wrong with alignment")
@@ -256,7 +256,7 @@ positrackDatAlignmentCheck<-function(datFileName,
     interEventCor=0
   }
     
-  if(lup!=lposi|interEventCor<0.50)  
+  if(lup!=lposi|interEventCor<0.70)  
   { # try to align the frames using jitters
     print(paste("length of up (",lup,") and positrack (",lposi,") differs"))
     if(!is.list(x<-whdAlignedTtlPositrack(up,posi))){
