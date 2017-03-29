@@ -14,6 +14,7 @@
 #' @slot environment List of environments for each trial
 #' @slot stimulation List of stimulation types
 #' @slot setup List of recording setups used in the recording session.
+#' @slot environmentFamiliarity Indicate whether the environment was familiar (fam) or novel (nov) for the animal
 #' @slot electrodeLocation List of electrode location, one per electrode
 #' @slot trialStartRes Sample at which a trial starts. Index starts at 0
 #' @slot trialEndRes Sample at which a trial ends. Index starts at 0
@@ -38,6 +39,7 @@ RecSession <- setClass(
           environment="character",
           stimulation="character",
           setup="character",
+          environmentFamiliarity="character",
           electrodeLocation="character",
           trialStartRes="numeric",
           trialEndRes="numeric",
@@ -151,6 +153,13 @@ setMethod(f="loadRecSession",
                 silent=F)
               if(length(rs@setup)!=length(rs@trialNames))
                 stop(paste("loadRecSession, problem with length of par and setup files",rs@session))
+            }
+            if(file.exists(paste(rs@fileBase,"environmentFamiliarity",sep="."))){
+              try(
+                rs@environmentFamiliarity<-as.character(read.table(paste(rs@fileBase,"environmentFamiliarity",sep="."))$V1),
+                silent=F)
+              if(length(rs@environmentFamiliarity)!=length(rs@trialNames))
+                stop(paste("loadRecSession, problem with length of par and environmentFamiliarity files",rs@session))
             }
             
             if(file.exists(paste(rs@fileBase,"desel",sep="."))){
@@ -299,6 +308,13 @@ setMethod(f="saveRecSessionParameterFiles",
                     file=paste(rs@fileBase,"setup",sep="."),
                     ncolumns = 1)
             }
+            # write .environmentFamiliarity file if needed
+            if(length(rs@environmentFamiliarity)!=0){
+              print(paste("create",paste(rs@fileBase,"environmentFamiliarity",sep=".")))
+              write(x=rs@environmentFamiliarity,
+                    file=paste(rs@fileBase,"environmentFamiliarity",sep="."),
+                    ncolumns = 1)
+            }
         }
 )
 
@@ -315,9 +331,10 @@ setMethod(f="saveRecSessionParameterFiles",
 #' @param nElectrodes Number of electrodes
 #' @param trialNames Names of each trials
 #' @param channelsTetrode Matrix containing the map of channel number for each tetrode, has 4 columns
-#' @param environment List of environment names
-#' @param stimulation List of codes for stimulation
-#' @param setup List of recording setups
+#' @param environment Recording environment names during each trial
+#' @param stimulation Codes for stimulation during each trial
+#' @param setup Recording setups during each trial
+#' @param environmentFamiliarity Familiarity of the recording environment during each trial
 #' @param electrodeLocation Brain region for each electrode
 #' @param pxPerCm Pixels per cm in position data
 #' @return RecSession
@@ -326,7 +343,7 @@ setMethod(f="saveRecSessionParameterFiles",
 #' @rdname setRecSession-methods
 setGeneric(name="setRecSession",
            def=function(rs,session,path,samplingRate,nChannels,nTrials,nElectrodes,
-                        trialNames,channelsTetrode,environment,stimulation,setup,electrodeLocation,pxPerCm)
+                        trialNames,channelsTetrode,environment,stimulation,setup,environmentFamiliarity,electrodeLocation,pxPerCm)
            {standardGeneric("setRecSession")}
 )
 #' @rdname setRecSession-methods
@@ -334,7 +351,7 @@ setGeneric(name="setRecSession",
 setMethod(f="setRecSession",
           signature="RecSession",
           definition=function(rs,session,path,samplingRate,nChannels,nTrials,
-                              nElectrodes,trialNames,channelsTetrode,environment,stimulation,setup,electrodeLocation,pxPerCm)
+                              nElectrodes,trialNames,channelsTetrode,environment,stimulation,setup,environmentFamiliarity,electrodeLocation,pxPerCm)
           {
             if(session=="")
               stop("session is empty, you need to set a session name with session argument")
@@ -399,6 +416,12 @@ setMethod(f="setRecSession",
                 stop(paste("length(setup) should be rs@nTrials (",rs@nTrials,") but is",length(setup)))
               rs@setup<-setup
             }
+            if(length(environmentFamiliarity)!=0)
+            {
+              if(length(environmentFamiliarity)!=rs@nTrials)
+                stop(paste("length(environmentFamiliarity) should be rs@nTrials (",rs@nTrials,") but is",length(environmentFamiliarity)))
+              rs@environmentFamiliarity<-environmentFamiliarity
+            }  
             
             if(length(electrodeLocation)!=0)
             {
@@ -805,6 +828,10 @@ setMethod("show", "RecSession",
             if(length(object@setup)!=0){
               print(paste("setup:"))
               print(paste(object@setup))
+            }
+            if(length(object@environmentFamiliarity)!=0){
+              print(paste("environmentFamiliarity:"))
+              print(paste(object@environmentFamiliarity))
             }
             
             print(paste("nElectrodes:",object@nElectrodes))

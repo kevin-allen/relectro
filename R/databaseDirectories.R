@@ -10,6 +10,8 @@
 #' If the linkTo is set to a valid path (e.g. /data/processing), a symbolic link from the 
 #' subject directory to the value of linkTo will be created.
 #' 
+#' By default, all permissions will be given to the directories ('777')
+#' 
 #' The session names should be in the format animalName-date-firstTrialLastTrial.
 #' For example ka1111-31012017-0103
 #' 
@@ -40,6 +42,7 @@ databaseDirectories<-function(session,
     print(paste("create",subjectDir))
     if(dir.create(subjectDir,showWarnings = TRUE)==FALSE)
       stop(paste("databaseDirectories, problem creating",subjectDir))
+    Sys.chmod(subjectDir,mode='775',use_umask = FALSE) # give all permissions on the directory
   }
   ## create the symbolic link to subject directory
   if(!is.na(linkTo)){
@@ -50,6 +53,7 @@ databaseDirectories<-function(session,
       print(paste("create symbolic link from ",subjectDir,"to",linkToFile))
       if(file.symlink(from=subjectDir,to=linkToFile)==F)
         stop(paste("databaseDirectories, problem creating",linkToFile))
+      Sys.chmod(linkToFile,mode='775',use_umask = FALSE) # give all permissions on the link
     }else{
       print(paste("databaseDirectories, file",linkToFile,"already exists"))
     }
@@ -59,7 +63,8 @@ databaseDirectories<-function(session,
   if(file.exists(sessionDir)){
     stop(paste("databaseDirectories,",sessionDir,"already exists"))
   }
-  print(paste("create",subjectDir))
+  print(paste("create",sessionDir))
   if(dir.create(sessionDir,showWarnings = TRUE)==FALSE)
     stop(paste("databaseDirectories, problem creating",sessionDir))
+  Sys.chmod(sessionDir,mode='775',use_umask = FALSE) # give all permissions on the directory
 }
