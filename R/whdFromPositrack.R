@@ -71,8 +71,7 @@ whdFromPositrack<-function(rs,
                                       lastSample = rs@trialEndRes[tIndex]))
     
     up<-detectUps(x) ## detect rising times of ttl pulses
-    
-    if(checkIntegrityUp(up,samplingRate=rs@samplingRate,datLengthSamples=rs@trialEndRes[tIndex])!=0)
+    if(checkIntegrityUp(up,samplingRate=rs@samplingRate,datLengthSamples=rs@trialEndRes[tIndex]-rs@trialStartRes[tIndex])!=0)
       stop(paste("check of integrity of up failed"))
    
     ######################################
@@ -283,7 +282,8 @@ positrackDatAlignmentCheck<-function(datFileName,
 #' 
 #' @param up Time of up phase of ttl pulses
 #' @param posi Data from the positrack file
-whdAlignedTtlPositrack<-function(up,posi){
+#' @param ccLength Lenght of the segment of data to use for crosscorrelation when a delay mismach is found
+whdAlignedTtlPositrack<-function(up,posi,ccLength=20){
   dup<-diff(up)
   dposi<-diff(posi$startProcTime*20)
   minLength<-min(c(length(dup),length(dposi)))
@@ -301,57 +301,57 @@ whdAlignedTtlPositrack<-function(up,posi){
     print("The alignment problem is for more than 10 frames, no solution implemented for this yet")
     return(NA)
   }
-  ## visualize the situation
-  dup<-diff(up)
-  dposi<-diff(posi$startProcTime*20)
-  lmin<-min(length(dup),length(dposi))
-  dif<-head(dup,n=lmin)-head(dposi,n=lmin)
-  plot(dif,type='l')
+  
   removedPosi=0
   removedUp=0
+  latestRemoved=0
   attempted=0
   print(paste("Try to remove ttl or posi data points based on crosscorrelation"))
   while(TRUE){
     ## recalculate the differences
-    dup<-diff(up)
-    dposi<-diff(posi$startProcTime*20)
+    dup<-diff(up/20)
+    dposi<-diff(posi$startProcTime)
     print(paste("length up:", length(up),"length posi",length(posi$startProcTime)))
-    
+  
     ## compare the diff of two signal
     ## start at last index, to avoid retesting always the same data point
     lmin<-min(length(dup),length(dposi))
     dif<-head(dup,n=lmin)-head(dposi,n=lmin)
-    #plot(dif,type='l')
-    if(attempted==0){
-      index<-head(which(dif< -50),n=1)
-    } else{
-      index<-head(which(dif< -50)[-c(1:attempted)],n=1)
-    }
-    if(length(index)==0){
+    index<-which(dif< -2.5 | dif > 2.5) ## if difference is larger than 2.5 ms
+    index<-index[which(index>latestRemoved)][1+attempted]
+    print(index)
+    if(length(index)==0|is.na(index)){
       print("no more indices to test")
       break()
     }
     print(paste("large difference at index",index))
+    
+    plot(dup[(index-ccLength):(index+ccLength)],type='l')  
+    lines(dposi[(index-ccLength):(index+ccLength)],type='l',col="red")  
+    Sys.sleep(1)
+    
     ## should we remove an up or posi line?
     ## if the crosscorrelation function of the 2 signals has a peak after 0, remove up[index]
     ## get a segment of data of approximately 250 data points
-    if(index+250>length(posi$no)){
+    if(index+ccLength>length(posi$no)){
       endIndex=length(posi$no) 
     }else{
-      endIndex=index+250
+      endIndex=index+ccLength
     }
-    cc<-ccf(dup[index:endIndex],dposi[index:endIndex])
+    
+    cc<-ccf(dup[(index+2):endIndex],dposi[(index+2):endIndex])
     print(paste("peak crosscorrelation between", index, "and", endIndex, "is" ,round(cc$acf[which.max(cc$acf)],3),"at lag",cc$lag[which.max(cc$acf)]))
-    ## Warning: the peak in cc$acf might be below 0.90 if there are two data point to remove to remove
-    if(cc$lag[which.max(cc$acf)]>0 & cc$acf[which.max(cc$acf)] > 0.7){
+    if(cc$lag[which.max(cc$acf)]>0 & cc$acf[which.max(cc$acf)] > 0.5){
       print(paste("Removing index in up",index))
       up<-up[0-index]
       removedUp=removedUp+1
+      lastRemoved=index  
       attempted=0
-    } else if(cc$lag[which.max(cc$acf)]<0 & cc$acf[which.max(cc$acf)] > 0.7){
+    } else if(cc$lag[which.max(cc$acf)]<0 & cc$acf[which.max(cc$acf)] > 0.8){
       print(paste("Removing index in posi",index))
       posi<-posi[0-index,]
       removedPosi=removedPosi+1
+      lastRevmoved=index
       attempted=0
     } else{
       print(paste("Index",index,"not removed"))
@@ -369,7 +369,6 @@ whdAlignedTtlPositrack<-function(up,posi){
   dif<-dup-dposi
   plot(dif,type='l')
   
-  
   if(removedUp+removedPosi>10){
     print(paste("Removed up:",removedUp, "removed posi:",removedPosi))
     print(paste("More than 10 missalignments were detected. There is a problem with recording setup"))
@@ -383,7 +382,7 @@ whdAlignedTtlPositrack<-function(up,posi){
   print(paste("correlation last 2000:",round(cor2,4)))
   print(paste("correlation all:",round(cor3,4)))
   print(paste("Removed up:",removedUp, "removed posi:",removedPosi))
-  if(cor1<0.96|cor2<0.96| cor3<.98){
+  if(cor1<0.98|cor2<0.98| cor3<.95){
     print(paste("alignment failed because of correlation of jitter too low"))
     return(NA)
   }
@@ -402,6 +401,7 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
                                       maxInterCapDelay=1000,
                                       maxInterProcDelay=1000,
                                       maxProcDuration=1000){
+  print("Check integrity of positrack file")
   ## check for valid header
   validHeaderBeginning<-c("no","capTime","startProcTime")
   if(!all(validHeaderBeginning==names(posi)[1:3])){
@@ -416,9 +416,14 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
     return(2)
   }
 
+  if(any(diff(posi$no)!=1)){
+    print("According to posi$no, some frames are missing from the positrack file")
+    return(2)
+  }
+  
   # check capture/processing delays
   delayCapProc<-posi$startProcTime-posi$capTime
-  print(paste("Max delay between capture and processing of frame is",max(delayCapProc),"at index",which.max(delayCapProc)))
+  print(paste("Max delay between capture and processing of frame is",round(max(delayCapProc)),"ms at index",which.max(delayCapProc)))
   print(paste("Number of delay between capture and precessing of frame above 100 ms:",sum(delayCapProc>100)))
   if(max(delayCapProc)>maxDelayCapProc)
   {
@@ -429,7 +434,7 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
   # Check inter-caputre delays
   # This would suggest that some frames might have been lost
   interCapDelay<-diff(posi$capTime)
-  print(paste("Max inter caputre delay:",max(interCapDelay),"at index",which.max(interCapDelay)))
+  print(paste("Max inter caputre delay:",max(interCapDelay),"ms at index",which.max(interCapDelay)))
   print(paste("Number of inter capture time above 30 ms:",sum(interCapDelay>30)))
   if(max(interCapDelay)>maxInterCapDelay)
   {
@@ -439,7 +444,7 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
   
   ## Check inter-processing delays
   interProcDelay<-diff(posi$startProcTime)
-  print(paste("Max inter processing delay:",max(interProcDelay),"at index",which.max(interProcDelay)))
+  print(paste("Max inter processing delay:",round(max(interProcDelay)),"ms at index",which.max(interProcDelay)))
   print(paste("Number of inter processing time above 50 ms:",sum(interProcDelay>50)))
   if(max(interProcDelay)>maxInterProcDelay)
   {
@@ -461,11 +466,11 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
   #     delayCapProc[(which.max(delayCapProc)-15):(which.max(delayCapProc)+100)],ylim=c(0,max(delayCapProc)),
   #     ylab="Capture-Processing delays",
   #     xlab="Frame number")
-  plot(delayCapProc,type='l',
-       ylab="Capture-Processing delays",
-       xlab="Frame number")
-  lines(interCapDelay,col='red')
-  lines(posi$procDuration,col='blue')
+  #plot(delayCapProc,type='l',
+  #     ylab="Capture-Processing delays",
+  #     xlab="Frame number")
+  #lines(interCapDelay,col='red')
+  #lines(posi$procDuration,col='blue')
   return(0)  
 }
 
@@ -478,6 +483,7 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
 #' @return Return 0 if all is ok and positive number if something is wrong
 checkIntegrityUp<-function(up,maxInterUpDelay=1000,samplingRate=20000,datLengthSamples){
   d<-diff(up)
+  print("Check integrity of up")
   print(paste("Minimum delay between up", min(d)/samplingRate*1000, "ms"))
   print(paste("Maximum delay between up", max(d)/samplingRate*1000, "ms"))
   if(any(diff(up)<1*samplingRate/1000)){
