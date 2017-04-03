@@ -28,6 +28,7 @@
 #' @slot clustered Logical indicating if the spikes are clustered
 #' @slot earlyProcessed Logical indicating if spike extraction has been done
 #' @slot pxPerCm Numeric representing the number of pixels per cm in the position data
+#' @slot resSamplesPerWhdSample Number of electrophysiological sample between two samples in the position file (whd)
 RecSession <- setClass(
   "RecSession", ## name of the class
   slots=c(session="character",
@@ -52,7 +53,8 @@ RecSession <- setClass(
           channelsTetrode="matrix",
           clustered="logical",
           earlyProcessed="logical",
-          pxPerCm="numeric"),  # cell list to limit the analysis to these cells
+          pxPerCm="numeric",
+          resSamplesPerWhdSample="numeric"),  # cell list to limit the analysis to these cells
   prototype = list(session="",path=""))
 
 #' Load the data regarding a recording session
@@ -187,6 +189,11 @@ setMethod(f="loadRecSession",
             if(file.exists(paste(rs@fileBase,"px_per_cm",sep="."))){
               rs@pxPerCm<-read.table(paste(rs@fileBase,"px_per_cm",sep="."))$V1
             }
+            ## get the number of res samples per whd sample in the tracking data
+            if(file.exists(paste(rs@fileBase,"res_samples_per_whd_sample",sep="."))){
+              rs@resSamplesPerWhdSample<-read.table(paste(rs@fileBase,"res_samples_per_whd_sample",sep="."))$V1
+            }
+            
             
             ## if early process was run on this one, get more informaiton from resofs file
             if(file.exists(paste(rs@fileBase,"resofs",sep=".")))
@@ -294,6 +301,11 @@ setMethod(f="saveRecSessionParameterFiles",
             write(x=rs@pxPerCm,
                   file=paste(rs@fileBase,"px_per_cm",sep="."),
                   ncolumns = 1)
+            # write .res_samples_per_whd_sample
+            print(paste("create",paste(rs@fileBase,"res_samples_per_whd_sample",sep=".")))
+            write(x=rs@resSamplesPerWhdSample,
+                  file=paste(rs@fileBase,"res_samples_per_whd_sample",sep="."),
+                  ncolumns = 1)
             # write .stimulation file if needed
             if(length(rs@stimulation)!=0){
               print(paste("create",paste(rs@fileBase,"stimulation",sep=".")))
@@ -337,13 +349,15 @@ setMethod(f="saveRecSessionParameterFiles",
 #' @param environmentFamiliarity Familiarity of the recording environment during each trial
 #' @param electrodeLocation Brain region for each electrode
 #' @param pxPerCm Pixels per cm in position data
+#' @param resSamplesPerWhdSample Number of res samples between whd sample
 #' @return RecSession
 #'
 #' @docType methods
 #' @rdname setRecSession-methods
 setGeneric(name="setRecSession",
            def=function(rs,session,path,samplingRate,nChannels,nTrials,nElectrodes,
-                        trialNames,channelsTetrode,environment,stimulation,setup,environmentFamiliarity,electrodeLocation,pxPerCm)
+                        trialNames,channelsTetrode,environment,stimulation,setup,environmentFamiliarity,electrodeLocation,
+                        pxPerCm,resSamplesPerWhdSample)
            {standardGeneric("setRecSession")}
 )
 #' @rdname setRecSession-methods
@@ -351,7 +365,8 @@ setGeneric(name="setRecSession",
 setMethod(f="setRecSession",
           signature="RecSession",
           definition=function(rs,session,path,samplingRate,nChannels,nTrials,
-                              nElectrodes,trialNames,channelsTetrode,environment,stimulation,setup,environmentFamiliarity,electrodeLocation,pxPerCm)
+                              nElectrodes,trialNames,channelsTetrode,environment,stimulation,setup,environmentFamiliarity,electrodeLocation,
+                              pxPerCm,resSamplesPerWhdSample)
           {
             if(session=="")
               stop("session is empty, you need to set a session name with session argument")
@@ -436,7 +451,14 @@ setMethod(f="setRecSession",
               }
               rs@pxPerCm<-pxPerCm
             }
-            
+          
+            if(resSamplesPerWhdSample!=""){
+              if(resSamplesPerWhdSample<1){
+                stop(paste("resSamplesPerWhdSample is out of range:",resSamplesPerWhdSample))
+              }
+              rs@resSamplesPerWhdSample<-resSamplesPerWhdSample
+            }
+              
             rs@clustered=FALSE
             rs@earlyProcessed<-FALSE
             rs@fileBase<-paste(rs@path,rs@session,sep="/")
@@ -851,6 +873,7 @@ setMethod("show", "RecSession",
             print(paste("clustered:",object@clustered))
             print(paste("earlyProcessed:",object@earlyProcessed))
             print(paste("pxPerCm:",object@pxPerCm))
+            print(paste("resSamplesPerWhdSample:",object@resSamplesPerWhdSample))
           })
 
 
