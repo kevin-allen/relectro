@@ -4,12 +4,14 @@
 \alias{whdAlignedTtlPositrack}
 \title{Try to realign the up part of ttl pulses from .dat file and the positrack frames for a single trial.}
 \usage{
-whdAlignedTtlPositrack(up, posi)
+whdAlignedTtlPositrack(up, posi, ccLength = 20)
 }
 \arguments{
 \item{up}{Time of up phase of ttl pulses}
 
 \item{posi}{Data from the positrack file}
+
+\item{ccLength}{Lenght of the segment of data to use for crosscorrelation when a delay mismach is found}
 }
 \description{
 One assumption that is made is that there is variability in the intervals between frames in the positrack software

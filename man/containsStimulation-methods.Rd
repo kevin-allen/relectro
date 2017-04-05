@@ -20,5 +20,5 @@ containsStimulation(rs, stimulation = "")
 TRUE or FALSE
 }
 \description{
-This will check whether the value of stimulation is in the stim vector.
+This will check whether the value of stimulation is in the stimulation vector.
 }

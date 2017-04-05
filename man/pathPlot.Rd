@@ -5,9 +5,10 @@
 \title{Plot the animal path}
 \usage{
 pathPlot(pt, name = "", outma = c(2, 2, 2, 2), margin = c(1.5, 1.5, 1, 1),
-  cex.name = 0.6, cex.point = 0.2, plotxlim = c(0, 80), plotylim = c(0,
-  80), mgp.x = c(0.5, 0.05, 0), mgp.y = c(0.8, 0.3, 0.2), axis.x.pos = 0,
-  axis.y.pos = 0, plot.axis = TRUE, xlab = "", ylab = "")
+  cex.name = 0.6, cex.line = 0.2, cex.lab = 0.6, cex.axis = 0.6,
+  plotxlim = c(0, 80), plotylim = c(0, 80), mgp.x = c(0.5, 0.05, 0),
+  mgp.y = c(0.8, 0.3, 0.2), axis.x.pos = 0, axis.y.pos = 0,
+  plot.axis = TRUE, xlab = "", ylab = "")
 }
 \arguments{
 \item{pt}{Positrack object}
@@ -20,7 +21,11 @@ pathPlot(pt, name = "", outma = c(2, 2, 2, 2), margin = c(1.5, 1.5, 1, 1),
 
 \item{cex.name}{Size of the font use for the name of the map}
 
-\item{cex.point}{Size of the spike points}
+\item{cex.line}{Size of the line}
+
+\item{cex.lab}{Size of labels}
+
+\item{cex.axis}{Size of axis}
 
 \item{plotxlim}{Limits of the x axis}
 

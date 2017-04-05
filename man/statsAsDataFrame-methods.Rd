@@ -5,7 +5,7 @@
 \alias{statsAsDataFrame}
 \alias{statsAsDataFrame,SpatialProperties2d-method}
 \alias{statsAsDataFrame,ANY,ANY-method}
-\title{Return firing rate map statisitc as a data.frame}
+\title{Return firing rate map statisitcs as a data.frame}
 \usage{
 statsAsDataFrame(sp, shuffle)
 
@@ -20,5 +20,5 @@ statsAsDataFrame(sp, shuffle)
 data.frame with the firing rate map stats.
 }
 \description{
-Return firing rate map statisitc as a data.frame
+Return firing rate map statisitcs as a data.frame
 }
