@@ -408,8 +408,8 @@ setMethod(f="occupancyMap2d",
           {
             if(length(pt@x)==0)
               stop(paste("pt@x has length of 0 in occupancyMap2d",st@session))
-            if(length(st@startIntervals)==0)
-              stop(paste("length of st@startIntervals == 0 in occupancyMap2d",st@session))
+            if(length(st@startInterval)==0)
+              stop(paste("length of st@startInterval == 0 in occupancyMap2d",st@session))
             if(!is.na(nRowMap)|!is.na(nColMap)){
               if(is.na(nRowMap))
                 stop("if you set nColMap, you need to also set nRowMap")
