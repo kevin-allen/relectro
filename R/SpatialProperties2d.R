@@ -1186,6 +1186,8 @@ setMethod(f="borderDetection",
 #' @param runLm Logical, if TRUE a linear model will be build and slope and intercept calculated
 #' @return SpatialProperties2d object with the speed scores in the slots SpeedScore. 
 #' If runLm argument was TRUE, then speedRateSlope and peedRateIntercept will also be filled
+#' The analysis only use period withing the intervals of the SpikeTrain object
+#' The function ifr() should be called prior to calling speedScore()
 #' 
 #' @docType methods
 #' @rdname speedScore-methods
@@ -1301,7 +1303,7 @@ setMethod(f="speedScoreShuffle",
 #' Speed-rate tuning curve from spike train and positrack
 #' 
 #' Uses the ifr of cells to calculate the mean firing rate of neurons 
-#' for different speed bands.
+#' for different speed bands. You need to call ifr() on the st object first.
 #' 
 #' @param sp SpatialProperties2d object
 #' @param st SpikeTrain object with ifr
