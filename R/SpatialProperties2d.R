@@ -1277,6 +1277,8 @@ setMethod(f="speedScoreShuffle",
             if(sp@nShufflings==0)            
               stop("sp@nShufflings==0")
             
+            sp@cellList<-st@cellList
+            
             ## get the ifr and ifrTime inside st@interval
             resTime<-st@ifrTime*st@samplingRate
             index<-as.logical(.Call("resWithinIntervals",
