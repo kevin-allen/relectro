@@ -1261,6 +1261,8 @@ setMethod(f="speedScoreShuffle",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt,minSpeed=3,maxSpeed=100)
           {
+            sp@cellList<-st@cellList
+
             if(length(pt@speed)==0)
               stop("pt@speed has length of 0")
             if(dim(st@ifr)[1]!=length(sp@cellList))
