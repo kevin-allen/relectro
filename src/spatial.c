@@ -6149,3 +6149,182 @@ void spike_triggered_hd_cross_histo(int num_bins,double degrees_per_bin, double 
     }
   }
 }
+
+
+
+
+SEXP map_spatial_crosscorrelation_cwrap(SEXP cell_lines_r,
+                                        SEXP cell_list_r,
+                                        SEXP cell_pair_lines_r,
+                                        SEXP cell_pair1_r,
+                                        SEXP cell_pair2_r,
+                                        SEXP maps_r, 
+                                        SEXP num_bins_x_r,
+                                        SEXP num_bins_y_r,
+                                        SEXP cross_num_bins_x_r,
+                                        SEXP cross_num_bins_y_r,
+                                        SEXP min_bins_for_correlation_r)
+{
+  int cell_lines = INTEGER_VALUE(cell_lines_r);
+  int* cell_list = INTEGER_POINTER(cell_list_r);
+  int cell_pair_lines = INTEGER_VALUE(cell_pair_lines_r);
+  int* clu1 = INTEGER_POINTER(cell_pair1_r);
+  int* clu2 = INTEGER_POINTER(cell_pair2_r);
+  double* maps = REAL(maps_r);
+  int num_bins_x = INTEGER_VALUE(num_bins_x_r);
+  int num_bins_y = INTEGER_VALUE(num_bins_y_r);
+  int cross_num_bins_x = INTEGER_VALUE(cross_num_bins_x_r);
+  int cross_num_bins_y = INTEGER_VALUE(cross_num_bins_y_r);
+  int min_bins_for_correlation = INTEGER_VALUE(min_bins_for_correlation_r);
+  
+  double* map1;
+  double* map2;
+  double* one_map;
+  double* one_tmap;
+  int one_map_size=num_bins_x*num_bins_y;
+  
+  // transpose the maps
+  double* tmaps = (double*) malloc(one_map_size*cell_lines*sizeof(double));
+  //transpose the maps for R
+  for(int i = 0; i < cell_lines;i++){
+    one_map = maps + (i*one_map_size);
+    one_tmap = tmaps + (i*one_map_size);
+    for(int x =0; x < num_bins_x;x++)
+      for(int y =0; y < num_bins_y;y++)
+        one_tmap[x*num_bins_y+y]=one_map[x+num_bins_x*y];
+  }
+  
+  int total_bins_cross= cross_num_bins_x*cross_num_bins_y;
+  SEXP out = PROTECT(allocVector(REALSXP,total_bins_cross*cell_lines));
+  double* all_cross = (double*) malloc(total_bins_cross*cell_lines*sizeof(double));
+  double* one_cross;
+  double* all_tcross=REAL(out);
+  double* one_tcross;
+  
+  
+  for (int i = 0 ; i < cell_pair_lines; i++)
+  {
+    for (int j = 0; j < cell_lines; j++)
+    {
+      if (cell_list[j]==clu1[i])
+      {
+        map1=tmaps + (j*one_map_size);
+      }
+      if (cell_list[j]==clu2[i])
+      {
+        map2=tmaps + (j*one_map_size);
+      }
+    }
+    one_cross=all_cross+(i*total_bins_cross);
+    // calculate the crosscorrelation
+    spatial_crosscorrelation_map(map1,
+                                 map2,
+                                 one_cross, 
+                                 num_bins_x,
+                                 num_bins_y,
+                                 cross_num_bins_x,
+                                 cross_num_bins_y,
+                                 min_bins_for_correlation);
+  }
+  
+  // transpose the results
+  for(int i = 0; i < cell_pair_lines;i++){
+    one_cross = all_cross + (i*total_bins_cross);
+    one_tcross = all_tcross + (i*total_bins_cross);
+    for(int x =0; x < cross_num_bins_x;x++)
+      for(int y =0; y < cross_num_bins_y;y++)
+        one_tcross[x+cross_num_bins_x*y]=one_cross[x*cross_num_bins_y+y];
+  }
+  
+  free(tmaps);
+  free(all_cross);
+  UNPROTECT(1);
+  return (out);
+}
+
+void spatial_crosscorrelation_map(double *map_1,double *map_2, double *crosscorrelation, 
+                                  int x_bins_place_map,int y_bins_place_map,int x_bins_cross_map,int y_bins_cross_map,int min_for_correlation)
+{
+  /*************************************************************
+  funciton to do the spatial crosscorrelation for two place firing
+  map. 
+  map_1 and map_2 should have a size = x_bins_place_map*y_bins_place_map
+  x_bins_auto_map should = (x_bins_place_map*2)+1
+  y_bins_auto_map should = (y_bins_place_map*2)+1
+  crosscorrelation should have a size =  x_bins_auto_map * y_bins_auto_map
+  
+  *************************************************************/
+  int min_x_offset = 0 - x_bins_place_map;
+  int max_x_offset = x_bins_place_map;
+  int min_y_offset = 0 - y_bins_place_map;
+  int max_y_offset = y_bins_place_map;
+  int mid_x = x_bins_place_map; // mid x value in crosscorrelation
+  int mid_y = y_bins_place_map; // min y value in crosscorrelation
+  int cross_x;
+  int cross_y;
+  int index_1;
+  int index_2;
+  int index_cross;
+  int total_bins_place_map = x_bins_place_map * y_bins_place_map;
+  int total_bins_cross_map = x_bins_cross_map * y_bins_cross_map;
+  int offset_x;
+  int offset_y;
+  int n;
+  double r;
+  
+  double* value_1_correlation;
+  double* value_2_correlation;
+  
+  value_1_correlation = (double*) malloc(total_bins_place_map*sizeof(double));
+  value_2_correlation = (double*) malloc(total_bins_place_map*sizeof(double));
+  // set the cross_place map to -2, this is the invalid value, correlation range from -1 to 1
+  for (int i = 0; i < total_bins_cross_map ; i++)
+  {
+    crosscorrelation[i] = -2;
+  }
+  // loop for all possible lags in the x axis
+  for (int x_off = min_x_offset; x_off <= max_x_offset; x_off++)
+  {
+    // loop for all possible lags in the y axis
+    for (int y_off = min_y_offset; y_off <= max_y_offset; y_off++ )
+    {
+      // for all the possible lags, calculate the following values
+      n = 0;  // number of valid lags to do the correlation for this offset
+      r = 0;  // r value of the correlation
+      // loop for all bins in the place map
+      for(int x = 0; x < x_bins_place_map; x++)
+      {
+        for(int y = 0; y < y_bins_place_map; y++)
+        {
+          offset_x = x+x_off;
+          offset_y = y+y_off;
+          if ((offset_x >=0 && offset_x < x_bins_place_map) && (offset_y >= 0 && offset_y < y_bins_place_map))
+          {
+            index_1 = (x*y_bins_place_map) + y; // that is the index for the current bin in the place firing rate map
+            index_2 = ((offset_x)*y_bins_place_map)+(offset_y); // that is the index in the offset bin relative to the current bin
+            if (map_1[index_1]!=-1.0 && map_2[index_2]!=-1.0) // -1 is the invalid value in the place firing rate map, consider if not invalid value 
+            {
+              // copy the value into 2 vectors for the correlation
+              value_1_correlation[n]=map_1[index_1];
+              value_2_correlation[n]=map_2[index_2];
+              n++; 
+            }
+          }
+        }   
+      }
+      
+      // if enough valid data to calculate the r value, if not the value for this lag will stay -2 
+      if ( n > min_for_correlation)
+      {
+        // calculate a correlation
+        r = correlation(value_1_correlation,value_2_correlation,n,-1.0);
+        cross_x = mid_x + x_off;
+        cross_y = mid_y + y_off;
+        index_cross= (cross_x*y_bins_cross_map)+cross_y;
+        crosscorrelation[index_cross]=r;
+      }
+    }
+  }
+  free(value_1_correlation);
+  free(value_2_correlation);
+}

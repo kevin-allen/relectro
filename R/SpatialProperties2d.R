@@ -13,17 +13,22 @@
 #' @slot nRowMap Number of rows in the firing rate maps
 #' @slot nColAuto Number of columns in the spatial autocorrelation
 #' @slot nRowAuto Number of rows in the spatial autocorrelation
+#' @slot nColCross Number of columns in the spatial crosscorrelation
+#' @slot nRowCross Number of rows in the spatial crosscorrelation
 #' @slot xSpikes x position of the animal for each spike time
 #' @slot ySpikes y position of the animal for each spike time
 #' @slot maps Array containing the firing rate maps of the neurons
+#' @slot ccMaps Array containing the crosscorrelation of firing rate maps
 #' @slot occupancy Matrix containing the occupancy map
 #' @slot autos Array containing the spatial autocorrelation of the firing rate maps
 #' @slot autosDetect Array with the spatial autocorrelation once the firing fields have been removed
 #' @slot autosDoughnut Array with the spatial autocorrelation containing only the ring of the 6 closest fields (excluding central field)
 #' @slot autosDoughnutRotate Array with the rotated spatial autocorrelations
 #' @slot cellList List of cells
+#' @slot cellPairList List of cell pairs
 #' @slot reduceSize Logical indicating if the size of map should be minimized by setting smallest x and y to 0
 #' @slot minValidBinsAuto Number of valid bins to calculate a r value in the spatial autocorrelation maps
+#' @slot minValidBinsCross Number of valid bins to calculate a r value in the spatial crosscorrelation maps
 #' @slot peakRate Peak firing rates in the maps
 #' @slot infoScore Information score of the firing rate maps
 #' @slot sparsity Sparsity of the firing rate maps
@@ -68,17 +73,22 @@ SpatialProperties2d<- setClass(
             nRowMap="integer",
             nColAuto="integer",
             nRowAuto="integer",
+            nColCross="integer",
+            nRowCross="integer",
             xSpikes="numeric",
             ySpikes="numeric",
             maps="array",
+            ccMaps="array",
             occupancy="matrix",
             autos="array",
             autosDetect="array",
             autosDoughnut="array",
             autosDoughnutRotate="array",
             cellList="numeric",
+            cellPairList="matrix",
             reduceSize="logical",
             minValidBinsAuto="numeric",
+            minValidBinsCross="numeric",
             ##
             peakRate="numeric",
             infoScore="numeric",
@@ -118,7 +128,7 @@ SpatialProperties2d<- setClass(
             gridScoreShuffle="numeric",
             speedScoreShuffle="numeric"
             ),
-  prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateMapSd=3,minValidBinsAuto=20,reduceSize=T,
+  prototype = list(session="",cmPerBin=2,smoothOccupancySd=3,smoothRateMapSd=3,minValidBinsAuto=20,minValidBinsCross=20,reduceSize=T,
                    gridScoreNumberFieldsToDetect=40,gridScoreMinNumBinsPerField=50,gridScoreFieldThreshold=0.1,
                    borderPercentageThresholdField=20,borderMinBinsInField=10,nShufflings=100,minShiftMs=20000,
                    nAutoRotations=5,AutoRotationDegree=30))
@@ -284,7 +294,6 @@ setMethod(f="firingRateMap2d",
             }
             
             sp@cellList<-st@cellList
-            
             ## reduce the size of maps and map autocorrelation
             if(sp@reduceSize==T){
               x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
@@ -1808,3 +1817,74 @@ setMethod(f="spikeDistanceMetric",
             return(r)
           })
 
+
+
+#' Calculate the crosscorrelation between the firing rate maps of the SpatialProperties2d object
+#'
+#' A list of cell pair is generated from the cellList slot. 
+#' For each pair, the spatial crosscorrelation between the firing rate maps is calculated
+#' The results is saved in the ccMaps slot of the SpatialProperties2d object. 
+#' The cellPairList slot gives you the cluster associated with each crosscorrelation maps
+#' 
+#' @param sp SpatialProperties2d object
+#' @param radiusCm radius in cm to keep in the matrix
+#' @param removeEmptyRowCol logical indicating whether to remove the empty rows and colums in the crosscorrelation
+#' @return SpatialProperties2d object with the spatial crosscorrelation in ccMaps and the cell pairs in cellPairList
+#' 
+#' @docType methods
+#' @rdname mapSpatialCrosscorrelation-methods
+setGeneric(name="mapSpatialCrosscorrelation",
+           def=function(sp,radiusCm=30,removeEmptyRowCol=TRUE)
+           {standardGeneric("mapSpatialCrosscorrelation")}
+)
+#' @rdname mapSpatialCrosscorrelation-methods
+#' @aliases mapSpatialCrosscorrelation,ANY,ANY-method
+setMethod(f="mapSpatialCrosscorrelation",
+          signature="SpatialProperties2d",
+          definition=function(sp,radiusCm=30,removeEmptyRowCol=TRUE)
+          {
+            if(length(sp@maps)==0)
+              stop("Need to call firingRateMap2d first to run mapSpatialCrosscorrelation")
+
+            sp@cellPairList<-as.matrix(makePairs(sp@cellList,sp@cellList))
+            colnames(sp@cellPairList)<-c("clu1","clu2")
+            sp@nColCross = as.integer((sp@nColMap*2)+1)
+            sp@nRowCross = as.integer((sp@nRowMap*2)+1)
+            results<- .Call("map_spatial_crosscorrelation_cwrap",
+                            length(sp@cellList),
+                            as.integer(sp@cellList),
+                            length(sp@cellPairList[,1]),
+                            as.integer(sp@cellPairList[,1]),
+                            as.integer(sp@cellPairList[,2]),
+                            as.numeric(sp@maps),
+                            sp@nRowMap,
+                            sp@nColMap,
+                            sp@nRowCross,
+                            sp@nColCross,
+                            as.integer(sp@minValidBinsCross))
+            sp@ccMaps<-array(data=results,dim=(c(sp@nRowCross,sp@nColCross,length(sp@cellPairList[,1]))))
+            
+            
+            ## now set to -2 the values that are further away from the center than radiusCm
+            x<-matrix(data=rep(1:sp@nColCross,each=sp@nRowCross),nrow =sp@nRowCross,ncol=sp@nColCross)
+            y<-matrix(data=rep(1:sp@nRowCross,sp@nColCross),nrow=sp@nRowCross,ncol=sp@nColCross)
+            centerX<-ceiling(sp@nColCross/2)
+            centerY<-ceiling(sp@nRowCross/2)
+            d<-sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY))*sp@cmPerBin
+            
+            ## function to remove what is too distant
+            f<-function(m,d,radiusCm){m[which(d>radiusCm)]<- -2.0
+              return(m)
+            }
+            a<-aperm(plyr::aaply(sp@ccMaps,3,f,d,radiusCm))
+            
+            if(removeEmptyRowCol){
+              sp@ccMaps<-a[apply(a,1,function(x){any(x!=-2)}),
+                    apply(a,2,function(x){any(x!=-2)}),]
+              sp@nColCross = dim(sp@ccMaps)[2]
+              sp@nRowCross = dim(sp@ccMaps)[1]
+            }
+            
+            return(sp)
+          }
+)

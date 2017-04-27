@@ -207,7 +207,7 @@ firingRateMapsPlot<-function(maps,names,ncol=5,nrow=6){
 #' Plot a single spatial autocorrelation map
 #' 
 #' 
-#' @param m A matrix containing the data of the firing rate map.
+#' @param m A matrix containing the data of the spatial autocorrelation.
 #' @param name Character vector giving the name of the map
 #' @param outma Outer margins of the figure
 #' @param margin Inner margins of the figure
@@ -220,12 +220,13 @@ firingRateMapAutoPlot <- function(m,name="",
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
   image(m,zlim=c(-1,1), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-  mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=0.6,side=3)
+  mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"r value"),line=-0.1,cex=0.6,side=3)
   if(main.title!="")
   {
     mtext(main.title,side=3,line=0.3,cex=0.5)
   }
 }
+
 
 #' Plot a several spatial autocorrelation maps on the same page
 #' 
@@ -260,6 +261,49 @@ firingRateMapAutosPlot<-function(maps,names,ncol=5,nrow=6){
   }
   close.screen(all.screens = TRUE)
 }
+
+
+
+#' Plot a single spatial crosscorrelation map
+#' 
+#' 
+#' @param m A matrix containing the data of the spatial crosscorrelation.
+#' @param name Character vector giving the name of the map
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param main.title A title for the figure
+#' @param peak.rate.prefix Additional information to display before the peak value.
+firingRateMapCrossPlot <- function(m,name="",
+                                  outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
+                                  main.title="",peak.rate.prefix="")
+{
+  jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
+  par(oma=outma,mar=margin)
+  image(m,zlim=c(-1,1), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+  segments(0.5,0.0,0.5,1)
+  segments(0.0,0.5,1.0,0.5)
+  mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"r value"),line=-0.1,cex=0.6,side=3)
+  if(main.title!="")
+  {
+    mtext(main.title,side=3,line=0.3,cex=0.5)
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #' Polar plot of firing rate as a function of head direction
 #' 
