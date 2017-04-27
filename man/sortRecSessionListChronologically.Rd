@@ -15,4 +15,3 @@ List containing the recording sessions ordered according to their recording date
 \description{
 Use the date in the name of the RecSession object
 }
-

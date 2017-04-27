@@ -26,4 +26,3 @@ Matrix containing spike times and negative peak value of the spike. The spike ti
 \description{
 Detect spike times using filtered signal and root mean square arrays
 }
-

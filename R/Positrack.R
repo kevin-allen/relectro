@@ -80,8 +80,9 @@ setMethod(f="loadPositrack",
             pathSession=paste(pt@path,pt@session,sep="/")
             if(!file.exists(paste(pathSession,"whd",sep=".")))
               stop("need",paste(pathSession,"whd",sep="."))
-            if(!file.exists(paste(pathSession,"res_samples_per_whl_sample",sep=".")))
-              stop("need",paste(pathSession,"res_samples_per_whl_sample",sep="."))
+            if(!file.exists(paste(pathSession,"res_samples_per_whd_sample",sep="."))&
+               !file.exists(paste(pathSession,"res_samples_per_whl_sample",sep=".")))
+              stop("need",paste(pathSession,"res_samples_per_whd_sample",sep="."))
             if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
               stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
             if(!file.exists(paste(pathSession,"px_per_cm",sep=".")))
@@ -91,7 +92,14 @@ setMethod(f="loadPositrack",
             pt@xWhl<-whd$V1
             pt@yWhl<-whd$V2
             pt@hdWhd<-whd$V3
-            pt@resSamplesPerWhlSample<-read.table(paste(pathSession,"res_samples_per_whl_sample",sep="."))$V1
+            
+            if(file.exists(paste(pathSession,"res_samples_per_whd_sample",sep=".")))
+            {
+              pt@resSamplesPerWhlSample<-read.table(paste(pathSession,"res_samples_per_whd_sample",sep="."))$V1  
+            } else {
+              pt@resSamplesPerWhlSample<-read.table(paste(pathSession,"res_samples_per_whl_sample",sep="."))$V1  
+            }
+            
             pt@pxPerCm<-read.table(paste(pathSession,"px_per_cm",sep="."))$V1
             pt@samplingRateDat<-read.table(paste(pathSession,"sampling_rate_dat",sep="."))$V1
             
@@ -222,9 +230,13 @@ setMethod(f="setPositrack",
             if(min(pt@hdWhd< -1.0))
               stop(paste("min value of pt@hdWhd < -1.0:",min(pt@hdWhd)))
             ## pt@xWhl will never be changed, 
-            pt@x<-pt@xWhl/pt@pxPerCm
-            pt@y<-pt@yWhl/pt@pxPerCm
+            
+            pt@x<-pt@xWhl
+            pt@y<-pt@yWhl
             pt@hd<-pt@hdWhd
+            
+            pt@x[which(pt@x!=-1.0)]<-pt@x[which(pt@x!=-1.0)]/pt@pxPerCm
+            pt@y[which(pt@y!=-1.0)]<-pt@y[which(pt@y!=-1.0)]/pt@pxPerCm
             
             ## set the res value associated with eack whl sample
             pt@res<-seq(from=pt@resSamplesPerWhlSample,by=pt@resSamplesPerWhlSample,length.out=length(pt@x))

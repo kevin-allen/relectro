@@ -2,8 +2,8 @@
 % Please edit documentation in R/SpatialProperties1d.R
 \docType{class}
 \name{SpatialProperties1d-class}
-\alias{SpatialProperties1d}
 \alias{SpatialProperties1d-class}
+\alias{SpatialProperties1d}
 \title{A S4 class to analyze spatial properties in a 1D environment}
 \description{
 Use to get firing rate histogram of 1D environment (e.g. linear track).

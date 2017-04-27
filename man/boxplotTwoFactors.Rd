@@ -42,4 +42,3 @@ boxplotTwoFactors(data, dv = "vd", iv1 = "vi1", iv2 = "vi2",
 Just a wrapper around boxplot function.
 To set which level is plot first, consider using the function factor and set the argument levels.
 }
-

@@ -50,4 +50,3 @@ It contains 4 objects: xSpike, ySpike, cluSpike, xPath and yPath}
 Plot the animal path from a Positrack object and 
 the spikes in space from a SpatialProperties2d object.
 }
-

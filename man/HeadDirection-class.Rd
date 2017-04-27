@@ -2,8 +2,8 @@
 % Please edit documentation in R/HeadDirection.R
 \docType{class}
 \name{HeadDirection-class}
-\alias{HeadDirection}
 \alias{HeadDirection-class}
+\alias{HeadDirection}
 \title{An S4 class used to get head direction histograms and circular statistics for each neuron.}
 \description{
 The user creates positrack and spike train objects first.

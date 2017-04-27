@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getRecSession}
 \alias{getRecSession}
-\alias{getRecSession,ANY,ANY-method}
 \alias{getRecSession,ElectroProject-method}
+\alias{getRecSession,ANY,ANY-method}
 \title{Return a RecSession object from the list in an ElectroProject objects}
 \usage{
 getRecSession(ep, name)
@@ -22,4 +22,3 @@ RecSession
 \description{
 Return a RecSession object from the list in an ElectroProject objects
 }
-

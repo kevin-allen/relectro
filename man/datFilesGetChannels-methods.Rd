@@ -3,8 +3,8 @@
 \docType{methods}
 \name{datFilesGetChannels}
 \alias{datFilesGetChannels}
-\alias{datFilesGetChannels,ANY,ANY-method}
 \alias{datFilesGetChannels,DatFiles-method}
+\alias{datFilesGetChannels,ANY,ANY-method}
 \title{Function to read from several channels from a group of dat files}
 \usage{
 datFilesGetChannels(df, channels, firstSample, lastSample)
@@ -31,4 +31,3 @@ This function returns the data from firstSample to lastSample for a group of cha
 If firstSample and lastSample have a length greater than 1, 
 the data chunks will be pasted one after the other in the data returned by the function.
 }
-

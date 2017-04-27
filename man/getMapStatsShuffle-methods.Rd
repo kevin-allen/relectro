@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getMapStatsShuffle}
 \alias{getMapStatsShuffle}
-\alias{getMapStatsShuffle,ANY,ANY-method}
 \alias{getMapStatsShuffle,SpatialProperties2d-method}
+\alias{getMapStatsShuffle,ANY,ANY-method}
 \title{Calculate random spatial statistics of the firing rate maps of neurons}
 \usage{
 getMapStatsShuffle(sp, st, pt, border = "rectangular", triggered = F)
@@ -33,4 +33,3 @@ sparsityShuffle, borderScoreShuffle and gridScoreShuffle, etc.
 The random values are obtained by shifting the position data.
 The number of shufflings is nShufflings of the SpatialProperties2d object.
 }
-

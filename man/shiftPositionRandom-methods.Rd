@@ -3,8 +3,8 @@
 \docType{methods}
 \name{shiftPositionRandom}
 \alias{shiftPositionRandom}
-\alias{shiftPositionRandom,ANY,ANY-method}
 \alias{shiftPositionRandom,Positrack-method}
+\alias{shiftPositionRandom,ANY,ANY-method}
 \title{Shift the position of the animal of a random amount larger than the value of minShiftMs}
 \usage{
 shiftPositionRandom(pt)
@@ -22,4 +22,3 @@ This is used to do shuffling. The position values (x and y) are shifted in time.
 Only valid values are shifted, so if you want to only shift the position only in 
 one environment or a specific part of the track, first call setInvalidOutsideInterval
 }
-

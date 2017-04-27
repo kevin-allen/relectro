@@ -3,8 +3,8 @@
 \docType{methods}
 \name{spikeTriggeredFiringRateMap2d}
 \alias{spikeTriggeredFiringRateMap2d}
-\alias{spikeTriggeredFiringRateMap2d,ANY,ANY-method}
 \alias{spikeTriggeredFiringRateMap2d,SpatialProperties2d-method}
+\alias{spikeTriggeredFiringRateMap2d,ANY,ANY-method}
 \title{Calculate the spike-triggered firing rate maps of neurons using a SpikeTrain and Positrack objects}
 \usage{
 spikeTriggeredFiringRateMap2d(sp, st, pt, minIsiMs, maxIsiMs)
@@ -37,4 +37,3 @@ The amount of smoothing is determined by slots smoothOccupancySd and smoothRateM
 
 You can set the temporal limit for the data used to construct the map with minIsiMs and maxIsiMs
 }
-

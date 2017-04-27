@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getIsClustered}
 \alias{getIsClustered}
-\alias{getIsClustered,ANY,ANY-method}
 \alias{getIsClustered,RecSession-method}
+\alias{getIsClustered,ANY,ANY-method}
 \title{Is the recording session clustered?}
 \usage{
 getIsClustered(rs)
@@ -20,4 +20,3 @@ TRUE or FALSE
 \description{
 Is the recording session clustered?
 }
-

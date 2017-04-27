@@ -15,4 +15,3 @@ Character vector with session name
 \description{
 Assumes the session name is in the format name-date-rest and cluId is name-data-rest_cluNo
 }
-

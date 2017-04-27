@@ -2,8 +2,8 @@
 % Please edit documentation in R/ElectroProject.R
 \docType{class}
 \name{ElectroProject-class}
-\alias{ElectroProject}
 \alias{ElectroProject-class}
+\alias{ElectroProject}
 \title{A S4 class to represent an electrophysiological project containing several recording sessions.}
 \description{
 An ElectroProject object contains a group of RecSession objects. It can be used to run functions on several recording sessions.

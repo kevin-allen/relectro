@@ -29,4 +29,3 @@ s2<-c(250,24000)
 e2<-c(600,30000)
 joinIntervalsAND(s1,e1,s2,e2)
 }
-

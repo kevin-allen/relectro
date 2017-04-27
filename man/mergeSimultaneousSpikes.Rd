@@ -19,4 +19,3 @@ Numeric containing the spike times
 \description{
 The spike time associated with the smallest trough is kept.
 }
-

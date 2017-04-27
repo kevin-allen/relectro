@@ -3,8 +3,8 @@
 \docType{methods}
 \name{getSessionList}
 \alias{getSessionList}
-\alias{getSessionList,ANY,ANY-method}
 \alias{getSessionList,ElectroProject-method}
+\alias{getSessionList,ANY,ANY-method}
 \title{Return a list of RecSession objects that have some common properties}
 \usage{
 getSessionList(ep, clustered = "", region = "", env = "", stim = "",
@@ -32,4 +32,3 @@ list of RecSession objects
 \description{
 Return a list of RecSession objects that have some common properties
 }
-

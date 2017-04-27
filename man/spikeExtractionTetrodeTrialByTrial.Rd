@@ -52,4 +52,3 @@ The spike waveforms are saved in binary format in sessionName.spk.tetrodeNumber.
 The features of spikes are obtained via principal component analysis and 3 features are kept for each channel.
 The spike features are saved in sessionName.fet.tetrodeNumber.
 }
-

@@ -3,8 +3,8 @@
 \docType{methods}
 \name{firingRateMap2d}
 \alias{firingRateMap2d}
-\alias{firingRateMap2d,ANY,ANY-method}
 \alias{firingRateMap2d,SpatialProperties2d-method}
+\alias{firingRateMap2d,ANY,ANY-method}
 \title{Calculate the firing rate maps of neurons using a SpikeTrain and Positrack objects}
 \usage{
 firingRateMap2d(sp, st, pt, nRowMap = NA, nColMap = NA)
@@ -33,4 +33,3 @@ The occupancy map and the firing rate maps are smoothed with a Gaussian kernel.
 The amount of smoothing is determined by slots smoothOccupancySd and smoothRateMapSd of sp.
 You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size.
 }
-

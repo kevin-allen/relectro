@@ -59,7 +59,9 @@ spikeOnPathPlot <- function(sop,clu,name="",
 #' @param outma Outer margins of the figure
 #' @param margin Inner margins of the figure
 #' @param cex.name Size of the font use for the name of the map
-#' @param cex.point Size of the spike points
+#' @param cex.line Size of the line
+#' @param cex.lab Size of labels
+#' @param cex.axis Size of axis
 #' @param plotxlim Limits of the x axis
 #' @param plotylim Limits of the y axis
 #' @param mgp.x mgp for the x axis
@@ -71,7 +73,7 @@ spikeOnPathPlot <- function(sop,clu,name="",
 #' @param ylab Name to display at the left of the y axis
 pathPlot <- function(pt,name="",
                      outma=c(2.0,2.0,2.0,2.0),margin=c(1.5,1.5,1,1),
-                     cex.name=0.6,cex.point=0.2,
+                     cex.name=0.6,cex.line=0.2,cex.lab=0.6,cex.axis=0.6,
                      plotxlim=c(0,80),plotylim=c(0,80),
                      mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),
                      axis.x.pos=0,axis.y.pos=0,
@@ -82,12 +84,12 @@ pathPlot <- function(pt,name="",
     stop("pt is not of the Positrack class")
   if(length(pt@x)==0)
     stop("length(pt@x)==0")
-  par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
-  plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="",cex=cex.point)
+  par(mar=margin, oma=outma,cex.lab=cex.lab,cex.axis=cex.axis)
+  plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="",cex=cex.line)
   lines(pt@x,pt@y,type='l',xlab=xlab,ylab=ylab,lwd=0.2)
   if(plot.axis){
-    axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=0.60,mgp=mgp.x)
-    axis(side = 2, las=2, pos=axis.y.pos, tck=-0.05,cex.axis=0.60,mgp=mgp.y)
+    axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=cex.axis,mgp=mgp.x)
+    axis(side = 2, las=2, pos=axis.y.pos, tck=-0.05,cex.axis=cex.axis,mgp=mgp.y)
   }
   title(xlab=xlab,mgp=mgp.x)
   title(ylab=ylab,mgp=mgp.y)

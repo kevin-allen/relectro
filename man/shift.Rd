@@ -19,4 +19,3 @@ The vector is wrapped around so that values that would end up after the end of t
 \examples{
 shift(v=1:10, place=2, dir="r")
 }
-

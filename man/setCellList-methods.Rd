@@ -3,8 +3,8 @@
 \docType{methods}
 \name{setCellList}
 \alias{setCellList}
-\alias{setCellList,ANY,ANY-method}
 \alias{setCellList,SpikeTrain-method}
+\alias{setCellList,ANY,ANY-method}
 \title{Set the list of cells to limit the analysis to these cells}
 \usage{
 setCellList(st, cellList)
@@ -22,4 +22,3 @@ a SpikeTrain object with a new cellList.
 \description{
 Only these cells will be considered for analysis.
 }
-

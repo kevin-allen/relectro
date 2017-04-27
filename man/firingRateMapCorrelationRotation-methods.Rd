@@ -3,8 +3,8 @@
 \docType{methods}
 \name{firingRateMapCorrelationRotation}
 \alias{firingRateMapCorrelationRotation}
-\alias{firingRateMapCorrelationRotation,ANY,ANY-method}
 \alias{firingRateMapCorrelationRotation,SpatialProperties2d-method}
+\alias{firingRateMapCorrelationRotation,ANY,ANY-method}
 \title{Calculate a Pearson correlation coefficients between maps of two SpatialProperties2d object (sp1 and sp2) 
 after rotating the maps of the second object}
 \usage{
@@ -28,4 +28,3 @@ Matrix containing the Pearson correlation coefficients after different rotations
 \description{
 Used to estimate whether the spatial representation rotated between two conditions
 }
-

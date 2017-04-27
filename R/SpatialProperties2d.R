@@ -376,6 +376,115 @@ setMethod(f="firingRateMap2d",
           }
 )
 
+
+
+
+#' Calculate the occupancy map with the data from a Positrack objects
+#'
+#' The occupancy map is smoothed with a Gaussian kernel.
+#' The amount of smoothing is determined by slots smoothOccupancySd of sp.
+#' You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size.
+#' 
+#' @param sp SpatialProperties1d object
+#' @param st SpikeTrain object to get the intervals
+#' @param pt Positrack object
+#' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @return SpatialProperties2d object with the occupancy maps
+#' 
+#' @docType methods
+#' @rdname occupancyMap2d-methods
+setGeneric(name="occupancyMap2d",
+           def=function(sp,st,pt,nRowMap=NA,nColMap=NA)
+           {standardGeneric("occupancyMap2d")}
+)
+#' @rdname occupancyMap2d-methods
+#' @aliases occupancyMap2d,ANY,ANY-method
+setMethod(f="occupancyMap2d",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,nRowMap=NA,nColMap=NA)
+          {
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in occupancyMap2d",st@session))
+            if(length(st@startInterval)==0)
+              stop(paste("length of st@startInterval == 0 in occupancyMap2d",st@session))
+            if(!is.na(nRowMap)|!is.na(nColMap)){
+              if(is.na(nRowMap))
+                stop("if you set nColMap, you need to also set nRowMap")
+              if(is.na(nColMap))
+                stop("if you set nRowMap, you need to also set nColMap")
+            }
+            
+            sp@cellList<-st@cellList
+            
+            ## reduce the size of maps and map autocorrelation
+            if(sp@reduceSize==T){
+              x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
+              y<-pt@y-min(pt@y,na.rm=T)+sp@cmPerBin
+            }else{
+              x<-pt@x
+              y<-pt@y
+            }
+            
+            ## use -1 as invalid values in c functions
+            x[is.na(x)]<- -1.0
+            y[is.na(y)]<- -1.0
+            
+            ## get the dimensions of the map
+            sp@nRowMap=as.integer(((max(x)+1)/sp@cmPerBin)+1) # x in R is a row
+            sp@nColMap=as.integer(((max(y)+1)/sp@cmPerBin)+1) # y in R is a col
+            
+            ## user want a map of a given size
+            if(!is.na(nRowMap)){
+              if(nRowMap<sp@nRowMap)
+                stop(paste("nRowMap value",nRowMap,"is smaller than the minimal size of the map",sp@nRowMap))
+              if(nColMap<sp@nColMap)
+                stop(paste("nColMap value",nColMap,"is smaller than the minimal size of the map",sp@nColMap))
+              sp@nRowMap=as.integer(nRowMap)
+              sp@nColMap=as.integer(nColMap)
+            }
+            
+            ## make the occupancy map
+            sp@occupancy<-.Call("occupancy_map_cwrap",
+                                sp@nRowMap,
+                                sp@nColMap,
+                                sp@cmPerBin,
+                                sp@cmPerBin,
+                                x,
+                                y,
+                                length(x),
+                                pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
+                                as.integer(st@startInterval),
+                                as.integer(st@endInterval),
+                                length(st@startInterval),
+                                as.integer(pt@resSamplesPerWhlSample))
+            
+            ## smooth the occupancy map
+            sp@occupancy<- .Call("smooth_double_gaussian_2d_cwrap",
+                                 as.numeric(sp@occupancy),
+                                 sp@nColMap, # because C has a different way to order matrix as my c code
+                                 sp@nRowMap, #
+                                 sp@smoothOccupancySd/sp@cmPerBin,
+                                 -1.0)
+            return(sp)
+          }
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' Calculate the spike-triggered firing rate maps of neurons using a SpikeTrain and Positrack objects
 #'
 #' Each spike is treated as a reference spike in turn. The map is constructed from the data
@@ -1077,6 +1186,8 @@ setMethod(f="borderDetection",
 #' @param runLm Logical, if TRUE a linear model will be build and slope and intercept calculated
 #' @return SpatialProperties2d object with the speed scores in the slots SpeedScore. 
 #' If runLm argument was TRUE, then speedRateSlope and peedRateIntercept will also be filled
+#' The analysis only use period withing the intervals of the SpikeTrain object
+#' The function ifr() should be called prior to calling speedScore()
 #' 
 #' @docType methods
 #' @rdname speedScore-methods
@@ -1192,7 +1303,7 @@ setMethod(f="speedScoreShuffle",
 #' Speed-rate tuning curve from spike train and positrack
 #' 
 #' Uses the ifr of cells to calculate the mean firing rate of neurons 
-#' for different speed bands.
+#' for different speed bands. You need to call ifr() on the st object first.
 #' 
 #' @param sp SpatialProperties2d object
 #' @param st SpikeTrain object with ifr
@@ -1375,7 +1486,7 @@ setMethod(f="mapsAsDataFrame",
           }
 )
 
-#' Return firing rate map statisitc as a data.frame
+#' Return firing rate map statisitcs as a data.frame
 #' 
 #' 
 #' @param sp SpatialProperties2d object
@@ -1413,7 +1524,7 @@ setMethod(f="statsAsDataFrame",
             if(shuffle==TRUE){
               if(length(sp@maps)==0)
                 stop("Need to call getMapStatsShuffle() before statsAsDataFrame with shuffle=T")
-              if(length(sp@infoScoreShuffl)==0)
+              if(length(sp@infoScoreShuffle)==0)
                 stop("Need to call getMapStatsShuffle() before statsAsDataFrame with shuffle=T")
               df<-data.frame(clu.id=paste(sp@session,sp@cellList,sep="_"),
                          peakRate=sp@peakRateShuffle,

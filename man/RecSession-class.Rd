@@ -2,8 +2,8 @@
 % Please edit documentation in R/RecSession.R
 \docType{class}
 \name{RecSession-class}
-\alias{RecSession}
 \alias{RecSession-class}
+\alias{RecSession}
 \title{A S4 class to represent a recording session.}
 \description{
 A RecSession object contains a description of the recording session.
@@ -26,9 +26,13 @@ Sessions are usually divided in several trials with one .dat file for each trial
 
 \item{\code{resofs}}{Number of samples in each trial}
 
-\item{\code{env}}{List of environments for each trial}
+\item{\code{environment}}{List of environments for each trial}
 
-\item{\code{stim}}{List of stimulation types}
+\item{\code{stimulation}}{List of stimulation types}
+
+\item{\code{setup}}{List of recording setups used in the recording session.}
+
+\item{\code{environmentFamiliarity}}{Indicate whether the environment was familiar (fam) or novel (nov) for the animal}
 
 \item{\code{electrodeLocation}}{List of electrode location, one per electrode}
 
@@ -53,5 +57,9 @@ Sessions are usually divided in several trials with one .dat file for each trial
 \item{\code{clustered}}{Logical indicating if the spikes are clustered}
 
 \item{\code{earlyProcessed}}{Logical indicating if spike extraction has been done}
+
+\item{\code{pxPerCm}}{Numeric representing the number of pixels per cm in the position data}
+
+\item{\code{resSamplesPerWhdSample}}{Number of electrophysiological sample between two samples in the position file (whd)}
 }}
 
