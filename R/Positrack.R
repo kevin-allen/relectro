@@ -581,11 +581,13 @@ setMethod(f="getIntervalsAtDirection",
 
 #' Get time intervals at which the animal's head direction is in a given range
 #' 
-#' Works as though head direction was a linear variable.
+#' There is a tric to deal with the circularity of the head direction data
+#' If hdMin is larger than hdMax, then it is assumed that you want the range from hdMin-360 and 0-hdMax
+#' This wrap around the 360-0.
 #' 
 #' @param pt Positrack object
-#' @param hdMin Minimal head direction that will be considered (in degree)
-#' @param hdMax Maximal head direction that will be considered (in degree)
+#' @param hdMin Minimal head direction that will be considered (in degree, from 0 to 360)
+#' @param hdMax Maximal head direction that will be considered (in degree, from 0 to 360)
 #' @return matrix with the time intervals
 #'
 #' @docType methods
@@ -614,11 +616,10 @@ setMethod(f="getIntervalsAtHeadDirection",
               stop("hdMax < 0")
             if(hdMax>360)
               stop("hdMax > 360")
-            if(hdMax < hdMin)
-              stop("hdMax < hd Min")
+
             x<-pt@hd
             x[is.na(x)]<- -1.0
-            results<-.Call("speed_intervals_cwrap",
+            results<-.Call("head_direction_intervals_cwrap",
                            x,
                            length(x),
                            as.integer(pt@resSamplesPerWhlSample),
