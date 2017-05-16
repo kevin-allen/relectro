@@ -222,7 +222,7 @@ recSessionListTrialPlot<- function(sessionList,
   ## get time of each trial
   timeList<-lapply(sessionList,function(rs){rs@trialDurationSec/60})
   ## get environments
-  envList<-lapply(sessionList,function(rs){rs@env})
+  envList<-lapply(sessionList,function(rs){rs@environment})
   ## get unique environments
   env<-unique(unlist(envList))
   ## cumulative time of trials
