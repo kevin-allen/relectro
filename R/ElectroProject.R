@@ -88,7 +88,7 @@ setMethod(f="setSessionList",
             dirDepth<-xMode
             ep@sessionNameList<-
               unlist(strsplit(ep@sessionPathList,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
-              
+             
             if(loadSessions==TRUE){
               ep<-loadSessionsInList(ep)
               }

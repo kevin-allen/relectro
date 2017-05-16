@@ -79,14 +79,14 @@ setMethod(f="loadPositrack",
             }
             pathSession=paste(pt@path,pt@session,sep="/")
             if(!file.exists(paste(pathSession,"whd",sep=".")))
-              stop("need",paste(pathSession,"whd",sep="."))
+              stop("needs ",paste(pathSession,"whd",sep="."))
             if(!file.exists(paste(pathSession,"res_samples_per_whd_sample",sep="."))&
                !file.exists(paste(pathSession,"res_samples_per_whl_sample",sep=".")))
-              stop("need",paste(pathSession,"res_samples_per_whd_sample",sep="."))
+              stop("needs ",paste(pathSession,"res_samples_per_whd_sample",sep="."))
             if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
-              stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
+              stop("needs ",paste(pathSession,"sampling_rate_dat",sep="."))
             if(!file.exists(paste(pathSession,"px_per_cm",sep=".")))
-              stop("need",paste(pathSession,"px_per_cm",sep="."))
+              stop("needs ",paste(pathSession,"px_per_cm",sep="."))
             ## get sampling rate
             whd<-read.table(paste(pathSession,"whd",sep="."))
             pt@xWhl<-whd$V1
@@ -145,8 +145,8 @@ setMethod(f="loadPositrack",
                
             ## get the speed from position
             pt@speed<- .Call("speed_from_whl_cwrap",
-                            pt@x,
-                            pt@y,
+                            as.numeric(pt@x),
+                            as.numeric(pt@y),
                             length(pt@x),
                             1.0, # already in cm
                             pt@samplingRateDat, 
@@ -155,7 +155,7 @@ setMethod(f="loadPositrack",
             
             ## get the angular speed from position
             pt@angularSpeed<- .Call("angular_speed_from_hd_cwrap",
-                                     pt@hd,
+                                     as.numeric(pt@hd),
                                      length(pt@hd),
                                      4,
                                      4,

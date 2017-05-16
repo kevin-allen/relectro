@@ -404,12 +404,11 @@ setMethod(f="spikeTimeAutocorrelationCenterOfMass",
             
             ## get center of mass of positive part of st auto
             autoPositive<-st@auto[which(st@autoTimePoints>=0),]
-            if(class(autoPositive)=="numeric")
+            if(class(autoPositive)=="numeric"|class(autoPositive)=="integer")
               {
               #only one cell
               com<-centerOfMass(autoPositive)
-            }
-            else
+            }else
               {
               com<-apply(autoPositive,2,centerOfMass) # the values are in indices from 1 to length of positive auto
               }
