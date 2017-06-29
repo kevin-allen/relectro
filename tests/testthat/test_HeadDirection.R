@@ -139,6 +139,10 @@ test_that("hd rate histograms",{
   rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample)
 })
 
+##################################
+#### spike-triggered HD stuff ####
+##################################
+
 
 test_that("spike-triggered head-direction occupancy histograms",{
   resSamplesPerWhlSample=400
@@ -152,8 +156,8 @@ test_that("spike-triggered head-direction occupancy histograms",{
                    resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
   
   st<-new("SpikeTrain")
-  spikeTimes=seq(400,400*50,400)
-  length(spikeTimes)
+  nSpikes=50
+  spikeTimes=seq(400,400*nSpikes,400)
   st<-setSpikeTrain(st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=samplingRateDat)
   st<-setIntervals(st,s=c(0),e=c(4000000))
   
@@ -162,6 +166,54 @@ test_that("spike-triggered head-direction occupancy histograms",{
   hd@smoothRateHistoSd=0
   minIsiMs=0
   maxIsiMs=1000
+  
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  
+  
+  # each data point in the pt object add 20 ms in a bin.
+  # it moves at 1 deg per 20ms so their will be 10x20ms per bin for each spikes (200 per bin)
+  # we have 50 spikes 200x50 = 10000
+  expect_equal(max(results),hd@degPerBin*resSamplesPerWhlSample/samplingRateDat*1000*st@nSpikes)
+  
+  # animal rotates only in one direction so first half of histo not visited
+  expect_false(any(results[1:(hd@nBinHisto/2)]!=-1))
+  
+  # there are 50 hd samples per seconds, so max of 50 degree range for each spike
+  # so only 5 bins not at -1
+  expect_equal(sum(results!=-1),5)
+  
+  ## there should be a sum occupancy time of 1000 ms x number of spikes
+  expect_equal(sum(results[which(results!=-1.0)]),(maxIsiMs-minIsiMs)*length(spikeTimes))
+  
+  
+  ############################
+  # same test with a different direction
+  # try a different turning direction 
+  pt<-new("Positrack")
+  hD<-as.numeric(rep(359:0,50)) # gives us a second per bins
+  x=rnorm(n=length(hD),mean = 40,sd=5)
+  y=rnorm(n=length(hD),mean = 40,sd=5)
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
+                   resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
   
   results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
                   as.integer(hd@nBinHisto),
@@ -185,25 +237,25 @@ test_that("spike-triggered head-direction occupancy histograms",{
                   as.integer(st@samplingRate))
   
   # each data point in the pt object add 20 ms in a bin.
-  # it moves at 1 deg per 20ms so their will be 10x20ms per bin for each spikes
-  # we have 50 spikes
+  # it moves at 1 deg per 20ms so their will be 10x20ms per bin for each spikes (200 per bin)
+  # we have 50 spikes 200x50 = 10000
   expect_equal(max(results),hd@degPerBin*resSamplesPerWhlSample/samplingRateDat*1000*st@nSpikes)
   
   # animal rotates only in one direction so first half of histo not visited
-  expect_false(any(results[1:(hd@nBinHisto/2)]!=-1))
+  # here the bin at 0-10 degree has some time, so we need to go +2
+  expect_false(any(results[(hd@nBinHisto/2+2):hd@nBinHisto]!=-1))
   
   # there are 50 hd samples per seconds, so max of 50 degree range for each spike
-  # so only 5 bins not at -1
-  expect_equal(sum(results!=-1),5)
+  # But in the counter clockwise direction we also get value in 0-10 bin, so 6 bins
+  expect_equal(sum(results!=-1),6)
   
-  rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample,results)
-})
-
-
-test_that("spike-triggered head-direction rate histograms",{
-  resSamplesPerWhlSample=400
-  samplingRateDat=20000
+  ## there should be a sum occupancy time of 1000 ms x number of spikes
+  expect_equal(sum(results[which(results!=-1.0)]),(maxIsiMs-minIsiMs)*length(spikeTimes))
   
+  ##### test what would happen if the intervals are long and it wraps up
+  #### 
+  #### one degree per hd datapoint, wrap up will occur every 360 datapoint
+  #### test this in the clockwise direction
   pt<-new("Positrack")
   hD<-as.numeric(rep(0:359,50)) # gives us a second per bins
   x=rnorm(n=length(hD),mean = 40,sd=5)
@@ -211,17 +263,142 @@ test_that("spike-triggered head-direction rate histograms",{
   pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
                    resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
   
-  st<-new("SpikeTrain")
-  spikeTimes=seq(400,400*10,400)
-  length(spikeTimes)
-  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=samplingRateDat)
-  st<-setIntervals(st,s=c(0),e=c(4000000))
   
-  hd<-new("HeadDirection")
-  hd@smoothOccupancySd=0
-  hd@smoothRateHistoSd=0
+  ### maximum time window without wrapping
+  minIsiMs=0
+  maxIsiMs=resSamplesPerWhlSample*360/samplingRateDat*1000
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  
+  ### all bins should have the same time
+  expect_true(all(results==hd@degPerBin*resSamplesPerWhlSample/samplingRateDat*1000*st@nSpikes))
+  expect_equal(sum(results[which(results!=-1.0)]),(maxIsiMs-minIsiMs)*length(spikeTimes))
+  
+  ### now with some wrapping around 
+  minIsiMs=0
+  maxIsiMs=resSamplesPerWhlSample*360/samplingRateDat*1000*1.5
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  
+  expect_equal(sum(results[which(results!=-1.0)]),(maxIsiMs-minIsiMs)*length(spikeTimes))
+  expect_equal(results[length(results)]/2,results[1])
+  
+  
+  ######################################################
+  #### test whether it works fine with intervals   #####
+  ######################################################
+  
+  minIsiMs=0
+  maxIsiMs=2000
+  st<-new("SpikeTrain")
+  nSpikes=100
+  spikeTimes=seq(400,400*nSpikes,400)
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=samplingRateDat)
+  
+  
+  ## this interval should have no effect on occ map
+  st<-setIntervals(st,s=c(0),e=c(st@res[nSpikes]+maxIsiMs*samplingRateDat/1000))
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  
+  expect_equal(sum(results[which(results!=-1.0)]),(maxIsiMs-minIsiMs)*length(spikeTimes))
+  
+  ## 
   minIsiMs=0
   maxIsiMs=1000
+  st<-setIntervals(st,s=c(0),e=c(st@res[nSpikes]))
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  #### this interval should affect only the spikes of the last 1000 ms of recording,
+  #### on average, affected spikes only have half of the IsiMs time
+  affected_spikes=length(which(st@res>st@res[length(st@res)]-maxIsiMs*samplingRateDat/1000))
+  ## the -10 is probably half of a whd sample
+  expect_equal((maxIsiMs-minIsiMs)*(length(spikeTimes)-affected_spikes)+(maxIsiMs-minIsiMs)/2*affected_spikes - 10 ,sum(results[which(results!=-1.0)]))
+  
+  #############################
+  ## try with two intervals  ##
+  #############################
+  
+  minIsiMs=0
+  maxIsiMs=2000
+  st<-new("SpikeTrain")
+  nSpikes=50
+  spikeTimes=seq(400,400*nSpikes,400)
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0,st@res[nSpikes]/2+1),
+                   e=c(st@res[nSpikes]/2+1,st@res[nSpikes]+maxIsiMs*samplingRateDat/1000))
   
   results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
                   as.integer(hd@nBinHisto),
@@ -243,21 +420,100 @@ test_that("spike-triggered head-direction rate histograms",{
                   minIsiMs,
                   maxIsiMs,
                   as.integer(st@samplingRate))
-  expect_equal(max(results),hd@degPerBin*resSamplesPerWhlSample/samplingRateDat*1000*st@nSpikes)
   
-  hd<-spikeTriggeredHeadDirectionHisto(hd,st,pt,minIsiMs,maxIsiMs)
+  expect_equal(sum(results[which(results!=-1.0)]),(maxIsiMs-minIsiMs)*length(spikeTimes))
+  
+  rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample,results)
+})
 
-  ## all 10 spikes are within 10 degrees and within 1 seconds
-  ## the peak number of spike in first bin is equal to number of spike pairs n*(n-1)/2
-  expect_equal(max(hd@histo),((st@nSpikes*(st@nSpikes-1))/2)/(max(results)/1000))
-  
-  ## peak should be at bin just after 180 deg
-  expect_equal(which.max(hd@histo),length(hd@histo)/2+1)
-  
-  ## need to test the intervals ##
-  
-  ## need to test with head direction cell##
 
+test_that("spike-triggered head-direction rate histograms",{
+  resSamplesPerWhlSample=400
+  samplingRateDat=20000
+  
+  pt<-new("Positrack")
+  hD<-as.numeric(rep(0:359,50)) # gives us a second per bins
+  x=rnorm(n=length(hD),mean = 40,sd=5)
+  y=rnorm(n=length(hD),mean = 40,sd=5)
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
+                   resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
+  
+  st<-new("SpikeTrain")
+  nSpikes=5
+  spikeTimes=seq(400,400*nSpikes,400)
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
+  
+  hd<-new("HeadDirection")
+  hd@smoothOccupancySd=0
+  hd@smoothRateHistoSd=0
+  minIsiMs=0
+  maxIsiMs=1000
+  hd<-spikeTriggeredHeadDirectionHisto(hd = hd,st = st,pt = pt,minIsiMs = minIsiMs,maxIsiMs = maxIsiMs)
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  
+  ## 5 spikes within the same bin, occupancy has 10 datapoint in the same bin * 20 ms per spike, so 1000 ms in the bin
+  total_spikes=sum(seq(nSpikes-1,1))
+  total_time=max(results)
+  expect_equal(max(hd@histo),total_spikes/total_time*1000)
+  
+  #############################################################
+  ##### test the phase difference between pairs of spikes  ####
+  #############################################################
+  st<-new("SpikeTrain")
+  nSpikes=20
+  spikeTimes=seq(400,400*20*nSpikes,400*20)
+  minIsiMs=0
+  maxIsiMs=2000
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(1,length(spikeTimes)),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
+  hd<-spikeTriggeredHeadDirectionHisto(hd = hd,st = st,pt = pt,minIsiMs = minIsiMs,maxIsiMs = maxIsiMs)
+  results<- .Call("spike_triggered_head_direction_occupancy_histo_cwrap",
+                  as.integer(hd@nBinHisto),
+                  hd@degPerBin,
+                  as.integer(st@cellList),
+                  length(st@cellList),
+                  pt@hd,
+                  length(pt@hd),
+                  as.integer(st@res),
+                  as.integer(st@clu),
+                  st@nSpikes,
+                  as.integer(st@startInterval),
+                  as.integer(st@endInterval),
+                  length(st@startInterval),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000,
+                  as.integer(pt@resSamplesPerWhlSample),
+                  hd@smoothOccupancySd,
+                  hd@smoothRateHistoSd,
+                  minIsiMs,
+                  maxIsiMs,
+                  as.integer(st@samplingRate))
+  total_time=max(results)
+  hd@histo[which(hd@histo==-1.0)]<-NA
+  ## there should be 19 spikes at bin 25 degree
+  expect_equal(hd@histo  [which(hd@histoDegree==25)]*total_time/1000,19)
+  expect_equal(hd@histo  [which(hd@histoDegree==45)]*total_time/1000,18)
+  expect_equal(hd@histo  [which(hd@histoDegree==65)]*total_time/1000,17)
+  
   rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample,results)
 })
 
