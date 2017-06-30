@@ -487,7 +487,8 @@ setMethod(f="spikeTriggeredHeadDirectionCrossHisto",
                             hd@degPerBin,
                             as.integer(hd@cellPairList[,1]),
                             as.integer(hd@cellPairList[,2]),
-                            length(hd@cellPairList[1]),
+                            #length(hd@cellPairList[1]),
+                            dim(hd@cellPairList)[1],
                             hdir,
                             length(pt@hd),
                             as.integer(st@res),
@@ -504,7 +505,7 @@ setMethod(f="spikeTriggeredHeadDirectionCrossHisto",
                             maxIsiMs,
                             as.integer(st@samplingRate))
             
-            hd@crossHisto<-array(data=results,dim=(c(hd@nBinHisto,length(hd@cellPairList[1]))))
+            hd@crossHisto<-array(data=results,dim=(c(hd@nBinHisto,dim(hd@cellPairList)[1]))) #length(hd@cellPairList[1])
             hd@histoDegree<-seq(-180+hd@degPerBin/2,180-hd@degPerBin/2,hd@degPerBin)
             return(hd)
           }
