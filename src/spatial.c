@@ -6096,7 +6096,7 @@ void create_hd_firing_histo_spike_triggered(int num_bins, int degrees_per_bin,
     
     
     // smooth the occupancy histogram
-    smooth_double_gaussian(one_occ_histo,num_bins, smoothing_factor_occ,-1.0);
+    smooth_double_gaussian_circular(one_occ_histo,num_bins, smoothing_factor_occ,-1.0);
   }
   
   for(int i = 0; i < num_cells; i++)
@@ -6116,7 +6116,7 @@ void create_hd_firing_histo_spike_triggered(int num_bins, int degrees_per_bin,
                              min_isi_ms,max_isi_ms,res_sampling_rate);
     
     /// smooth the hd histo
-    smooth_double_gaussian(one_hd_histo,num_bins,smoothing_factor_rate,-1.0);
+    smooth_double_gaussian_circular(one_hd_histo,num_bins,smoothing_factor_rate,-1.0);
   }
   
   return;
@@ -6448,7 +6448,8 @@ void create_hd_cross_firing_histo_spike_triggered(int num_bins, int degrees_per_
                                        res_sampling_rate,
                                        hd_spike);
     // smooth the occupancy histogram
-    smooth_double_gaussian(one_occ_histo,num_bins, smoothing_factor_occ,-1.0);
+    smooth_double_gaussian_circular(one_occ_histo,num_bins, smoothing_factor_occ,-1.0);
+    
   }
   for(int i = 0; i < num_pairs; i++)
   {     
@@ -6466,7 +6467,7 @@ void create_hd_cross_firing_histo_spike_triggered(int num_bins, int degrees_per_
                              one_occ_histo,one_hd_histo,
                              min_isi_ms,max_isi_ms,res_sampling_rate);
     /// smooth the hd histo
-    smooth_double_gaussian(one_hd_histo,num_bins,smoothing_factor_rate,-1.0);
+    smooth_double_gaussian_circular(one_hd_histo,num_bins,smoothing_factor_rate,-1.0);
   }
   return;
 }
