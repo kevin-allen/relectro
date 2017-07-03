@@ -139,11 +139,6 @@ test_that("hd rate histograms",{
   rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample)
 })
 
-##################################
-#### spike-triggered HD stuff ####
-##################################
-
-
 test_that("spike-triggered head-direction occupancy histograms",{
   resSamplesPerWhlSample=400
   samplingRateDat=20000
@@ -235,6 +230,7 @@ test_that("spike-triggered head-direction occupancy histograms",{
                   minIsiMs,
                   maxIsiMs,
                   as.integer(st@samplingRate))
+  
   
   # each data point in the pt object add 20 ms in a bin.
   # it moves at 1 deg per 20ms so their will be 10x20ms per bin for each spikes (200 per bin)
@@ -390,7 +386,6 @@ test_that("spike-triggered head-direction occupancy histograms",{
   #############################
   ## try with two intervals  ##
   #############################
-  
   minIsiMs=0
   maxIsiMs=2000
   st<-new("SpikeTrain")
@@ -422,7 +417,6 @@ test_that("spike-triggered head-direction occupancy histograms",{
                   as.integer(st@samplingRate))
   
   expect_equal(sum(results[which(results!=-1.0)]),(maxIsiMs-minIsiMs)*length(spikeTimes))
-  
   rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample,results)
 })
 
@@ -517,3 +511,94 @@ test_that("spike-triggered head-direction rate histograms",{
   rm(pt,hD,x,y,st,samplingRateDat,resSamplesPerWhlSample,results)
 })
 
+
+test_that("spike-triggered head-direction rate crosscorrelation histograms",{
+  resSamplesPerWhlSample=400
+  samplingRateDat=20000
+  
+  pt<-new("Positrack")
+  hD<-as.numeric(rep(0:359,50)) # gives us a second per bins
+  x=rnorm(n=length(hD),mean = 40,sd=5)
+  y=rnorm(n=length(hD),mean = 40,sd=5)
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
+                   resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
+  
+  st<-new("SpikeTrain")
+  nSpikes=10 ## only even numbers
+  degreeDiff=41 ## each sample of the pt object change 1 degree
+  spikeTimes=seq(400,400*nSpikes*degreeDiff,400*degreeDiff)
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(c(1,2),length(spikeTimes)/2),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
+  
+  hd<-new("HeadDirection")
+  hd@smoothOccupancySd=0
+  hd@smoothRateHistoSd=0
+  minIsiMs=0
+  maxIsiMs=1000
+  hd<-spikeTriggeredHeadDirectionCrossHisto(hd,st,pt,minIsiMs = minIsiMs,maxIsiMs = maxIsiMs)
+  #plot(hd@histoDegree,hd@crossHisto,xlim=c(-50,50))
+  ## there are 5 spikes of cell 1, so total time in occupancy is 5 sec divided by 5 bins so 1 sec per bin
+  ## There should be a bin at 5 Hz and the other 4 at 0.
+  expect_equal(hd@crossHisto[which.min(abs(hd@histoDegree-degreeDiff))],5)
+  expect_equal(sum(hd@crossHisto[which(hd@crossHisto!=-1.0)]),5)
+  expect_equal(length(which(hd@crossHisto!=-1.0)),5)
+
+  
+  #####
+  ### try the same thing with head direction changes being counter clockwise
+  pt<-new("Positrack")
+  hD<-as.numeric(rep(359:0,50)) # gives us a second per bins
+  x=rnorm(n=length(hD),mean = 40,sd=5)
+  y=rnorm(n=length(hD),mean = 40,sd=5)
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
+                   resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
+  st<-new("SpikeTrain")
+  nSpikes=50 ## only even numbers
+  degreeDiff=39 ## each sample of the pt object change 1 degree, with few spikes will fail
+  spikeTimes=seq(400,400*nSpikes*degreeDiff,400*degreeDiff)
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(c(1,2),length(spikeTimes)/2),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
+  
+  minIsiMs=0
+  maxIsiMs=1000
+  hd<-spikeTriggeredHeadDirectionCrossHisto(hd,st,pt,minIsiMs = minIsiMs,maxIsiMs = maxIsiMs)
+  
+  ## there are 25 spikes of cell 1, so total time in occupancy is 25 sec divided by 5 bins so 5 sec per bin
+  ## There should be a 25 spikes in one bin divided by 5 sec so 5 Hz. Other 4 should be 0 Hz.
+  expect_equal(hd@crossHisto[which(hd@histoDegree==-35)],5)
+  expect_equal(sum(hd@crossHisto[which(hd@crossHisto!=-1.0)]),5)
+  expect_equal(length(which(hd@crossHisto!=-1.0)),5)
+  
+  #####
+  ## try with longer time intervals
+  st<-new("SpikeTrain")
+  nSpikes=50 ## only even numbers
+  degreeDiff=10 ## each sample of the pt object change 1 degree, with few spikes will fail
+  spikeTimes=seq(400,400*nSpikes*degreeDiff,400*degreeDiff)
+  st<-setSpikeTrain(st,res=spikeTimes,clu=rep(c(1,2),length(spikeTimes)/2),samplingRate=samplingRateDat)
+  st<-setIntervals(st,s=c(0),e=c(4000000))
+  minIsiMs=0
+  maxIsiMs=7000
+  hd<-spikeTriggeredHeadDirectionCrossHisto(hd,st,pt,minIsiMs = minIsiMs,maxIsiMs = maxIsiMs)
+  #plot(hd@histoDegree,hd@crossHisto,type='l') output should look like a saw
+  expect_equal(max(hd@crossHisto),5)
+  val<-hd@crossHisto[1:(length(hd@crossHisto)/2)]
+  expect_equal(sum(val[c(TRUE,FALSE)]),0)
+  expect_true(all(val[c(FALSE,TRUE)]!=0))
+  
+  pt<-new("Positrack")
+  hD<-as.numeric(rep(0:359,50)) # gives us a second per bins
+  x=rnorm(n=length(hD),mean = 40,sd=5)
+  y=rnorm(n=length(hD),mean = 40,sd=5)
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hD, 
+                   resSamplesPerWhlSample=resSamplesPerWhlSample,samplingRateDat = samplingRateDat,pxPerCm = 1)
+  
+  minIsiMs=0
+  maxIsiMs=7200
+  hd<-spikeTriggeredHeadDirectionCrossHisto(hd,st,pt,minIsiMs = minIsiMs,maxIsiMs = maxIsiMs)
+  #plot(hd@histoDegree,hd@crossHisto,type='l')
+  val<-hd@crossHisto[which(hd@histoDegree>0)]
+  expect_equal(sum(val[c(TRUE,FALSE)]),0)
+  expect_true(all(val[c(FALSE,TRUE)]!=0))
+  
+})
