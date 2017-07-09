@@ -131,6 +131,10 @@ SEXP speed_intervals_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_samples_per_
 int speed_intervals_count(double* speed, int whl_lines, int res_samples_per_whl_sample,double min_speed,double max_speed);
 void speed_intervals(double* speed, int whl_lines, int res_samples_per_whl_sample,double min_speed,double max_speed,int* start,int* end);
 
+SEXP head_direction_intervals_cwrap(SEXP hd_r, SEXP whl_lines_r, SEXP res_samples_per_whl_sample_r, SEXP min_hd_r, SEXP max_hd_r);
+int head_direction_intervals_count(double* hd, int whl_lines, int res_samples_per_whl_sample,double min_hd,double max_hd);
+void head_direction_intervals(double* hd, int whl_lines, int res_samples_per_whl_sample,double min_hd,double max_dh,int* start,int* end);
+
 void spike_position_no_interval(double *x_whl,int whl_lines,int *res, int res_lines, double *x_spike, int res_samples_per_whl_sample);
 SEXP speed_at_res_values_cwrap(SEXP speed_r, SEXP whl_lines_r, SEXP res_r, SEXP res_lines_r, SEXP res_samples_per_whl_sample_r);
 SEXP spike_position_cwrap(SEXP x_whl_r, SEXP y_whl_r, SEXP whl_lines_r, SEXP res_r, SEXP res_lines_r, SEXP res_samples_per_whl_sample_r, SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r);
@@ -245,7 +249,20 @@ void spike_triggered_hd_cross_histo(int num_bins,double degrees_per_bin, double 
                               int target_cell1,int target_cell2, 
                               double *occupancy_map, double *histo, 
                               double min_isi_ms, double max_isi_ms, int res_sampling_rate);
-
+SEXP map_spatial_crosscorrelation_cwrap(SEXP cell_lines_r,
+                                        SEXP cell_list_r,
+                                        SEXP cell_pair_lines_r,
+                                        SEXP cell_pair1_r,
+                                        SEXP cell_pair2_r,
+                                        SEXP maps_r, 
+                                        SEXP num_bins_x_r,
+                                        SEXP num_bins_y_r,
+                                        SEXP cross_num_bins_x_r,
+                                        SEXP cross_num_bins_y_r,
+                                        SEXP min_bins_for_correlation_r);
+void spatial_crosscorrelation_map(double *map_1,double *map_2, double *crosscorrelation, 
+                                  int x_bins_place_map,int y_bins_place_map,int x_bins_cross_map,int y_bins_cross_map,int min_for_correlation);
+  
 // interval.c
 int check_interval_chronology_between(int num_lines, 
 				      int* start, 

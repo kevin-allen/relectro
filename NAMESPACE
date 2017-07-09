@@ -10,3 +10,4 @@ importFrom("stats", "complete.cases", "cor", "cov", "lm",
              "quantile", "rnorm", "rpois", "runif", "sd","ccf")
 importFrom("utils", "tail", "combn", "head", "read.table", "tar",
              "write.table")
+importFrom("plyr", "aaply")

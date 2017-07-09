@@ -12,6 +12,7 @@ Imports:
     snow,
     plotrix,
     abind,
+    plyr,
     methods
 Suggests:
     knitr,

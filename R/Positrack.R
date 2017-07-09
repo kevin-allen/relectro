@@ -79,14 +79,14 @@ setMethod(f="loadPositrack",
             }
             pathSession=paste(pt@path,pt@session,sep="/")
             if(!file.exists(paste(pathSession,"whd",sep=".")))
-              stop("need",paste(pathSession,"whd",sep="."))
+              stop("needs ",paste(pathSession,"whd",sep="."))
             if(!file.exists(paste(pathSession,"res_samples_per_whd_sample",sep="."))&
                !file.exists(paste(pathSession,"res_samples_per_whl_sample",sep=".")))
-              stop("need",paste(pathSession,"res_samples_per_whd_sample",sep="."))
+              stop("needs ",paste(pathSession,"res_samples_per_whd_sample",sep="."))
             if(!file.exists(paste(pathSession,"sampling_rate_dat",sep=".")))
-              stop("need",paste(pathSession,"sampling_rate_dat",sep="."))
+              stop("needs ",paste(pathSession,"sampling_rate_dat",sep="."))
             if(!file.exists(paste(pathSession,"px_per_cm",sep=".")))
-              stop("need",paste(pathSession,"px_per_cm",sep="."))
+              stop("needs ",paste(pathSession,"px_per_cm",sep="."))
             ## get sampling rate
             whd<-read.table(paste(pathSession,"whd",sep="."))
             pt@xWhl<-whd$V1
@@ -145,8 +145,8 @@ setMethod(f="loadPositrack",
                
             ## get the speed from position
             pt@speed<- .Call("speed_from_whl_cwrap",
-                            pt@x,
-                            pt@y,
+                            as.numeric(pt@x),
+                            as.numeric(pt@y),
                             length(pt@x),
                             1.0, # already in cm
                             pt@samplingRateDat, 
@@ -155,7 +155,7 @@ setMethod(f="loadPositrack",
             
             ## get the angular speed from position
             pt@angularSpeed<- .Call("angular_speed_from_hd_cwrap",
-                                     pt@hd,
+                                     as.numeric(pt@hd),
                                      length(pt@hd),
                                      4,
                                      4,
@@ -581,11 +581,13 @@ setMethod(f="getIntervalsAtDirection",
 
 #' Get time intervals at which the animal's head direction is in a given range
 #' 
-#' Works as though head direction was a linear variable.
+#' There is a tric to deal with the circularity of the head direction data
+#' If hdMin is larger than hdMax, then it is assumed that you want the range from hdMin-360 and 0-hdMax
+#' This wrap around the 360-0.
 #' 
 #' @param pt Positrack object
-#' @param hdMin Minimal head direction that will be considered (in degree)
-#' @param hdMax Maximal head direction that will be considered (in degree)
+#' @param hdMin Minimal head direction that will be considered (in degree, from 0 to 360)
+#' @param hdMax Maximal head direction that will be considered (in degree, from 0 to 360)
 #' @return matrix with the time intervals
 #'
 #' @docType methods
@@ -614,11 +616,10 @@ setMethod(f="getIntervalsAtHeadDirection",
               stop("hdMax < 0")
             if(hdMax>360)
               stop("hdMax > 360")
-            if(hdMax < hdMin)
-              stop("hdMax < hd Min")
+
             x<-pt@hd
             x[is.na(x)]<- -1.0
-            results<-.Call("speed_intervals_cwrap",
+            results<-.Call("head_direction_intervals_cwrap",
                            x,
                            length(x),
                            as.integer(pt@resSamplesPerWhlSample),

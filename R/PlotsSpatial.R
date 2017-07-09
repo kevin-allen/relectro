@@ -71,6 +71,7 @@ spikeOnPathPlot <- function(sop,clu,name="",
 #' @param plot.axis Whether to plot the axes or not (TRUE or FALSE)
 #' @param xlab Name to display under the x axis
 #' @param ylab Name to display at the left of the y axis
+#' @param col Color of the path
 pathPlot <- function(pt,name="",
                      outma=c(2.0,2.0,2.0,2.0),margin=c(1.5,1.5,1,1),
                      cex.name=0.6,cex.line=0.2,cex.lab=0.6,cex.axis=0.6,
@@ -78,7 +79,8 @@ pathPlot <- function(pt,name="",
                      mgp.x=c(0.5,0.05,0.0),mgp.y=c(.8,0.3,0.2),
                      axis.x.pos=0,axis.y.pos=0,
                      plot.axis=TRUE,
-                     xlab="",ylab="")
+                     xlab="",ylab="",
+                     col="black")
 {
   if(class(pt)!="Positrack")
     stop("pt is not of the Positrack class")
@@ -86,7 +88,7 @@ pathPlot <- function(pt,name="",
     stop("length(pt@x)==0")
   par(mar=margin, oma=outma,cex.lab=cex.lab,cex.axis=cex.axis)
   plot (x=plotxlim, y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="",cex=cex.line)
-  lines(pt@x,pt@y,type='l',xlab=xlab,ylab=ylab,lwd=0.2)
+  lines(pt@x,pt@y,type='l',xlab=xlab,ylab=ylab,lwd=0.2,col=col)
   if(plot.axis){
     axis(side = 1, pos=axis.x.pos,  tck=-0.05,cex.axis=cex.axis,mgp=mgp.x)
     axis(side = 2, las=2, pos=axis.y.pos, tck=-0.05,cex.axis=cex.axis,mgp=mgp.y)
@@ -207,7 +209,7 @@ firingRateMapsPlot<-function(maps,names,ncol=5,nrow=6){
 #' Plot a single spatial autocorrelation map
 #' 
 #' 
-#' @param m A matrix containing the data of the firing rate map.
+#' @param m A matrix containing the data of the spatial autocorrelation.
 #' @param name Character vector giving the name of the map
 #' @param outma Outer margins of the figure
 #' @param margin Inner margins of the figure
@@ -220,12 +222,13 @@ firingRateMapAutoPlot <- function(m,name="",
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
   image(m,zlim=c(-1,1), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-  mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=0.6,side=3)
+  mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"r value"),line=-0.1,cex=0.6,side=3)
   if(main.title!="")
   {
     mtext(main.title,side=3,line=0.3,cex=0.5)
   }
 }
+
 
 #' Plot a several spatial autocorrelation maps on the same page
 #' 
@@ -260,6 +263,49 @@ firingRateMapAutosPlot<-function(maps,names,ncol=5,nrow=6){
   }
   close.screen(all.screens = TRUE)
 }
+
+
+
+#' Plot a single spatial crosscorrelation map
+#' 
+#' 
+#' @param m A matrix containing the data of the spatial crosscorrelation.
+#' @param name Character vector giving the name of the map
+#' @param outma Outer margins of the figure
+#' @param margin Inner margins of the figure
+#' @param main.title A title for the figure
+#' @param peak.rate.prefix Additional information to display before the peak value.
+firingRateMapCrossPlot <- function(m,name="",
+                                  outma=c(2.0,2.0,2.0,2.0),margin=c(1,1,1,1),
+                                  main.title="",peak.rate.prefix="")
+{
+  jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
+  par(oma=outma,mar=margin)
+  image(m,zlim=c(-1,1), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+  segments(0.5,0.0,0.5,1)
+  segments(0.0,0.5,1.0,0.5)
+  mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"r value"),line=-0.1,cex=0.6,side=3)
+  if(main.title!="")
+  {
+    mtext(main.title,side=3,line=0.3,cex=0.5)
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #' Polar plot of firing rate as a function of head direction
 #' 

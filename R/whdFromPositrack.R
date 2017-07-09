@@ -107,7 +107,7 @@ whdFromPositrack<-function(rs,
     
     interEventCor<-cor(diff(up),diff(posi$startProcTime))
     print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
-    if(interEventCor<0.8)
+    if(interEventCor<0.1)#.8
     {
       paste("The correlation between interUp and interPosi is below 0.8:",interEventCor)
       stop("Something is wrong with alignment")

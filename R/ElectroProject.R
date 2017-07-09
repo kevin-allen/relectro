@@ -67,11 +67,12 @@ setMethod(f="setSessionList",
             ## list all directories in the project path
             ## this is really slow if over nfs.
             dirs<-list.dirs(path=ep@directory)
+            lastLevelNames<-unlist(lapply(strsplit(dirs,"/"),function(x){x[length(x)]}))
             
-            ## only keep the directories with a hyphen in the name
-            ep@sessionPathList<-dirs<-dirs[grepl(pattern="-",dirs)]
+            ## only keep the directories with 2 hyphens in the name of the last level
+            dirs<-dirs[lengths(gregexpr("-", lastLevelNames))==2]
             ep@nSessions<-length(dirs)
-            
+            ep@sessionPathList<-dirs
             ## make sure all directories have the same depth
             x<-sapply(ep@sessionPathList,function(x){length(unlist(strsplit(x,split="/")))})
             xMode<-modeRelectro(as.numeric(x))
@@ -87,7 +88,7 @@ setMethod(f="setSessionList",
             dirDepth<-xMode
             ep@sessionNameList<-
               unlist(strsplit(ep@sessionPathList,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
-              
+             
             if(loadSessions==TRUE){
               ep<-loadSessionsInList(ep)
               }

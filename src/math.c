@@ -533,50 +533,54 @@ void smooth_double_gaussian_circular(double* array, int array_size, double smoot
 		  kernel_size,
 		  smooth);// standard deviation in kernel
   // for each bin of the array
+ // printf("kernel_size: %d\n",kernel_size);
   for(int i = 0; i < array_size; i++)
     {
+   //   printf("data_point: %i\n",i);
       sum_weight=0;
       sum_value=0;
       // do the sum of kernel_weight*value_array
       for (int j = 0; j < kernel_size; j++)
-	{
-	  index_value_for_kernel=i-((kernel_size-1)/2)+j;
-	  if (index_value_for_kernel>=0&&index_value_for_kernel<array_size)
 	    {
-	      if(array[index_value_for_kernel]!=invalid)
-		{
-		  sum_weight=sum_weight+kernel[j]; // to know the total weigth from kernel that was used
-		  sum_value=sum_value+(array[index_value_for_kernel]*kernel[j]); // sum of weigthed value
-		}
-	    }
-	  else // do some wrapping
-	    {
-	      if(index_value_for_kernel<0)
-		index_value_for_kernel_wrapped=array_size+index_value_for_kernel;
-	      if(index_value_for_kernel>=array_size)
-		index_value_for_kernel_wrapped=index_value_for_kernel%array_size;
-	      if(index_value_for_kernel_wrapped<0||index_value_for_kernel_wrapped>=array_size)
-		{
-		  Rprintf("in smooth_double_gaussian_circular problem with wrapping function\n");
-		  return;
-		}
-	      if(array[index_value_for_kernel]!=invalid)
-		{
-		  sum_weight=sum_weight+kernel[j]; // to know the total weigth from kernel that was used
-		  sum_value=sum_value+(array[index_value_for_kernel_wrapped]*kernel[j]); // sum of weigthed value
-		}
-	    }
-	}
-      results[i]=sum_value/sum_weight;
+	      index_value_for_kernel=i-((kernel_size-1)/2)+j;
+        if (index_value_for_kernel>=0&&index_value_for_kernel<array_size)
+	        {
+         //   printf("linear: j: %d, index_value_for_kernel:%d\n",j,index_value_for_kernel);
+	          if(array[index_value_for_kernel]!=invalid)
+		        {
+		          sum_weight=sum_weight+kernel[j]; // to know the total weigth from kernel that was used
+		          sum_value=sum_value+(array[index_value_for_kernel]*kernel[j]); // sum of weigthed value
+		        }
+	        }
+	    else // do some wrapping
+	      {
+	        if(index_value_for_kernel<0)
+		        index_value_for_kernel_wrapped=array_size+index_value_for_kernel;
+	        if(index_value_for_kernel>=array_size)
+		        index_value_for_kernel_wrapped=index_value_for_kernel%array_size;
+	        if(index_value_for_kernel_wrapped<0||index_value_for_kernel_wrapped>=array_size)
+		        {
+		          Rprintf("in smooth_double_gaussian_circular problem with wrapping function\n");
+		          return;
+		        }
+	      //  printf("circular j: %d, index_value_for_kernel:%d wrapped: %d\n",j,index_value_for_kernel,index_value_for_kernel_wrapped);
+	        if(array[index_value_for_kernel]!=invalid)
+		        {
+	            sum_weight=sum_weight+kernel[j]; // to know the total weigth from kernel that was used
+		          sum_value=sum_value+(array[index_value_for_kernel_wrapped]*kernel[j]); // sum of weigthed value
+		        }
+	      }
+	  }
+    results[i]=sum_value/sum_weight;
     }
   // copy the results to array
   for(int i = 0; i < array_size; i++)
     {
       // if the value was invalid, then leave as it is
       if (array[i]!=invalid)
-	{
-	  array[i]=results[i];
-	}
+	      {
+	        array[i]=results[i];
+	      }
     }
   free(kernel);
   free(results);
