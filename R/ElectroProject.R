@@ -339,7 +339,7 @@ setMethod(f="runOnSessionList",
                  }else{
                   assign(n,do.call("rbind", sapply(list.res,function(x){x[n]})))
                  }
-               }else{## concatonate to existing data
+               }else{## concatenate to existing data
                  if(class(obj[[n]])=="array"|class(obj[[n]])=="matrix"){
                    assign(paste(n,"new",sep="."),do.call(abind::abind, sapply(list.res,function(x){x[n]}))) ## bind along the last dimension
                    load(file=paste(ep@resultsDirectory,n,sep="/"))
