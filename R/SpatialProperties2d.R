@@ -51,7 +51,6 @@
 #' @slot speedScore Speed score of the neurons
 #' @slot speedRateSlope Slope of the linear regression line between speed and rate
 #' @slot speedRateIntercept Rate intercept of the linear regression line between speed and rate
-#' @slot p-value of ifr speed correlation
 #' @slot nShufflings Number of shufflings to get chance levels, by default 100
 #' @slot minShiftMs Minimum time shift of the position data when doing shuffling
 #' @slot peakRateShuffle peak firing rate in the shuffling analysis
@@ -115,7 +114,6 @@ SpatialProperties2d<- setClass(
             speedScore="numeric",
             speedRateSlope="numeric",
             speedRateIntercept="numeric",
-            speedPValue='numeric',
             ##
             nShufflings="numeric",
             minShiftMs="numeric",
@@ -178,8 +176,6 @@ setMethod("show", "SpatialProperties2d",
               print(paste(object@speedRateSlope))
               print("speedRateIntercept:")
               print(paste(object@speedRateIntercept))
-              print("speedPValue:")
-              print(paste(object@speedPValue))
             }
             print(paste("nShufflings:",object@nShufflings))
             print(paste("shuffled values:",length(object@infoScoreShuffle)))
@@ -1245,8 +1241,6 @@ setMethod(f="speedScore",
             sp@speedScore<-apply(ifrSel,1,cor,speed)
             if(runLm){
               c<-apply(ifrSel,1,function(x,y){lm(x~y)$coefficients},speed)
-              c.p_value<-apply(ifrSel,1,function(x,y){summary(lm(x~y))$coefficients[2, 4]},speed)
-              sp@speedPValue=c.p_value
               sp@speedRateSlope=c[2,]
               sp@speedRateIntercept=c[1,]
             }
@@ -1276,8 +1270,6 @@ setMethod(f="speedScoreShuffle",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt,minSpeed=3,maxSpeed=100)
           {
-            sp@cellList<-st@cellList
-
             if(length(pt@speed)==0)
               stop("pt@speed has length of 0")
             if(dim(st@ifr)[1]!=length(sp@cellList))
