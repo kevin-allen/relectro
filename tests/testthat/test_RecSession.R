@@ -35,5 +35,7 @@ test_that("RecSession",{
   expect_equal(containsStimulation(rs,stimulation="none"),TRUE)
   expect_equal(containsStimulation(rs,stimulation="train_50"),TRUE)
   expect_equal(containsStimulation(rs,stimulation="typo"),FALSE)
+  expect_equal(containsElectrodeLocation(rs,location="typo"),FALSE)
+  expect_equal(containsElectrodeLocation(rs,location="ca1"),TRUE)
   rm(rs)
 })
