@@ -216,7 +216,7 @@ setMethod(f="getClusteredSessionList",
 #' @param clustered logical indicating whether the session should be clustered or not
 #' @param region Set to a given brain region to select only sessions with tetrodes in this brain region
 #' @param env Set to a given environment code to select only sessions during which this environment was presented
-#' @param stim Set to a given stimulation code to select only sessions during which this stimulation was presented
+#' @param stim Set to a given stimulation code to select only sessions during which this stimulatoin was presented
 #' @param fileExtension Keep sessions that have a session file ending with the value of fileExtension (e.g. kld-19021016-0101.fileExtension)
 #' @return list of RecSession objects
 #' 

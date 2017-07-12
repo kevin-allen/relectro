@@ -562,7 +562,7 @@ setMethod(f="containsEnvironment",
 #' This will check whether the value of stimulation is in the stimulation vector.
 #' 
 #' @param rs A RecSession object
-#' @param stimulation The name of a stimulation; can also be a regular expression pattern; a "^" is attached automatically to the beginning and a "$" to the end
+#' @param stimulation The name of a stimulation
 #' @return TRUE or FALSE
 #' 
 #' @docType methods
@@ -577,7 +577,7 @@ setMethod(f="containsStimulation",
           signature="RecSession",
           definition=function(rs,stimulation="")
           {
-            return(any(grepl(paste0("^",stimulation,"$"),rs@stimulation)))
+            return(any(rs@stimulation==stimulation))
           })
 
 
@@ -667,7 +667,7 @@ setMethod(f="getIntervalsEnvironment",
 #' Get the time intervals in sample values for trials for a given stimulation
 #'
 #' @param rs A RecSession object
-#' @param stimulation The name of a stimulation; can also be a regular expression like "train_.*"; A "^" is automatically added to the beginning and a "$" to the end to match the expression exactly
+#' @param stimulation The name of a stimulation
 #' @return matrix with 2 columns containing the start and end of each trial in the stimulation
 #' 
 #' @docType methods
@@ -686,13 +686,12 @@ setMethod(f="getIntervalsStimulation",
               print("trialStartRes is not set")
               return()
             }
-            # if(!stimulation%in%rs@stimulation){
-            if(length(grep(paste0("^",stimulation,"$"),rs@stimulation))==0){
+            if(!stimulation%in%rs@stimulation){
               print("stimulation not used in the session")
               return()
             }
-          return(matrix(data=c(rs@trialStartRes[grep(paste0("^",stimulation,"$"),rs@stimulation)],rs@trialEndRes[grep(paste0("^",stimulation,"$"),rs@stimulation)]),ncol=2,
-                 dimnames=list(rep(stimulation,length(grep(paste0("^",stimulation,"$"),rs@stimulation))),c("start","end"))))
+          return(matrix(data=c(rs@trialStartRes[which(rs@stimulation==stimulation)],rs@trialEndRes[which(rs@stimulation==stimulation)]),ncol=2,
+                 dimnames=list(rep(stimulation,length(which(rs@stimulation==stimulation))),c("start","end"))))
           })
 
 #' Load a set of objects that are session specific
