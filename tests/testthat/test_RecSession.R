@@ -27,6 +27,7 @@ test_that("RecSession",{
   ## not much testing done here
   expect_equal(rs@session,"test-31012017-0103")
   expect_equal(rs@pxPerCm,10)
+  expect_equal(rs@nTrials,3)
   expect_equal(containsEnvironment(rs,environment="sqr70"),TRUE)
   expect_equal(containsEnvironment(rs,environment="rest"),TRUE)
   expect_equal(containsEnvironment(rs,environment="typo"),FALSE)

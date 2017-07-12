@@ -116,7 +116,7 @@ setMethod(f="loadPositrack",
               print(paste("min x:",min(pt@xWhl),"max x:",max(pt@xWhl)))
               stop(paste("values of pt@xWhl are out of bound"))
             }
-            if(max(pt@yWhl)>5000|min(pt@yWhl)< -1.0){
+            if(max(pt@yWhl)>5000|min(pt@yWhl)< -300.0){
               print(paste("min y:",min(pt@yWhl),"max y:",max(pt@yWhl)))
               stop(paste("values of pt@xWhl are out of bound"))
             }
