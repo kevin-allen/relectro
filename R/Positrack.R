@@ -26,6 +26,8 @@
 #' @slot res Sample number associated with each position value
 #' @slot defaultXYSmoothing Default smoothing apply to the x and y position.
 #' @slot minShiftMs Minimum shift of the position vector during a shuffling procedure
+#' @slot percentInalidPosition Percentage of data points with invalid position
+#' 
 Positrack <- setClass(
   "Positrack", ## name of the class
   slots=c(session="character",
@@ -45,7 +47,8 @@ Positrack <- setClass(
           angularSpeed="numeric",
           res="numeric",
           defaultXYSmoothing="numeric",
-          minShiftMs="numeric"
+          minShiftMs="numeric",
+          percentInvalidPosition="numeric"
           ),  # cell list to limit the analysis to these cells
   prototype = list(session="",path="",defaultXYSmoothing=2,minShiftMs=20000))
 
@@ -168,6 +171,8 @@ setMethod(f="loadPositrack",
             pt@hd[which(pt@hd==-1.0)]<-NA
             pt@speed[which(pt@speed==-1.0)]<-NA
             pt@angularSpeed[which(pt@angularSpeed==-1.0)]<-NA
+            pt@percentInvalidPosition<-sum(is.na(pt@x))/length(pt@x)*100
+            
             return(pt)
           }
 )
@@ -181,9 +186,9 @@ setMethod(f="loadPositrack",
 #' This function also use the .res_samples_per_whl_sample, .sampling_rate_dat and .px_per_cm files
 #' 
 #' @param pt Positrack object
-#' @param pxX Numeric with the x position of animal. x is in pixels
-#' @param pxY Numeric with the y position of animal. y is in pixels
-#' @param hd Numeric with the head direction of animal in degrees
+#' @param pxX Numeric with the x position of animal. x is in pixels. invalid is -1.0
+#' @param pxY Numeric with the y position of animal. y is in pixels. invalid is -1.0
+#' @param hd Numeric with the head direction of animal in degrees. invalid is -1.0
 #' @param resSamplesPerWhlSample Number of electrophysiological samples per position sample
 #' @param samplingRateDat Sampling rate of electrophysiological data
 #' @param pxPerCm Number of pixels per cm
@@ -271,6 +276,7 @@ setMethod(f="setPositrack",
             pt@hd[which(pt@hd==-1.0)]<-NA
             pt@speed[which(pt@speed==-1.0)]<-NA
             pt@angularSpeed[which(pt@angularSpeed==-1.0)]<-NA
+            pt@percentInvalidPosition<-sum(is.na(pt@x))/length(pt@x)*100
             return(pt)
           }
 )
@@ -939,4 +945,5 @@ setMethod("show", "Positrack",
             print(paste("total valid time:", 
                         sum(!is.na(object@x))*object@resSamplesPerWhlSample/object@samplingRateDat,
                         "sec"))
+            print(paste("percent of invalid position:", round(object@percentInvalidPosition)))
           })

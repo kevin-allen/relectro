@@ -103,8 +103,6 @@ whdFromPositrack<-function(rs,
       up<-x$up
       posi<-x$posi
     }
-    
-    
     interEventCor<-cor(diff(up),diff(posi$startProcTime))
     print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
     if(interEventCor<0.1)#.8
@@ -112,7 +110,6 @@ whdFromPositrack<-function(rs,
       paste("The correlation between interUp and interPosi is below 0.8:",interEventCor)
       stop("Something is wrong with alignment")
     }
-    
     
     ## the frame is capture before it is received by the computer
     ## up in .dat file is frame processing and not frame capture

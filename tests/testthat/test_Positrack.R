@@ -61,3 +61,22 @@ test_that("Positrack",{
   
   rm(pt,maxx,minx,maxy,miny,x,y,hd,sp1)
 })
+
+
+test_that("Positrack invalids",{
+  
+  ##########################################
+  ## make a fake pt object                ##
+  ## constant speed, filling all position ##
+  ##########################################
+  pt<-new("Positrack")
+  
+  x=c(1,2,3,4,-1.0)
+  y=c(1,2,3,4,-1.0)
+  hd<-c(1,2,3,4,-1.0)
+  pt@defaultXYSmoothing=0
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+  expect_equal(pt@percentInvalidPosition,20)
+  rm(pt,x,y,hd)
+})
