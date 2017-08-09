@@ -461,16 +461,31 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
     return(4)
   }
   
+  ## Check the percentage of invalid data point
+  percentInvalid<-sum(posi$x==-1.0)/length(posi$x)*100
+  print(paste("Percentage of invalid data points:",round(percentInvalid,2),"%"))
+  if(percentInvalid>2.5)
+  {
+    print("********* The percentage of invalid data points is too high **********")
+    print("Make sure your LED array and video camera are set properly")  
+  }
   
-  #plot((which.max(delayCapProc)-15):(which.max(delayCapProc)+100),
-  #     delayCapProc[(which.max(delayCapProc)-15):(which.max(delayCapProc)+100)],ylim=c(0,max(delayCapProc)),
-  #     ylab="Capture-Processing delays",
-  #     xlab="Frame number")
-  #plot(delayCapProc,type='l',
-  #     ylab="Capture-Processing delays",
-  #     xlab="Frame number")
-  #lines(interCapDelay,col='red')
-  #lines(posi$procDuration,col='blue')
+  ## Check for jump in the x y position of the animal
+  x<-posi$x[which(posi$x!=-1.0)]
+  y<-posi$y[which(posi$x!=-1.0)]
+  distance<-sqrt(diff(x)^2+diff(y)^2)
+  thresholdJump<-30
+  percentJump<-length(which(distance>thresholdJump))/length(distance)*100
+  print(paste("Percentage of position jumps (diff >",thresholdJump,"px):",round(percentJump,2),"%"))
+  
+  ## Check for jump in the head direction of the animal
+  hd<-posi$hd[which(posi$hd!=-1.0)]
+  thresholdJump<-30
+  diffHd<-abs(diff(hd))
+  diffHd[which(diffHd>360-thresholdJump)]<-360-diffHd[which(diffHd>360-thresholdJump)]
+  percentJump<-length(which(diffHd>thresholdJump))/length(diff(diffHd))*100
+  print(paste("Percentage of head-direction jumps (diff >",thresholdJump,"deg):",round(percentJump,2),"%"))
+  
   return(0)  
 }
 
