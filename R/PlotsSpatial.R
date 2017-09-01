@@ -150,8 +150,12 @@ firingRateMapPlot <- function(m,name="",
   par(oma=outma,mar=margin)
   
   if(class(m)=="matrix"){
-    image(m,zlim=c(0,max(m,na.rm=T)), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-    mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.1,cex=cex.name,side=3)
+    maxRate=max(m,na.rm=T)
+    if(maxRate!=0)
+      image(m,zlim=c(0,maxRate), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+    else
+      image(m,zlim=c(0,1), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
+    mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"Hz"),line=-0.15,cex=cex.name,side=3)
   }
   if(class(m)=="data.frame"){
     df<-m
@@ -163,7 +167,7 @@ firingRateMapPlot <- function(m,name="",
   }
   if(main.title!="")
   {
-    mtext(main.title,side=3,line=0.3,cex=cex.title)
+    mtext(main.title,side=3,line=0.35,cex=cex.title)
   }
 }
 
