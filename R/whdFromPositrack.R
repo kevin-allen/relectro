@@ -418,6 +418,16 @@ checkIntegrityPositrackData<-function(posi,maxDelayCapProc=1000,
     return(2)
   }
   
+  if(any(posi$x<0&posi$x!=-1.0)){
+    print("Some x values are negative but not -1.0")
+    return(2)
+  }
+  
+  if(any(posi$y<0&posi$y!=-1.0)){
+    print("Some y values are negative but not -1.0")
+    return(2)
+  }
+  
   # check capture/processing delays
   delayCapProc<-posi$startProcTime-posi$capTime
   print(paste("Max delay between capture and processing of frame is",round(max(delayCapProc)),"ms at index",which.max(delayCapProc)))
