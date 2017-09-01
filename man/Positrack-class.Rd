@@ -53,5 +53,7 @@ of the screen. This is important to know if you want to find out where landmarks
 \item{\code{defaultXYSmoothing}}{Default smoothing apply to the x and y position.}
 
 \item{\code{minShiftMs}}{Minimum shift of the position vector during a shuffling procedure}
+
+\item{\code{percentInalidPosition}}{Percentage of data points with invalid position}
 }}
 

@@ -4,7 +4,7 @@
 \alias{smoothGaussian}
 \title{Smooth the values in a numeric vector using a Gaussian kernel}
 \usage{
-smoothGaussian(x, sd = 2, invalid = -1, degrees = FALSE)
+smoothGaussian(x, sd = 2, invalid = -1, type = "linear")
 }
 \arguments{
 \item{x}{Numeric vector}
@@ -14,7 +14,10 @@ smoothGaussian(x, sd = 2, invalid = -1, degrees = FALSE)
 \item{invalid}{Numeric indicating which value should be treated as NA, by default -1.0.
 The value should be a numeric.}
 
-\item{degrees}{Logical indicating if the smoothing should consider the vector as circular, i.e. the first and last values are adjacent.}
+\item{type}{character vector indicating the type of data to smooth 
+Valid values are linear, circular, degrees.
+circular assumes that the vector is, i.e. the first and last values are adjacent.
+degrees assumes that the vector contains degrees (0=360)}
 }
 \description{
 The values at -1.0 are consider invalid by defaults and are not used or changed. 

@@ -15,11 +15,11 @@ setPositrack(pt, pxX, pxY, hd, resSamplesPerWhlSample, samplingRateDat, pxPerCm)
 \arguments{
 \item{pt}{Positrack object}
 
-\item{pxX}{Numeric with the x position of animal. x is in pixels}
+\item{pxX}{Numeric with the x position of animal. x is in pixels. invalid is -1.0}
 
-\item{pxY}{Numeric with the y position of animal. y is in pixels}
+\item{pxY}{Numeric with the y position of animal. y is in pixels. invalid is -1.0}
 
-\item{hd}{Numeric with the head direction of animal in degrees}
+\item{hd}{Numeric with the head direction of animal in degrees. invalid is -1.0}
 
 \item{resSamplesPerWhlSample}{Number of electrophysiological samples per position sample}
 

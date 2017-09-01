@@ -7,10 +7,10 @@
 \alias{speedScore,ANY,ANY-method}
 \title{Speed scores from spike train and positrack}
 \usage{
-speedScore(sp, st, pt, minSpeed, maxSpeed, runLm = F)
+speedScore(sp, st, pt, minSpeed, maxSpeed, angular = F, runLm = F)
 
 \S4method{speedScore}{SpatialProperties2d}(sp, st, pt, minSpeed = 2,
-  maxSpeed = 100, runLm = F)
+  maxSpeed = 100, angular = F, runLm = F)
 }
 \arguments{
 \item{sp}{SpatialProperties2d object}
@@ -23,11 +23,15 @@ speedScore(sp, st, pt, minSpeed, maxSpeed, runLm = F)
 
 \item{maxSpeed}{Maximal speed to be considered}
 
+\item{angular}{Logical, if TRUE will use the angular velocity of the head instead of running speed}
+
 \item{runLm}{Logical, if TRUE a linear model will be build and slope and intercept calculated}
 }
 \value{
 SpatialProperties2d object with the speed scores in the slots SpeedScore. 
 If runLm argument was TRUE, then speedRateSlope and peedRateIntercept will also be filled
+The analysis only use period withing the intervals of the SpikeTrain object
+The function ifr() should be called prior to calling speedScore()
 }
 \description{
 Speed scores from spike train and positrack

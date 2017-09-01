@@ -30,11 +30,17 @@ Can do some shuffling to get the spatial properties that you would get by chance
 
 \item{\code{nRowAuto}}{Number of rows in the spatial autocorrelation}
 
+\item{\code{nColCross}}{Number of columns in the spatial crosscorrelation}
+
+\item{\code{nRowCross}}{Number of rows in the spatial crosscorrelation}
+
 \item{\code{xSpikes}}{x position of the animal for each spike time}
 
 \item{\code{ySpikes}}{y position of the animal for each spike time}
 
 \item{\code{maps}}{Array containing the firing rate maps of the neurons}
+
+\item{\code{ccMaps}}{Array containing the crosscorrelation of firing rate maps}
 
 \item{\code{occupancy}}{Matrix containing the occupancy map}
 
@@ -48,9 +54,13 @@ Can do some shuffling to get the spatial properties that you would get by chance
 
 \item{\code{cellList}}{List of cells}
 
+\item{\code{cellPairList}}{List of cell pairs}
+
 \item{\code{reduceSize}}{Logical indicating if the size of map should be minimized by setting smallest x and y to 0}
 
 \item{\code{minValidBinsAuto}}{Number of valid bins to calculate a r value in the spatial autocorrelation maps}
+
+\item{\code{minValidBinsCross}}{Number of valid bins to calculate a r value in the spatial crosscorrelation maps}
 
 \item{\code{peakRate}}{Peak firing rates in the maps}
 

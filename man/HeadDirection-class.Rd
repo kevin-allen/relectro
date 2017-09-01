@@ -27,6 +27,8 @@ It can get the vector length of the head direction histograms and do shuffling t
 
 \item{\code{histo}}{An array holding the histograms of all neurons}
 
+\item{\code{histoDegree}}{A numeric holding the degree for each bin of the histogram}
+
 \item{\code{occupancy}}{A numeric holding the occupancy histogram}
 
 \item{\code{cellList}}{A list of cluster id of the neurons}

@@ -1192,6 +1192,7 @@ setMethod(f="borderDetection",
 #' @param pt Positrack object
 #' @param minSpeed Minimal speed to be considered
 #' @param maxSpeed Maximal speed to be considered
+#' @param angular Logical, if TRUE will use the angular velocity of the head instead of running speed
 #' @param runLm Logical, if TRUE a linear model will be build and slope and intercept calculated
 #' @return SpatialProperties2d object with the speed scores in the slots SpeedScore. 
 #' If runLm argument was TRUE, then speedRateSlope and peedRateIntercept will also be filled
@@ -1201,14 +1202,14 @@ setMethod(f="borderDetection",
 #' @docType methods
 #' @rdname speedScore-methods
 setGeneric(name="speedScore",
-           def=function(sp,st,pt,minSpeed,maxSpeed,runLm=F)
+           def=function(sp,st,pt,minSpeed,maxSpeed,angular=F,runLm=F)
            {standardGeneric("speedScore")}
 )
 #' @rdname speedScore-methods
 #' @aliases speedScore,ANY,ANY-method
 setMethod(f="speedScore",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt,minSpeed=2,maxSpeed=100,runLm=F)
+          definition=function(sp,st,pt,minSpeed=2,maxSpeed=100,angular=F,runLm=F)
           {
             if(length(pt@speed)==0)
               stop("pt@speed has length of 0")
@@ -1230,7 +1231,13 @@ setMethod(f="speedScore",
             resTime<-resTime[index]
             
             ## get the speed for the res values
-            speed<-getSpeedAtResValues(pt,resTime)
+            if(angular==FALSE){
+              speed<-getSpeedAtResValues(pt,resTime)
+            }
+            else{
+              print("angular")
+              speed<-getSpeedAtResValues(pt,resTime,angular=TRUE)
+            }
             
             ## speed filter
             index<-which(speed>minSpeed&speed<maxSpeed)
@@ -1321,19 +1328,22 @@ setMethod(f="speedScoreShuffle",
 #' @param pt Positrack object
 #' @param minSpeed Minimal speed to be considered
 #' @param maxSpeed Maximal speed to be considered
+#' @param angular Logical, if TRUE then angular velocity is used instead of running speed
+#' @param binSize Size of the bins in the tuning curve
+#' @param maxBin Maximum speed in the tuning curve
 #' @return data.frame with the speed-rate tuning curves
 #' 
 #' @docType methods
 #' @rdname speedRateTuningCurve-methods
 setGeneric(name="speedRateTuningCurve",
-           def=function(sp,st,pt,minSpeed,maxSpeed)
+           def=function(sp,st,pt,minSpeed,maxSpeed,angular=FALSE,binSize=5,maxBin=30)
            {standardGeneric("speedRateTuningCurve")}
 )
 #' @rdname speedRateTuningCurve-methods
 #' @aliases speedRateTuningCurve,ANY,ANY-method
 setMethod(f="speedRateTuningCurve",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt,minSpeed=2,maxSpeed=100)
+          definition=function(sp,st,pt,minSpeed=2,maxSpeed=100,angular=FALSE,binSize=5,maxBin=30)
           {
             if(length(pt@speed)==0)
               stop("pt@speed has length of 0")
@@ -1355,7 +1365,10 @@ setMethod(f="speedRateTuningCurve",
             resTime<-resTime[index]
             
             ## get the speed for the res values
-            speed<-getSpeedAtResValues(pt,resTime)
+            if(angular==FALSE)
+              speed<-getSpeedAtResValues(pt,resTime)
+            else
+              speed<-getSpeedAtResValues(pt,resTime,angular=TRUE)
             
             ## speed filter
             index<-which(speed>minSpeed&speed<maxSpeed)
@@ -1364,8 +1377,8 @@ setMethod(f="speedRateTuningCurve",
             
             
             ## speed bands
-            m<-matrix(ncol=2,c(seq(0,25,5),seq(5,30,5)))
-            
+            m<-matrix(ncol=2,c(seq(0,maxBin-binSize,binSize),seq(binSize,maxBin,binSize)))
+              
             ## function to get the mean firing rate at different speed bands
             fn<-function(ifr,speed,m){
               v<-numeric(length=nrow(m))

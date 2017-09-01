@@ -7,14 +7,16 @@
 \alias{getSpeedAtResValues,ANY,ANY-method}
 \title{Get the speed of the animal at given time points}
 \usage{
-getSpeedAtResValues(pt, res)
+getSpeedAtResValues(pt, res, angular = FALSE)
 
-\S4method{getSpeedAtResValues}{Positrack}(pt, res)
+\S4method{getSpeedAtResValues}{Positrack}(pt, res, angular = FALSE)
 }
 \arguments{
 \item{pt}{Positrack object}
 
 \item{res}{Time values in electrophysiological samples.}
+
+\item{angular}{Logical, if true will use the angular velocity instead of the running speed}
 }
 \value{
 Vector with the speed at the different time points

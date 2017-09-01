@@ -643,19 +643,20 @@ setMethod(f="getIntervalsAtHeadDirection",
 #' 
 #' @param pt Positrack object
 #' @param res Time values in electrophysiological samples.
+#' @param angular Logical, if true will use the angular velocity instead of the running speed
 #' @return Vector with the speed at the different time points
 #' 
 #' @docType methods
 #' @rdname getSpeedAtResValues-methods
 setGeneric(name="getSpeedAtResValues",
-           def=function(pt,res)
+           def=function(pt,res,angular=FALSE)
            {standardGeneric("getSpeedAtResValues")}
 )
 #' @rdname getSpeedAtResValues-methods
 #' @aliases getSpeedAtResValues,ANY,ANY-method
 setMethod(f="getSpeedAtResValues",
           signature="Positrack",
-          definition=function(pt,res)
+          definition=function(pt,res,angular=FALSE)
           {
             if(pt@session=="")
               stop("pt@session is empty")
@@ -665,13 +666,23 @@ setMethod(f="getSpeedAtResValues",
             if(any(res<0))
               stop("some res<0")
             
-            results<-.Call("speed_at_res_values_cwrap", 
-                           pt@speed,
-                           length(pt@speed),
-                           as.integer(res),
-                           length(res),
-                           as.integer(pt@resSamplesPerWhlSample))
-            
+            if(angular==FALSE){
+              results<-.Call("speed_at_res_values_cwrap", 
+                             pt@speed,
+                             length(pt@speed),
+                             as.integer(res),
+                             length(res),
+                             as.integer(pt@resSamplesPerWhlSample))
+            }
+            else{
+              print("angular")
+              results<-.Call("speed_at_res_values_cwrap", 
+                             pt@angularSpeed,
+                             length(pt@angularSpeed),
+                             as.integer(res),
+                             length(res),
+                             as.integer(pt@resSamplesPerWhlSample))
+            }
             return(results)
           }
 )

@@ -14,13 +14,15 @@ getIntervalsAtHeadDirection(pt, hdMin, hdMax)
 \arguments{
 \item{pt}{Positrack object}
 
-\item{hdMin}{Minimal head direction that will be considered (in degree)}
+\item{hdMin}{Minimal head direction that will be considered (in degree, from 0 to 360)}
 
-\item{hdMax}{Maximal head direction that will be considered (in degree)}
+\item{hdMax}{Maximal head direction that will be considered (in degree, from 0 to 360)}
 }
 \value{
 matrix with the time intervals
 }
 \description{
-Works as though head direction was a linear variable.
+There is a tric to deal with the circularity of the head direction data
+If hdMin is larger than hdMax, then it is assumed that you want the range from hdMin-360 and 0-hdMax
+This wrap around the 360-0.
 }

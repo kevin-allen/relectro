@@ -28,5 +28,5 @@ data.frame with the speed-rate tuning curves
 }
 \description{
 Uses the ifr of cells to calculate the mean firing rate of neurons 
-for different speed bands.
+for different speed bands. You need to call ifr() on the st object first.
 }

@@ -8,7 +8,7 @@ pathPlot(pt, name = "", outma = c(2, 2, 2, 2), margin = c(1.5, 1.5, 1, 1),
   cex.name = 0.6, cex.line = 0.2, cex.lab = 0.6, cex.axis = 0.6,
   plotxlim = c(0, 80), plotylim = c(0, 80), mgp.x = c(0.5, 0.05, 0),
   mgp.y = c(0.8, 0.3, 0.2), axis.x.pos = 0, axis.y.pos = 0,
-  plot.axis = TRUE, xlab = "", ylab = "")
+  plot.axis = TRUE, xlab = "", ylab = "", col = "black")
 }
 \arguments{
 \item{pt}{Positrack object}
@@ -44,6 +44,8 @@ pathPlot(pt, name = "", outma = c(2, 2, 2, 2), margin = c(1.5, 1.5, 1, 1),
 \item{xlab}{Name to display under the x axis}
 
 \item{ylab}{Name to display at the left of the y axis}
+
+\item{col}{Color of the path}
 }
 \description{
 Plot the animal path from a Positrack object

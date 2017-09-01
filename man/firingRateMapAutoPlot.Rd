@@ -8,7 +8,7 @@ firingRateMapAutoPlot(m, name = "", outma = c(2, 2, 2, 2), margin = c(1,
   1, 1, 1), main.title = "", peak.rate.prefix = "")
 }
 \arguments{
-\item{m}{A matrix containing the data of the firing rate map.}
+\item{m}{A matrix containing the data of the spatial autocorrelation.}
 
 \item{name}{Character vector giving the name of the map}
 
