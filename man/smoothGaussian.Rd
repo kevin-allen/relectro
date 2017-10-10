@@ -25,5 +25,5 @@ Set the value of the argument degrees to TRUE if the data are circular.
 For example, if the first and last data of the vector should be considered next to each other.
 }
 \examples{
-smoothGaussian(x=c(1:10,9:1),sd=2,invalid=-1.0,degrees=FALSE)
+smoothGaussian(x=c(1:10,9:1),sd=2,invalid=-1.0)
 }

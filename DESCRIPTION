@@ -13,7 +13,8 @@ Imports:
     plotrix,
     abind,
     plyr,
-    methods
+    methods,
+    oce
 Suggests:
     knitr,
     rmarkdown,

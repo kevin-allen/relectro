@@ -26,7 +26,7 @@
 #' @slot res Sample number associated with each position value
 #' @slot defaultXYSmoothing Default smoothing apply to the x and y position.
 #' @slot minShiftMs Minimum shift of the position vector during a shuffling procedure
-#' @slot percentInalidPosition Percentage of data points with invalid position
+#' @slot percentInvalidPosition Percentage of data points with invalid position
 #' 
 Positrack <- setClass(
   "Positrack", ## name of the class

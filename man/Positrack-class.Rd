@@ -54,6 +54,6 @@ of the screen. This is important to know if you want to find out where landmarks
 
 \item{\code{minShiftMs}}{Minimum shift of the position vector during a shuffling procedure}
 
-\item{\code{percentInalidPosition}}{Percentage of data points with invalid position}
+\item{\code{percentInvalidPosition}}{Percentage of data points with invalid position}
 }}
 

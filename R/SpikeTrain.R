@@ -146,6 +146,48 @@ setMethod(f="ifr",
 )
 
 
+#' Calculate the power spectrum of instantaneous firing rate from the spike trains.
+#'
+#' This uses the function pwelch of the oce package to calculate the power spectrum 
+#' of the instantaneous firing rate.
+#'
+#' @param st SpikeTrain object
+#' @param nfft The size of the fast fourier transform
+#' @return list with the frequency and the power for each cell
+#'
+#' @docType methods
+#' @rdname ifrPowerSpectrum-methods
+setGeneric(name="ifrPowerSpectrum",
+           def=function(st,nfft=1024)
+           {standardGeneric("ifrPowerSpectrum")})
+
+#' @rdname ifrPowerSpectrum-methods
+#' @aliases ifrPowerSpectrum,ANY,ANY-method
+setMethod(f="ifrPowerSpectrum",
+          signature = "SpikeTrain",
+          definition=function(st,nfft=1024)
+          {
+            if(st@nSpikes==0)
+              stop(paste("ifr(): there are no spike in the SpikeTrain object",st@session))
+            if(dim(st@ifr)[1]<1)
+              stop(paste("st@ifr has less then 1 column, run ifr() before calling this function"))
+            if(st@ifrWindowSizeMs<=0)
+              stop(paste("st@ifrWindowSizeMs is smaller or equal to  0"))
+            ## number of observation by unit of time (second)
+            Fs=1000/st@ifrWindowSizeMs
+            
+            ## calculate the power spectrum of each time serie
+            ## we could speed up things with the snow package here 
+            out<-apply(st@ifr,1,oce::pwelch,nfft=nfft,plot=FALSE,log='no',fs=Fs)
+            # get the frequencies
+            freq<-out[[1]]$freq
+            # get the power values of each list
+            ps<-matrix(unlist(lapply(out,function(x) x$spec)),ncol=nrow(st@ifr))
+            return(list(freq=freq,ps=ps))
+          }
+)
+
+
 #' Calculate the correlation coefficient between the instantaneous firing rate of the neurons.
 #'
 #' Call ifr(st) method before calling this function.

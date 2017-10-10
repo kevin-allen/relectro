@@ -60,7 +60,7 @@ makePairs<-function(cl1="",cl2=NULL,excludeOneNumberPair=TRUE){
 #'  Valid values are linear, circular, degrees.
 #'  circular assumes that the vector is, i.e. the first and last values are adjacent.
 #'  degrees assumes that the vector contains degrees (0=360)
-#' @examples smoothGaussian(x=c(1:10,9:1),sd=2,invalid=-1.0,degrees=FALSE)
+#' @examples smoothGaussian(x=c(1:10,9:1),sd=2,invalid=-1.0)
 smoothGaussian<-function(x,sd=2,invalid=-1.0,type="linear")
 {
   if(length(x)==0)

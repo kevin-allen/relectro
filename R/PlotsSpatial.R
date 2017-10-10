@@ -286,8 +286,8 @@ firingRateMapCrossPlot <- function(m,name="",
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
   image(m,zlim=c(-1,1), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
-  segments(0.5,0.0,0.5,1)
-  segments(0.0,0.5,1.0,0.5)
+  graphics::segments(0.5,0.0,0.5,1)
+  graphics::segments(0.0,0.5,1.0,0.5)
   mtext(paste(peak.rate.prefix,name,round(max(m,na.rm=T),digits=2),"r value"),line=-0.1,cex=0.6,side=3)
   if(main.title!="")
   {

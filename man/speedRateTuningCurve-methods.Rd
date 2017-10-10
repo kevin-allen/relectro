@@ -7,10 +7,11 @@
 \alias{speedRateTuningCurve,ANY,ANY-method}
 \title{Speed-rate tuning curve from spike train and positrack}
 \usage{
-speedRateTuningCurve(sp, st, pt, minSpeed, maxSpeed)
+speedRateTuningCurve(sp, st, pt, minSpeed, maxSpeed, angular = FALSE,
+  binSize = 5, maxBin = 30)
 
 \S4method{speedRateTuningCurve}{SpatialProperties2d}(sp, st, pt, minSpeed = 2,
-  maxSpeed = 100)
+  maxSpeed = 100, angular = FALSE, binSize = 5, maxBin = 30)
 }
 \arguments{
 \item{sp}{SpatialProperties2d object}
@@ -22,6 +23,12 @@ speedRateTuningCurve(sp, st, pt, minSpeed, maxSpeed)
 \item{minSpeed}{Minimal speed to be considered}
 
 \item{maxSpeed}{Maximal speed to be considered}
+
+\item{angular}{Logical, if TRUE then angular velocity is used instead of running speed}
+
+\item{binSize}{Size of the bins in the tuning curve}
+
+\item{maxBin}{Maximum speed in the tuning curve}
 }
 \value{
 data.frame with the speed-rate tuning curves
