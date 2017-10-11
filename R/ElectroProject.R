@@ -1,17 +1,17 @@
 #' A S4 class to represent an electrophysiological project containing several recording sessions.
-#' 
+#'
 #' An ElectroProject object contains a group of RecSession objects. It can be used to run functions on several recording sessions.
-#' 
+#'
 #' It assumes that your data are organized in a specific way on your hard drive.
 #' There should be a top directory containing one directory for each subject of the experiment.
 #' Within each subject directory, there should be a directory for each recording session with this subject.
 #' By convention, the names of the session directories contain at least one hyphen.
 #' There should be no other directories with a hyphen in their names.
-#' 
+#'
 #' This object can be used to get an overview of the progress during the data acquisition period.
-#' 
+#'
 #' Two useful methods are getSessionList and runOnSessionList
-#' 
+#'
 #' @slot directory Top directory of the project
 #' @slot resultsDirectory Directory where results will be saved by default
 #' @slot nSessions Number of recording sessions in the project
@@ -38,7 +38,7 @@ ElectroProject <- setClass(
 #' @param ep ElectroProject object
 #' @param loadSessions logical, whether the RecSession object should be created
 #' @return ElectroProject object with a list of session names and directories
-#' 
+#'
 #' @docType methods
 #' @rdname setSessionList-methods
 setGeneric(name="setSessionList",
@@ -53,22 +53,22 @@ setMethod(f="setSessionList",
           {
             if(ep@directory=="")
               stop("ep@directory not set")
-            
+
             ## remove any "/" at the end of the directory name
             if(substr(ep@directory,nchar(ep@directory),nchar(ep@directory))=="/")
               ep@directory<-substr(ep@directory,1,nchar(ep@directory)-1)
-            
+
             ep@resultsDirectory=paste(ep@directory,"results",sep="/")
-            
+
             if(!file.exists(ep@resultsDirectory)){
               dir.create(path=ep@resultsDirectory)
             }
-            
+
             ## list all directories in the project path
             ## this is really slow if over nfs.
             dirs<-list.dirs(path=ep@directory)
             lastLevelNames<-unlist(lapply(strsplit(dirs,"/"),function(x){x[length(x)]}))
-            
+
             ## only keep the directories with 2 hyphens in the name of the last level
             dirs<-dirs[lengths(gregexpr("-", lastLevelNames))==2]
             ep@nSessions<-length(dirs)
@@ -84,11 +84,11 @@ setMethod(f="setSessionList",
               print(ep@sessionPathList[which(x!=xMode)])
               ep@sessionPathList<-ep@sessionPathList[which(x==xMode)]
               ep@nSessions<-length(ep@sessionPathList)
-            }    
+            }
             dirDepth<-xMode
             ep@sessionNameList<-
               unlist(strsplit(ep@sessionPathList,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
-             
+
             if(loadSessions==TRUE){
               ep<-loadSessionsInList(ep)
               }
@@ -97,12 +97,12 @@ setMethod(f="setSessionList",
 
 
 #' Create a List of RecSessions objects from the SessionNameList
-#' 
+#'
 #' The RecSession objects will be initialized.
 #'
 #' @param ep ElectroProject object
 #' @return ElectroProject object with RecSession loaded
-#' 
+#'
 #' @docType methods
 #' @rdname loadSessionsInList-methods
 setGeneric(name="loadSessionsInList",
@@ -117,15 +117,15 @@ setMethod(f="loadSessionsInList",
           {
             if(ep@directory=="")
               stop("ep@directory not set")
-            
+
             if(length(ep@sessionNameList)==0)
               stop("ep@sessionNameList has length of 0")
             if(length(ep@sessionPathList)==0)
               stop("ep@sessionPathList has length of 0")
-            
+
             for (i in 1:length(ep@sessionNameList))
             {ep@sessionList[[i]]<-new("RecSession",session=ep@sessionNameList[i],path=ep@sessionPathList[i])}
-            ep@sessionList<-lapply(ep@sessionList,loadRecSession)     
+            ep@sessionList<-lapply(ep@sessionList,loadRecSession)
             return(ep)
           })
 
@@ -137,7 +137,7 @@ setMethod(f="loadSessionsInList",
 #' @param ep ElectroProject object
 #' @param name Name of the RecSession, e.g. jp19841-01072015-0108
 #' @return RecSession
-#' 
+#'
 #' @docType methods
 #' @rdname getRecSession-methods
 setGeneric(name="getRecSession",
@@ -160,11 +160,11 @@ setMethod(f="getRecSession",
 
 
 #' Return a list of RecSession objects from a character vectors containing session names
-#' 
+#'
 #' @param ep ElectroProject object
 #' @param sessionNames Character vector containing session names
 #' @return list of RecSession objects
-#' 
+#'
 #' @docType methods
 #' @rdname getSessionListFromSessionNames-methods
 setGeneric(name="getSessionListFromSessionNames",
@@ -190,7 +190,7 @@ setMethod(f="getSessionListFromSessionNames",
 #'
 #' @param ep ElectroProject object
 #' @return list of clustered RecSession objects
-#' 
+#'
 #' @docType methods
 #' @rdname getClusteredSessionList-methods
 setGeneric(name="getClusteredSessionList",
@@ -215,22 +215,22 @@ setMethod(f="getClusteredSessionList",
 #' @param ep ElectroProject object
 #' @param clustered logical indicating whether the session should be clustered or not
 #' @param region Set to a given brain region to select only sessions with tetrodes in this brain region
-#' @param env Set to a given environment code to select only sessions during which this environment was presented
+#' @param environment Set to a given environment code to select only sessions during which this environment was presented
 #' @param stim Set to a given stimulation code to select only sessions during which this stimulatoin was presented
 #' @param fileExtension Keep sessions that have a session file ending with the value of fileExtension (e.g. kld-19021016-0101.fileExtension)
 #' @return list of RecSession objects
-#' 
+#'
 #' @docType methods
 #' @rdname getSessionList-methods
 setGeneric(name="getSessionList",
-           def=function(ep,clustered="",region="",env="",stim="",fileExtension="")
+           def=function(ep,clustered="",region="",environment="",stim="",fileExtension="")
            {standardGeneric("getSessionList")}
 )
 #' @rdname getSessionList-methods
 #' @aliases getSessionList,ANY,ANY-method
 setMethod(f="getSessionList",
           signature="ElectroProject",
-          definition=function(ep,clustered="",region="",env="",stim="",fileExtension="")
+          definition=function(ep,clustered="",region="",environment="",stim="",fileExtension="")
           {
             if(ep@directory=="")
               stop("ep@directory not set")
@@ -243,7 +243,7 @@ setMethod(f="getSessionList",
               myList<-myList[sapply(myList,containsElectrodeLocation,location=region)]
             }
             if(env!=""){
-              myList<-myList[sapply(myList,containsEnvironment,environment=env)]
+              myList<-myList[sapply(myList,containsEnvironment,environment=environment)]
             }
             if(stim!=""){
               myList<-myList[sapply(myList,containsStimulation,stimulation=stim)]
@@ -255,12 +255,12 @@ setMethod(f="getSessionList",
           })
 
 
- 
+
 #' Running a function on a set of recording sessions
 #'
 #' This applies a function to a list of RecSession objects.
-#' If save is set to TRUE, the results returned by the function will be saved. 
-#' The function applied to single recording sessions should return the results in a list. 
+#' If save is set to TRUE, the results returned by the function will be saved.
+#' The function applied to single recording sessions should return the results in a list.
 #' The results are saved in the resultsDirectory of the ElectroProject object.
 #' The names of the files saved will be the name of the elements in the list returned by the function
 #' If the element is an array or matrix, they will be bound with abind.
@@ -274,12 +274,12 @@ setMethod(f="getSessionList",
 #' @param sessionList List of RecSession objects on which the function will be applied
 #' @param fnct A function to run on each RecSession
 #' @param save Whether you want to save the data returned by the function
-#' @param overwrite Logical indicating if the data returned by the function will overwrite the old one when saving into a file  
+#' @param overwrite Logical indicating if the data returned by the function will overwrite the old one when saving into a file
 #' @param parallel Whether you want to run the function in parallel
 #' @param cluster A cluster generated from the makeCluster function of the snow package
 #' @param ... optional arguments to fnct
-#' @return list of list returned by the lapply function 
-#' 
+#' @return list of list returned by the lapply function
+#'
 #' @docType methods
 #' @rdname runOnSessionList-methods
 setGeneric(name="runOnSessionList",
@@ -312,20 +312,20 @@ setMethod(f="runOnSessionList",
                stop(paste("runOnSessionList,",ep@resultsDirectory,"does not exist"))
              }
            }
-             
+
            if(parallel==T){
-             list.res<-snow::parLapply(cluster,sessionList,fnct,...)   
+             list.res<-snow::parLapply(cluster,sessionList,fnct,...)
            } else {
              list.res<-lapply(sessionList,fnct,...)
            }
-           
+
            if(save==T){
              ## check that list.res is a list of list
              if(!is.list(list.res))
                stop("runOnSessionList, list.res is not a list")
              if(!is.list(list.res[[1]]))
                stop(paste("runOnSessionList, first item of the list list.res is not a list, fnct should return a list"))
-           
+
              ## list of objects to merge and save
              objectNames<-names(list.res[[1]])
              if(any(objectNames==""))
@@ -365,7 +365,7 @@ setMethod("show", "ElectroProject",
             print(paste("directory:",object@directory))
             print(paste("result directory:",object@resultsDirectory))
             print(paste("nSessions:",object@nSessions))
-            
+
             if(length(object@sessionNameList)!=0){
               print(paste("sessionNameList:"))
               print(object@sessionNameList)
@@ -383,9 +383,9 @@ setMethod("show", "ElectroProject",
 
 
 #' Sort a list of RecSession objects according to the recording date of the sessions
-#' 
+#'
 #' Use the date in the name of the RecSession object
-#' 
+#'
 #' @param rsl List containing recording sessions
 #' @return List containing the recording sessions ordered according to their recording date.
 sortRecSessionListChronologically<-function(rsl){
@@ -401,7 +401,7 @@ sortRecSessionListChronologically<-function(rsl){
 
 
 #' Get a character vector with the session names of a list of RecSession object
-#' 
+#'
 #' @param rss List containing recording sessions
 #' @return Charcter vector of the session names
 sessionNamesFromSessionList<-function(rss){
@@ -412,24 +412,24 @@ sessionNamesFromSessionList<-function(rss){
 
 
 #' Create a copy of the data from an experiment
-#' 
+#'
 #' There is an argument to specify the type of backup you want.
 #' This can be use to backup different files depending on
 #' what needs to be copied.
-#' 
+#'
 #' List of files exported if copyType is set to medium
 #' - .res, .clu, .par, .desen, .px_per_cm, .resofs, .desel
 #' .res_samples_per_whl_sample .sampling_rate_dat, .whl .whd
 #' Also includes the tetrode specific .clu. and .res. files
-#' 
-#' 
+#'
+#'
 #' @param ep ElectroProject object
 #' @param sessionList List of RecSession objects that will be included in the copy
 #' @param copyType Type of copy. Only "medium" is supported at the moment.
 #' @param extensions Character vector with the list of file types you want to export
 #' @param destination Path of the directory in which the copy is made
 #' @param compress Logical indicating whether to call tar to make a tar.gzip from the copy
-#' 
+#'
 #' @docType methods
 #' @rdname copyDatabase-methods
 setGeneric(name="copyDatabase",
@@ -472,7 +472,7 @@ setMethod(f="copyDatabase",
             sessionSpecificExtensions<-c(sessionSpecificExtensions,extensions)
             ## each RecSession object will copy itself ##
             res<-sapply(sessionList,copyRecSessionFiles,destination,sessionSpecificExtensions,tetrodeSpecificExtensions)
-  
+
             if(compress==TRUE)
             {
               comp=paste(destination,"tar.gzip",sep=".")
