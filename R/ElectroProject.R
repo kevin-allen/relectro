@@ -242,7 +242,7 @@ setMethod(f="getSessionList",
             if(region!=""){
               myList<-myList[sapply(myList,containsElectrodeLocation,location=region)]
             }
-            if(env!=""){
+            if(environment!=""){
               myList<-myList[sapply(myList,containsEnvironment,environment=environment)]
             }
             if(stim!=""){
