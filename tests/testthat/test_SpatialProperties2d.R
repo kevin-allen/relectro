@@ -68,6 +68,125 @@ test_that("occupancy maps",{
   rm(maxx,minx,maxy,miny,x,y,hd,pt,sp)
 })
 
+test_that("occupancy3D",{
+  ### animal is at all location only once, from 1 to 50 in a 2d matrix
+  pt<-new("Positrack")
+  maxx=50
+  minx=1
+  maxy=50
+  miny=1
+  minhd=1
+  maxhd=1
+  degPerBin=10
+  nHdBins=as.integer(ceiling(360/degPerBin))
+  repetitions=2
+  x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),repetitions)-0.5
+  y=rep(rep(seq(miny,maxy),each=maxx-minx+1),repetitions)-0.5
+  hd<-rep(1,length(x))
+  
+  pt@defaultXYSmoothing=0
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+  sp<-new("SpatialProperties2d")
+  sp@nRowMap=as.integer(((max(pt@x)+1)/1)+1) # x in R is a row
+  sp@nColMap=as.integer(((max(pt@y)+1)/1)+1) # y in R is a col
+  results<-.Call("occupancy3D_cwrap",
+                 sp@nRowMap,
+                 sp@nColMap,
+                 nHdBins,
+                 1, # cm per bin
+                 1, # cm per bin
+                 degPerBin,
+                 pt@x,
+                 pt@y,
+                 pt@hd,
+                 length(pt@x),
+                 pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
+                 as.integer(0),
+                 as.integer(length(pt@x)*pt@resSamplesPerWhlSample+500),
+                 as.integer(1),
+                 as.integer(pt@resSamplesPerWhlSample))
+  ## check that the sum of time in occupancy3D array is correct
+  expect_equal(sum(results)/length(x),400/20000*1000)
+  
+  
+  pt<-new("Positrack")
+  maxx=5
+  minx=1
+  maxy=10
+  miny=1
+  minhd=21
+  maxhd=21
+  degPerBin=10
+  nHdBins=as.integer(ceiling(360/degPerBin))
+  repetitions=2
+  x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),repetitions)-0.5
+  y=head(rep(rep(seq(miny,maxy),each=maxx-minx+1),repetitions)-0.5,length(x))
+  hd<-as.numeric(rep(seq(minhd,maxhd),length(x)))
+  pt@defaultXYSmoothing=0
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+  sp<-new("SpatialProperties2d")
+  sp@nRowMap=as.integer(((max(pt@x)+1)/1)+1) # x in R is a row
+  sp@nColMap=as.integer(((max(pt@y)+1)/1)+1) # y in R is a col
+  results<-.Call("occupancy3D_cwrap",
+                 sp@nRowMap,
+                 sp@nColMap,
+                 nHdBins,
+                 1, # cm per bin
+                 1, # cm per bin
+                 degPerBin,
+                 pt@x,
+                 pt@y,
+                 pt@hd,
+                 length(pt@x),
+                 pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
+                 as.integer(0),
+                 as.integer(length(pt@x)*pt@resSamplesPerWhlSample+500),
+                 as.integer(1),
+                 as.integer(pt@resSamplesPerWhlSample))
+  ## check that data are ordered correctly, here the vector from c function is transformed to 3D array with x, y , hd
+  a<-array(results,dim = c(nHdBins,sp@nColMap,sp@nRowMap))
+  at<-aperm(a,c(3,2,1))
+  expect_equal(sum(at[,,3])/length(x),400/20000*1000)
+  expect_equal(sum(at[,,1])/length(x),0)
+  
+  
+  
+  #### use occupancyMap3d() directly instead of c function
+  
+  
+  pt<-new("Positrack")
+  maxx=5
+  minx=1
+  maxy=10
+  miny=1
+  minhd=21
+  maxhd=21
+  degPerBin=10
+  nHdBins=as.integer(ceiling(360/degPerBin))
+  repetitions=2
+  x=rep(rep(c(seq(minx,maxx),seq(maxx,minx)),(maxy-miny+1)/2),repetitions)-0.5
+  y=head(rep(rep(seq(miny,maxy),each=maxx-minx+1),repetitions)-0.5,length(x))
+  hd<-as.numeric(rep(seq(minhd,maxhd),length(x)))
+  pt@defaultXYSmoothing=0
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=hd, 
+                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+  sp<-new("SpatialProperties2d")
+  st<-new("SpikeTrain")
+  ## set the spike trains in the object
+  st<-setSpikeTrain(st=st,res=c(1,length(x)*400+401),clu=c(1,1),samplingRate=20000)
+  
+  sp<-occupancyMap3d(sp,st,pt)
+  
+  expect_equal(sum(sp@occupancy3D[,,-3]),0)
+  expect_equal(sum(sp@occupancy3D[,,3])/length(x),400/20000*1000)
+  
+  rm(maxx,minx,maxy,miny,minhd,maxhd,a,at,x,y,hd,pt,sp)
+})
+
+
+
 
 test_that("firing rate maps",{
   

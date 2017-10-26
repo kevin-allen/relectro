@@ -141,6 +141,10 @@ SEXP spike_position_cwrap(SEXP x_whl_r, SEXP y_whl_r, SEXP whl_lines_r, SEXP res
 void spike_position(double *x_whl, double *y_whl,int whl_lines,int *res,int res_lines, double *x_spike, double *y_spike, int res_samples_per_whl_sample, int* start_interval, int* end_interval, int interval_lines);
 void occupancy_map(int x_bins, int y_bins,  double pixels_per_bin_x, double pixels_per_bin_y, double *x_whl, double *y_whl, int whl_lines, double *map, double ms_per_sample, int *start_interval,  int *end_interval, int interval_lines,  int res_samples_per_whl_sample);
 SEXP occupancy_map_cwrap(SEXP x_bins_r, SEXP y_bins_r, SEXP pixels_per_bin_x_r, SEXP pixels_per_bin_y_r, SEXP x_whl_r,  SEXP y_whl_r, SEXP whl_lines_r,  SEXP ms_per_sample_r, SEXP start_interval_r, SEXP end_interval_r,  SEXP interval_lines_r, SEXP res_samples_per_whl_sample_r);
+SEXP occupancy3D_cwrap(SEXP x_bins_r, SEXP y_bins_r, SEXP hd_bins_r,SEXP pixels_per_bin_x_r, SEXP pixels_per_bin_y_r, SEXP deg_per_bin_hd_r, SEXP x_whl_r, SEXP y_whl_r, SEXP hd_whl_r, SEXP whl_lines_r, 
+                       SEXP ms_per_sample_r,SEXP start_interval_r, SEXP end_interval_r, SEXP interval_lines_r, SEXP res_samples_per_whl_sample_r);
+void occupancy3D(int x_bins, int y_bins, int hd_bins, double pixels_per_bin_x, double pixels_per_bin_y, double deg_per_bin_hd, double *x_whl, double *y_whl, double *hd_whl,
+                 int whl_lines, double *map, double ms_per_sample, int *start_interval, int *end_interval, int interval_lines, int res_samples_per_whl_sample);
 void create_place_field( int x_bins, int y_bins, double pixels_per_bin_x, double pixels_per_bin_y, double *x_spike,  double *y_spike, int *clu, int res_lines, int target_cell, double *occupancy_map, double *place_field);
 SEXP firing_rate_map_2d_cwrap(SEXP num_bins_x_r, SEXP num_bins_y_r, SEXP pixels_per_bin_x_r,SEXP pixels_per_bin_y_r, SEXP x_spike_r, SEXP y_spike_r, SEXP clu_r,SEXP res_lines_r, SEXP cells_r, SEXP num_cells_r, SEXP occ_map_r, SEXP smooth_map_sd_r);
 double information_score(double* fr_map, double* occ_map, int map_size);

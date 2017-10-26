@@ -1148,6 +1148,175 @@ void occupancy_map(int x_bins, // num of bins x
 	}
     }
 }
+
+SEXP occupancy3D_cwrap(SEXP x_bins_r, // num of bins x
+                       SEXP y_bins_r, // num of bins y
+                       SEXP hd_bins_r, // num of bins hd
+                       SEXP pixels_per_bin_x_r,
+                       SEXP pixels_per_bin_y_r,
+                       SEXP deg_per_bin_hd_r,
+                       SEXP x_whl_r, 
+                       SEXP y_whl_r,
+                       SEXP hd_whl_r,
+                       SEXP whl_lines_r, // num lines in whl data
+                       SEXP ms_per_sample_r, // ms per sample for whl data
+                       SEXP start_interval_r, // starts of the intervals in res value
+                       SEXP end_interval_r, // ends of intervals in res value
+                       SEXP interval_lines_r, // number of intervals
+                       SEXP res_samples_per_whl_sample_r)
+                          
+{
+  
+  int x_bins=INTEGER_VALUE(x_bins_r);
+  int y_bins=INTEGER_VALUE(y_bins_r);
+  int hd_bins=INTEGER_VALUE(hd_bins_r);
+  SEXP out = PROTECT(allocVector(REALSXP,x_bins*y_bins*hd_bins));
+  
+  //double* map = (double*)malloc(y_bins*x_bins*hd_bins*sizeof(double)); // to pass to c function
+  
+  
+  occupancy3D(x_bins, // num of bins x
+              y_bins, // num of bins y
+              hd_bins,
+              REAL(pixels_per_bin_x_r)[0],
+              REAL(pixels_per_bin_y_r)[0],
+              REAL(deg_per_bin_hd_r)[0],
+              REAL(x_whl_r),
+              REAL(y_whl_r),
+              REAL(hd_whl_r),
+              INTEGER_VALUE(whl_lines_r), // num lines in whl data
+              REAL(out), // occupancy map
+              REAL(ms_per_sample_r)[0], // ms per sample for whl data
+              INTEGER_POINTER(start_interval_r), // starts of the intervals in res value
+              INTEGER_POINTER(end_interval_r), // ends of intervals in res value
+              INTEGER_VALUE(interval_lines_r), // number of intervals
+              INTEGER_VALUE(res_samples_per_whl_sample_r));
+  
+  /*
+  double* rans;
+  rans = REAL(out);
+  // copy the results in a SEXP
+  for(int x = 0; x < x_bins; x++)
+    for(int y = 0; y < y_bins; y++){
+      rans[y*x_bins+x] = map[x*y_bins+y]; // the way things are ordered in C differs from R
+    }
+   */
+  //free(map);
+  UNPROTECT(1);
+  return(out);
+}
+
+void occupancy3D(int x_bins, // num of bins x
+                 int y_bins, // num of bins y
+                 int hd_bins, // num of bins hd
+                 double pixels_per_bin_x,
+                 double pixels_per_bin_y,
+                 double deg_per_bin_hd,
+                 double *x_whl, 
+                 double *y_whl,
+                 double *hd_whl,
+                 int whl_lines, // num lines in whl data
+                 double *map, // occupancy map
+                 double ms_per_sample, // ms per sample for whl data
+                 int *start_interval, // starts of the intervals in res value
+                 int *end_interval, // ends of intervals in res value
+                 int interval_lines, // number of intervals
+                 int res_samples_per_whl_sample)
+{
+  /**********************************************************************
+  Create the occupancy map for 2d firing map
+  This add  ms_per_sample for every valid whl value that is in 
+  the intervals given valid whl values outside the intervals 
+  will not be added to occupancy map.
+  If a valid whl value is for a period outside intervals,
+  the right proportion of time will be removed
+  
+  There is a minimum time that the animal has to 
+  spend in a bin for it to be valid; see variable min_occ
+  
+  Bins that are on there own in space are removed.
+  ************************************************************************/
+  
+  // variable to deal with the intervals
+  int res_value_for_whl_sample; // time in res associated with a whl sample
+  int start_res_value; // starting time of a whl sample in res value
+  int end_res_value; // end time of a whl sample
+  int res_value_to_add; // number of res inside the interval
+  int interval_index=0;
+  double time_to_add;
+  int bin_x; // where to add the time in the map
+  int bin_y;
+  int bin_hd;
+  int jj=0;
+  // set the map to 0
+  for(int x = 0; x < x_bins; x++)
+    for(int y = 0; y < y_bins; y++)
+      for(int hd=0; hd < hd_bins; hd++)
+        map[ (x*y_bins*hd_bins) + (y*hd_bins) + hd] = 0;
+  
+  
+  // loop with the whl data
+  for(int i = 0; i < whl_lines; i++)
+  {
+    if (x_whl[i] != -1.0)
+    {
+      // get the begining of the period cover by this whl sample, in res value
+      res_value_for_whl_sample=(res_samples_per_whl_sample*i)+res_samples_per_whl_sample;
+      start_res_value=res_value_for_whl_sample-(res_samples_per_whl_sample/2); // start of whl sample
+      end_res_value=res_value_for_whl_sample+(res_samples_per_whl_sample/2); // end of whl sample
+      // start with the assumption that time to add is  = 0; as if outside the valid intervals
+      res_value_to_add=0;
+      
+      // then add res_time if there are intervals between start_res_value and end_res_value
+      while(start_interval[interval_index]<end_res_value && interval_index<interval_lines)
+      {
+        if(end_interval[interval_index]>start_res_value) // need to add some time
+        {
+          // add the total interval time, and then remove what is not overlapping the whl sample
+          res_value_to_add=end_interval[interval_index]-start_interval[interval_index]; 
+          
+          if (start_interval[interval_index]<start_res_value)
+          {
+            res_value_to_add=res_value_to_add-(start_res_value-start_interval[interval_index]);
+          }
+          if (end_interval[interval_index]>end_res_value)
+          {
+            res_value_to_add=res_value_to_add-(end_interval[interval_index]-end_res_value);
+          }
+        }
+        interval_index++; // go to the next interval
+      }
+      interval_index--;
+      // calculate the time in ms, and add it to the right bin of the occ map
+      time_to_add=ms_per_sample*((double)res_value_to_add/res_samples_per_whl_sample);
+      bin_x = (int) x_whl[i]/pixels_per_bin_x;
+      bin_y = (int) y_whl[i]/pixels_per_bin_y;
+      bin_hd= (int) hd_whl[i]/deg_per_bin_hd;
+      
+      // check if it falls in the map
+      //Rprintf("bin_x: %d, x_bins: %d, bin_y: %d, y_bins:%d, bin_hd: %d, hd_bins:%d time_to_add: %lf\n",bin_x,x_bins,bin_y,y_bins,bin_hd, hd_bins,time_to_add);
+      if ((bin_x<x_bins)&&(bin_y<y_bins)&&(bin_hd<hd_bins))
+      {
+        map[(bin_x*y_bins*hd_bins) + (bin_y*hd_bins) + bin_hd]=
+          map[(bin_x*y_bins*hd_bins) + (bin_y*hd_bins) + bin_hd] + time_to_add;
+        jj++;
+      }
+      else
+      {Rprintf("x, y or hd out of range for occupancy3D array\n");}
+    }
+  }
+  //Rprintf("jj:%d\n",jj);
+}
+
+
+
+
+
+
+
+
+
+
 SEXP firing_rate_map_2d_cwrap(SEXP num_bins_x_r,
 			      SEXP num_bins_y_r, 
 			      SEXP pixels_per_bin_x_r,

@@ -20,6 +20,7 @@
 #' @slot maps Array containing the firing rate maps of the neurons
 #' @slot ccMaps Array containing the crosscorrelation of firing rate maps
 #' @slot occupancy Matrix containing the occupancy map
+#' @slot occupancy3D Array containing the occupancy for x and y positions and head-direction.
 #' @slot autos Array containing the spatial autocorrelation of the firing rate maps
 #' @slot autosDetect Array with the spatial autocorrelation once the firing fields have been removed
 #' @slot autosDoughnut Array with the spatial autocorrelation containing only the ring of the 6 closest fields (excluding central field)
@@ -80,6 +81,7 @@ SpatialProperties2d<- setClass(
             maps="array",
             ccMaps="array",
             occupancy="matrix",
+            occupancy3D="array",
             autos="array",
             autosDetect="array",
             autosDoughnut="array",
@@ -385,16 +387,13 @@ setMethod(f="firingRateMap2d",
           }
 )
 
-
-
-
 #' Calculate the occupancy map with the data from a Positrack objects
 #'
 #' The occupancy map is smoothed with a Gaussian kernel.
 #' The amount of smoothing is determined by slots smoothOccupancySd of sp.
 #' You can force the function to create maps with arbitrary x and y sizes as long as the map fits into this arbitrary size.
 #' 
-#' @param sp SpatialProperties1d object
+#' @param sp SpatialProperties2d object
 #' @param st SpikeTrain object to get the intervals
 #' @param pt Positrack object
 #' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
@@ -480,8 +479,6 @@ setMethod(f="occupancyMap2d",
             return(sp)
           }
 )
-
-
 
 
 
@@ -1903,3 +1900,105 @@ setMethod(f="mapSpatialCrosscorrelation",
             return(sp)
           }
 )
+
+
+
+#' Calculate a 3D occupancy matrix with x and y postion and head-direction.
+#' It uses the data from a Positrack objects
+#'
+#' The occupancy3D array is not smoothed.
+#' All data are kept even if very little time was spent in one bin.
+#' 
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object to get the intervals
+#' @param pt Positrack object
+#' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param degPerBin Give the number of degrees per bin for the head-direction data
+#' @return SpatialProperties2d object with occupancy3D array, the dimensions are x, y and hd.
+#' 
+#' @docType methods
+#' @rdname occupancyMap3d-methods
+setGeneric(name="occupancyMap3d",
+           def=function(sp,st,pt,nRowMap=NA,nColMap=NA,degPerBin=10)
+           {standardGeneric("occupancyMap3d")}
+)
+#' @rdname occupancyMap3d-methods
+#' @aliases occupancyMap3d,ANY,ANY-method
+setMethod(f="occupancyMap3d",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,nRowMap=NA,nColMap=NA,degPerBin=10)
+          {
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in occupancyMap2d",st@session))
+            if(length(st@startInterval)==0)
+              stop(paste("length of st@startInterval == 0 in occupancyMap2d",st@session))
+            if(!is.na(nRowMap)|!is.na(nColMap)){
+              if(is.na(nRowMap))
+                stop("if you set nColMap, you need to also set nRowMap")
+              if(is.na(nColMap))
+                stop("if you set nRowMap, you need to also set nColMap")
+            }
+            if(degPerBin<=0)
+              stop("degPerBin should be larger than 0")
+            
+            sp@cellList<-st@cellList
+            
+            ## reduce the size of maps and map autocorrelation
+            if(sp@reduceSize==T){
+              x<-pt@x-min(pt@x,na.rm=T)+sp@cmPerBin
+              y<-pt@y-min(pt@y,na.rm=T)+sp@cmPerBin
+            }else{
+              x<-pt@x
+              y<-pt@y
+            }
+            hd<-pt@hd
+            
+            ## use -1 as invalid values in c functions
+            x[is.na(x)]<- -1.0
+            y[is.na(y)]<- -1.0
+            hd[is.na(hd)]<- -1.0
+            
+            ## get the dimensions of the map
+            sp@nRowMap=as.integer(((max(x)+1)/sp@cmPerBin)+1) # x in R is a row
+            sp@nColMap=as.integer(((max(y)+1)/sp@cmPerBin)+1) # y in R is a col
+            
+            ## user want a map of a given size
+            if(!is.na(nRowMap)){
+              if(nRowMap<sp@nRowMap)
+                stop(paste("nRowMap value",nRowMap,"is smaller than the minimal size of the map",sp@nRowMap))
+              if(nColMap<sp@nColMap)
+                stop(paste("nColMap value",nColMap,"is smaller than the minimal size of the map",sp@nColMap))
+              sp@nRowMap=as.integer(nRowMap)
+              sp@nColMap=as.integer(nColMap)
+            }
+            nHdBins=as.integer(ceiling(360/degPerBin))
+            
+            
+            ## make the occupancy map
+            res<-.Call("occupancy3D_cwrap",
+                  sp@nRowMap,
+                  sp@nColMap,
+                  nHdBins,
+                  sp@cmPerBin,
+                  sp@cmPerBin,
+                  degPerBin,
+                  x,
+                  y,
+                  hd,
+                  length(x),
+                  pt@resSamplesPerWhlSample/pt@samplingRateDat*1000, ## ms per whl samples
+                                  as.integer(st@startInterval),
+                                  as.integer(st@endInterval),
+                                  length(st@startInterval),
+                                  as.integer(pt@resSamplesPerWhlSample))
+            # change vector to array and transpose so that it dimensions are [x,y,hd]          
+            sp@occupancy3D<-aperm(array(res,dim = c(nHdBins,sp@nColMap,sp@nRowMap)),c(3,2,1))
+            
+            return(sp)
+          }
+)
+
+

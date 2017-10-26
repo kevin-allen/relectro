@@ -148,24 +148,26 @@ setMethod(f="ifr",
 
 #' Calculate the power spectrum of instantaneous firing rate from the spike trains.
 #'
-#' This uses the function pwelch of the oce package to calculate the power spectrum 
-#' of the instantaneous firing rate.
+#' This function can use different function to get the power spectrum
+#' of the instantaneous firing rate. One is the pwelch function of the oce R package.
+#' 
 #'
 #' @param st SpikeTrain object
 #' @param nfft The size of the fast fourier transform
+#' @param method Method used to calculate the power spectrum. Currently supported: pwelch
 #' @return list with the frequency and the power for each cell
 #'
 #' @docType methods
 #' @rdname ifrPowerSpectrum-methods
 setGeneric(name="ifrPowerSpectrum",
-           def=function(st,nfft=1024)
+           def=function(st,nfft=1024,method="pwelch")
            {standardGeneric("ifrPowerSpectrum")})
 
 #' @rdname ifrPowerSpectrum-methods
 #' @aliases ifrPowerSpectrum,ANY,ANY-method
 setMethod(f="ifrPowerSpectrum",
           signature = "SpikeTrain",
-          definition=function(st,nfft=1024)
+          definition=function(st,nfft=1024,method="pwelch")
           {
             if(st@nSpikes==0)
               stop(paste("ifr(): there are no spike in the SpikeTrain object",st@session))
@@ -176,13 +178,19 @@ setMethod(f="ifrPowerSpectrum",
             ## number of observation by unit of time (second)
             Fs=1000/st@ifrWindowSizeMs
             
-            ## calculate the power spectrum of each time serie
-            ## we could speed up things with the snow package here 
-            out<-apply(st@ifr,1,oce::pwelch,nfft=nfft,plot=FALSE,log='no',fs=Fs)
-            # get the frequencies
-            freq<-out[[1]]$freq
-            # get the power values of each list
-            ps<-matrix(unlist(lapply(out,function(x) x$spec)),ncol=nrow(st@ifr))
+            if(method=="pwelch"){
+              ## calculate the power spectrum of each time serie
+              ## we could speed up things with the snow package here 
+              out<-apply(st@ifr,1,oce::pwelch,nfft=nfft,plot=FALSE,log='no',fs=Fs)
+              # get the frequencies
+              freq<-out[[1]]$freq
+              # get the power values of each list
+              ps<-matrix(unlist(lapply(out,function(x) x$spec)),ncol=nrow(st@ifr))
+            }
+            if(method==""){
+              ## alternative method to confirm the results obtained by pwelch
+            }
+            
             return(list(freq=freq,ps=ps))
           }
 )
