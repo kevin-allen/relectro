@@ -154,8 +154,6 @@ test_that("occupancy3D",{
   
   
   #### use occupancyMap3d() directly instead of c function
-  
-  
   pt<-new("Positrack")
   maxx=5
   minx=1
@@ -184,6 +182,88 @@ test_that("occupancy3D",{
   
   rm(maxx,minx,maxy,miny,minhd,maxhd,a,at,x,y,hd,pt,sp)
 })
+
+test_that("distributive_ratio",{
+  ### try when the position explain all the apparent HD activity
+  pt<-new("Positrack")
+  sp<-new("SpatialProperties2d")
+  st<-new("SpikeTrain")
+  hd<-new("HeadDirection")
+  
+  degPerBin=10
+  nHdBins=as.integer(ceiling(360/degPerBin))
+  ## 
+  x<-(rep(sin(seq(0,2*pi,0.05)),10)+1)*20
+  y<-(rep(sin(seq(0,2*pi,0.05)+pi/2),10)+1)*20
+  HD<-(rep(sin(seq(0,2*pi,0.05)),10)+1)*180
+  pt@defaultXYSmoothing=0
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=HD, 
+                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+    ## set the spike trains in the object
+  res<-seq(401,400*length(x),by=400*length(x)/10)
+  st<-setSpikeTrain(st=st,res=res,clu=rep(1,length(res)),samplingRate=20000)
+  ## get the hd histo
+  hd@smoothOccupancySd=0
+  hd@smoothRateHistoSd=0
+  hd<-headDirectionHisto(hd,st,pt) # observed histo
+  ## get the firing rate maps
+  sp@smoothOccupancySd=0
+  sp@smoothRateMapSd=0
+  sp<-firingRateMap2d(sp,st,pt)
+  plot(hd@histo,type='l')
+  firingRateMapPlot(sp@maps[,,1])
+  DR<-distributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
+  DR
+  ## should be close to 0 because all hd selectivity comes from the correlation between position and HD
+  expect_equal(DR,0,tolerance=0.1)
+  
+  
+  ### try when the position does not explain HD at all
+  pt<-new("Positrack")
+  sp<-new("SpatialProperties2d")
+  st<-new("SpikeTrain")
+  hd<-new("HeadDirection")
+  degPerBin=10
+  nHdBins=as.integer(ceiling(360/degPerBin))
+  ## 
+  x<-(rep(sin(seq(0,2*pi,0.1)),100)+1)*20
+  y<-(rep(sin(seq(0,2*pi,0.1)+pi/2),100)+1)*20
+  HD<-(rep(sin(seq(0,2*pi,0.066)),200)+1)*180
+  HD<-head(HD,length(x))
+  pt@defaultXYSmoothing=0
+  pt<-setPositrack(pt, pxX=x, pxY=y, hd=HD, 
+                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+  
+  ## set the spike trains in the object
+  res<-which(HD>175&HD<185)*400+1 ## fire when HD is near 180
+  st<-setSpikeTrain(st=st,res=res,clu=rep(1,length(res)),samplingRate=20000)
+  
+  ## get the hd histo
+  hd@smoothOccupancySd=0
+  hd@smoothRateHistoSd=0
+  hd<-headDirectionHisto(hd,st,pt) # observed histo
+  ## get the firing rate maps
+  sp@smoothOccupancySd=0
+  sp@smoothRateMapSd=0
+  sp<-firingRateMap2d(sp,st,pt)
+  plot(hd@histo,type='l')
+  firingRateMapPlot(sp@maps[,,1])
+  DR<-distributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
+  DR
+  ## should be close to 0 because all hd selectivity comes from the correlation between position and HD
+  expect_equal(DR,1,tolerance=0.1)
+  
+  rm(HD,x,y,hd,pt,sp,st,res,DR)
+})
+
+
+
+
+
+
+
+
+
 
 
 
