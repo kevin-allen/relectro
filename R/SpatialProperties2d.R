@@ -2111,8 +2111,16 @@ setMethod(f="directionalDistributiveRatioFromHdHisto",
             
             ## merge the observed and predicted histograms in an array, to use apply
             a<-array(c(hd@histo,dtc),dim=c(dim(dtc),2))
+            ratio<-function(x){ # x is a 2d array hd,obs/pred
+                obs<-as.numeric(x[,1])# observed histo is linearized
+                pred<-as.numeric(x[,2]) # predicted histo is linearized
+                obs[which(obs==-1.0)]<-NA # change -1.0 in histo to NA
+                m<-matrix(c(obs,pred),nrow = length(obs)) # create a 2d matrix with 2 columns (obs,pred)
+                m<-m[apply(m,1,function(x)all(is.finite(x))),] # only keep rows with valid rate
+                sum(abs(log((1+m[,1])/(1+m[,2]))))/length(m[,1]) # calculate the ratio
+            }
             ## get the distributive ratio
-            DR<-apply(a,2,function(m){sum(abs(log((1+m[,1])/(1+m[,2]))))/length(m[,1])})
+            DR<-apply(a,2,ratio)
             return(DR)
           })
 
@@ -2185,3 +2193,59 @@ setMethod(f="distributiveHypothesisMap",
             maps<-array(b,c(dim(sp@occupancy3D)[c(1,2)],dim(hd@histo)[2]))
             return(maps)
           })
+
+
+#' Calculate a locational distributive ratio (DR) to test the null hypothesis that a cell is only modulated by head direction
+#' and any apparent spatial selectivity is due to head direction tuning and biased spatial sampling
+#' 
+#' The method assumes that the apparent influence of position arises from a sampling bias of spatial data for some head direction.
+#' This hypothesis is called the distributive hypothesis and was introduced by 
+#' Muller, Bostock, Taube and Kubie (1994) On the directional firing properties of hippocampal place cells. J Neurosci.
+#' and used by
+#' Cacucci, Lever, Wills, Burgess and O'Keefe (2004) Theta-modulated place-by-direction cells in the hippocampal formation in the rat. J Neurosci
+#' This function uses formula provided by Cacucci et al.
+#' 
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object to get the intervals
+#' @param pt Positrack object
+#' @param hd HeadDirection object
+#' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @return SpatialProperties2d object with occupancy3D array, the dimensions are x, y and hd.
+#' 
+#' @docType methods
+#' @rdname locationalDistributiveRatioFromMap-methods
+setGeneric(name="locationalDistributiveRatioFromMap",
+           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+           {standardGeneric("locationalDistributiveRatioFromMap")}
+)
+#' @rdname locationalDistributiveRatioFromMap-methods
+#' @aliases locationalDistributiveRatioFromMap,ANY,ANY-method
+setMethod(f="locationalDistributiveRatioFromMap",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+          {
+            
+            dmap<-distributiveHypothesisMap(sp,st,pt,hd,nRowMap,nColMap) # predicted maps
+            sp<-firingRateMap2d(sp,st,pt,nRowMap,nColMap) # observed maps
+            
+            
+            if(!all(dim(dmap)==dim(sp@maps)))
+              stop("Problem with the dimensions of distributive maps and sp@maps")
+            ## merge the observed and predicted histograms in an array, to use apply
+            a<-array(c(sp@maps,dmap),dim=c(dim(dmap),2))
+            ratio<-function(x){ # x is a 3d array x,y,obs/pred
+              obs<-as.numeric(x[,,1])# observed map is linearized
+              pred<-as.numeric(x[,,2]) # predicted map is linearized
+              obs[which(obs==-1.0)]<-NA # change -1.0 in map to NA
+              m<-matrix(c(obs,pred),nrow = length(obs)) # create a 2d matrix with 2 columns (obs,pred)
+              m<-m[apply(m,1,function(x)all(is.finite(x))),] # only keep rows with valid rate
+              sum(abs(log((1+m[,1])/(1+m[,2]))))/length(m[,1]) # calculate the ratio
+            }
+            ## get the distributive ratio
+            DR<-apply(a,3,ratio)
+            return(DR)
+          })
+

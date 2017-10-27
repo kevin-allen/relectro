@@ -210,12 +210,14 @@ test_that("distributive_ratio",{
   sp@smoothOccupancySd=0
   sp@smoothRateMapSd=0
   sp<-firingRateMap2d(sp,st,pt)
+  plot(hd@histo,type='l')
   firingRateMapPlot(sp@maps[,,1])
   DR<-directionalDistributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
   ## should be close to 0 because all hd selectivity comes from the correlation between position and HD
   expect_equal(DR,0,tolerance=0.1)
-
-
+  DR<-locationalDistributiveRatioFromMap(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+  expect_equal(DR,0,tolerance=0.1)
+  
   ### try when the position does not explain HD at all
   pt<-new("Positrack")
   sp<-new("SpatialProperties2d")
@@ -249,7 +251,9 @@ test_that("distributive_ratio",{
   DR<-directionalDistributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
   ## should be close to 0 because all hd selectivity comes from the correlation between position and HD
   expect_equal(DR,1,tolerance=0.1)
-
+  
+  
+  
   rm(HD,x,y,hd,pt,sp,st,res,DR)
 })
 
