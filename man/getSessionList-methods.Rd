@@ -7,11 +7,11 @@
 \alias{getSessionList,ANY,ANY-method}
 \title{Return a list of RecSession objects that have some common properties}
 \usage{
-getSessionList(ep, clustered = "", region = "", env = "", stim = "",
-  fileExtension = "")
+getSessionList(ep, clustered = "", region = "", environment = "",
+  stim = "", fileExtension = "")
 
 \S4method{getSessionList}{ElectroProject}(ep, clustered = "", region = "",
-  env = "", stim = "", fileExtension = "")
+  environment = "", stim = "", fileExtension = "")
 }
 \arguments{
 \item{ep}{ElectroProject object}
@@ -20,7 +20,7 @@ getSessionList(ep, clustered = "", region = "", env = "", stim = "",
 
 \item{region}{Set to a given brain region to select only sessions with tetrodes in this brain region}
 
-\item{env}{Set to a given environment code to select only sessions during which this environment was presented}
+\item{environment}{Set to a given environment code to select only sessions during which this environment was presented}
 
 \item{stim}{Set to a given stimulation code to select only sessions during which this stimulatoin was presented}
 

@@ -44,6 +44,8 @@ Can do some shuffling to get the spatial properties that you would get by chance
 
 \item{\code{occupancy}}{Matrix containing the occupancy map}
 
+\item{\code{occupancy3D}}{Array containing the occupancy for x and y positions and head-direction.}
+
 \item{\code{autos}}{Array containing the spatial autocorrelation of the firing rate maps}
 
 \item{\code{autosDetect}}{Array with the spatial autocorrelation once the firing fields have been removed}

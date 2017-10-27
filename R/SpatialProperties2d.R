@@ -2020,18 +2020,136 @@ setMethod(f="occupancyMap3d",
 #' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
 #' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
 #' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
-#' @param degPerBin Give the number of degrees per bin for the head-direction data
-#' @return SpatialProperties2d object with occupancy3D array, the dimensions are x, y and hd.
+#' @param 
+#' @return Array with the predicted HD tuning curves
 #' 
 #' @docType methods
 #' @rdname distributiveHypothesisHdHisto-methods
 setGeneric(name="distributiveHypothesisHdHisto",
-           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
+           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
            {standardGeneric("distributiveHypothesisHdHisto")}
 )
 #' @rdname distributiveHypothesisHdHisto-methods
 #' @aliases distributiveHypothesisHdHisto,ANY,ANY-method
 setMethod(f="distributiveHypothesisHdHisto",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+          {
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in occupancyMap2d",st@session))
+            if(length(pt@x)==0)
+              stop(paste("pt@x has length of 0 in occupancyMap2d",st@session))
+            if(length(st@startInterval)==0)
+              stop(paste("length of st@startInterval == 0 in occupancyMap2d",st@session))
+            if(!is.na(nRowMap)|!is.na(nColMap)){
+              if(is.na(nRowMap))
+                stop("if you set nColMap, you need to also set nRowMap")
+              if(is.na(nColMap))
+                stop("if you set nRowMap, you need to also set nColMap")
+            }
+            if(hd@degPerBin<=0)
+              stop("hd@degPerBin should be larger than 0")
+            
+            ## get the occupancy3D array
+            sp<-occupancyMap3d(sp,st,pt,degPerBin=hd@degPerBin)
+            
+            ## get the firing rate map
+            sp<-firingRateMap2d(sp,st,pt)
+          
+            if(dim(sp@occupancy3D)[1]!=dim(sp@maps)[1]|dim(sp@occupancy3D)[1]!=dim(sp@maps)[1])  
+              stop("dimensions of occupancy3D are not the same as maps dimensions")
+            
+            ## in sp@occupancy3D, unvisited bins are set to 0.
+            ## these bins have no influence on the distributedHypothesis tuning curves as we multiply by 0
+            
+            #function to run on one map
+            distributedHypothesisHdHistoOneCell<-function(map,occ3D){
+              apply(sp@occupancy3D,3,function(occ,map){sum(map*occ)/sum(occ)},map)## apply the function to all hd bins
+            }
+            ## for each firing rate map, get the tuning curve
+            tc<-apply(sp@maps,3,distributedHypothesisHdHistoOneCell,sp@occupancy3D)
+            
+            return(tc)
+          })
+
+#' Calculate a distributive ratio (DR) to test the null hypothesis that a cell is only modulated by location
+#' and any apparent HD selectivity is due to spatial selectivity and biased directional sampling
+#' 
+#' The method assumes that the apparent influence of head direction arises from a sampling bias of different directions in some location of the maze .
+#' This hypothesis is called the distributive hypothesis and was introduced by 
+#' Muller, Bostock, Taube and Kubie (1994) On the directional firing properties of hippocampal place cells. J Neurosci.
+#' and used by
+#' Cacucci, Lever, Wills, Burgess and O'Keefe (2004) Theta-modulated place-by-direction cells in the hippocampal formation in the rat. J Neurosci
+#' This function uses formula provided by Cacucci et al.
+#' 
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object to get the intervals
+#' @param pt Positrack object
+#' @param hd HeadDirection object
+#' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @return SpatialProperties2d object with occupancy3D array, the dimensions are x, y and hd.
+#' 
+#' @docType methods
+#' @rdname distributiveRatioFromHdHisto-methods
+setGeneric(name="distributiveRatioFromHdHisto",
+           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+           {standardGeneric("distributiveRatioFromHdHisto")}
+)
+#' @rdname distributiveRatioFromHdHisto-methods
+#' @aliases distributiveRatioFromHdHisto,ANY,ANY-method
+setMethod(f="distributiveRatioFromHdHisto",
+          signature="SpatialProperties2d",
+          definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+          {
+            dtc<-distributiveHypothesisHdHisto(sp,st,pt,hd,nRowMap,nColMap) # predicted histo
+            hd<-headDirectionHisto(hd,st,pt) # observed histo
+           
+          if(!all(dim(dtc)==dim(hd@histo)))
+              stop("Problem with the dimensions of distributive HD histo and HD histo")
+            
+            ## merge the observed and predicted histograms in an array, to use apply
+            a<-array(c(hd@histo,dtc),dim=c(dim(dtc),2))
+            ## get the distributive ratio
+            DR<-apply(a,2,function(m){sum(abs(log((1+m[,1])/(1+m[,2]))))/length(m[,1])})
+            return(DR)
+          })
+
+
+
+
+#' Calculate a predicted firing rate map assuming the null hypothesis that a cell is only modulated by head direction.
+#' 
+#' The method assumes that the only influence of spatial selectivity arises from a sampling bias of different location in some directiontion
+#' This hypothesis is called the distributive hypothesis and was introduced by 
+#' Muller, Bostock, Taube and Kubie (1994) On the directional firing properties of hippocampal place cells. J Neurosci.
+#' and used by
+#' Cacucci, Lever, Wills, Burgess and O'Keefe (2004) Theta-modulated place-by-direction cells in the hippocampal formation in the rat. J Neurosci
+#' This function uses formula provided by Cacucci et al.
+#' 
+#' @param sp SpatialProperties2d object
+#' @param st SpikeTrain object to get the intervals
+#' @param pt Positrack object
+#' @param hd HeadDirection object
+#' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
+#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
+#' @param degPerBin Give the number of degrees per bin for the head-direction data
+#' @param 
+#' @return Array with the predicted HD tuning curves
+#' 
+#' @docType methods
+#' @rdname distributiveHypothesisMap-methods
+setGeneric(name="distributiveHypothesisMap",
+           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
+           {standardGeneric("distributiveHypothesisMap")}
+)
+#' @rdname distributiveHypothesisMap-methods
+#' @aliases distributiveHypothesisMap,ANY,ANY-method
+setMethod(f="distributiveHypothesisMap",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
           {
@@ -2051,11 +2169,11 @@ setMethod(f="distributiveHypothesisHdHisto",
               stop("degPerBin should be larger than 0")
             
             ## get the occupancy3D array
-            sp<-occupancyMap3d(sp,st,pt)
+            sp<-occupancyMap3d(sp,st,pt,degPerBin = degPerBin)
             
             ## get the firing rate map
             sp<-firingRateMap2d(sp,st,pt)
-          
+            
             if(dim(sp@occupancy3D)[1]!=dim(sp@maps)[1]|dim(sp@occupancy3D)[1]!=dim(sp@maps)[1])  
               stop("dimensions of occupancy3D are not the same as maps dimensions")
             
@@ -2068,51 +2186,6 @@ setMethod(f="distributiveHypothesisHdHisto",
             }
             ## for each firing rate map, get the tuning curve
             tc<-apply(sp@maps,3,distributedHypothesisHdHistoOneCell,sp@occupancy3D)
-          
-            return(tc)
-          })
-
-#' Calculate a distributive ratio (DR) to test the null hypothesis that a cell is only modulated by location.
-#' 
-#' The method assumes that the apparent influence of head direction arises from a sampling bias of different directions in some location of the maze .
-#' This hypothesis is called the distributive hypothesis and was introduced by 
-#' Muller, Bostock, Taube and Kubie (1994) On the directional firing properties of hippocampal place cells. J Neurosci.
-#' and used by
-#' Cacucci, Lever, Wills, Burgess and O'Keefe (2004) Theta-modulated place-by-direction cells in the hippocampal formation in the rat. J Neurosci
-#' This function uses formula provided by Cacucci et al.
-#' 
-#' @param sp SpatialProperties2d object
-#' @param st SpikeTrain object to get the intervals
-#' @param pt Positrack object
-#' @param hd HeadDirection object
-#' @param nRowMap Numeric indicating the number of rows in the map. By default the maps has the smallest size possible given the
-#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
-#' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
-#' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
-#' @param degPerBin Give the number of degrees per bin for the head-direction data
-#' @return SpatialProperties2d object with occupancy3D array, the dimensions are x, y and hd.
-#' 
-#' @docType methods
-#' @rdname distributiveRatioFromHdHisto-methods
-setGeneric(name="distributiveRatioFromHdHisto",
-           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
-           {standardGeneric("distributiveRatioFromHdHisto")}
-)
-#' @rdname distributiveRatioFromHdHisto-methods
-#' @aliases distributiveRatioFromHdHisto,ANY,ANY-method
-setMethod(f="distributiveRatioFromHdHisto",
-          signature="SpatialProperties2d",
-          definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
-          {
-            dtc<-distributiveHypothesisHdHisto(sp,st,pt,hd,nRowMap,nColMap,degPerBin) # predicted histo
-            hd<-headDirectionHisto(hd,st,pt) # observed histo
-           
-          if(!all(dim(dtc)==dim(hd@histo)))
-              stop("Problem with the dimensions of distributive HD histo and HD histo")
             
-            ## merge the observed and predicted histograms in an array, to use apply
-            a<-array(c(hd@histo,dtc),dim=c(dim(dtc),2))
-            ## get the distributive ratio
-            DR<-apply(a,2,function(m){sum(abs(log((1+m[,1])/(1+m[,2]))))/length(m[,1])})
-            return(DR)
+            return(tc)
           })

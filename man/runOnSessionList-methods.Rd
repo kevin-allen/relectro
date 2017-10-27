@@ -36,8 +36,8 @@ list of list returned by the lapply function
 }
 \description{
 This applies a function to a list of RecSession objects.
-If save is set to TRUE, the results returned by the function will be saved. 
-The function applied to single recording sessions should return the results in a list. 
+If save is set to TRUE, the results returned by the function will be saved.
+The function applied to single recording sessions should return the results in a list.
 The results are saved in the resultsDirectory of the ElectroProject object.
 The names of the files saved will be the name of the elements in the list returned by the function
 If the element is an array or matrix, they will be bound with abind.
