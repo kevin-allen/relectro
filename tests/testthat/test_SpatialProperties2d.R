@@ -211,7 +211,7 @@ test_that("distributive_ratio",{
   sp@smoothRateMapSd=0
   sp<-firingRateMap2d(sp,st,pt)
   firingRateMapPlot(sp@maps[,,1])
-  DR<-distributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+  DR<-directionalDistributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
   ## should be close to 0 because all hd selectivity comes from the correlation between position and HD
   expect_equal(DR,0,tolerance=0.1)
 
@@ -246,7 +246,7 @@ test_that("distributive_ratio",{
   sp<-firingRateMap2d(sp,st,pt)
   plot(hd@histo,type='l')
   firingRateMapPlot(sp@maps[,,1])
-  DR<-distributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
+  DR<-directionalDistributiveRatioFromHdHisto(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
   ## should be close to 0 because all hd selectivity comes from the correlation between position and HD
   expect_equal(DR,1,tolerance=0.1)
 

@@ -2020,7 +2020,6 @@ setMethod(f="occupancyMap3d",
 #' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
 #' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
 #' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
-#' @param 
 #' @return Array with the predicted HD tuning curves
 #' 
 #' @docType methods
@@ -2072,7 +2071,7 @@ setMethod(f="distributiveHypothesisHdHisto",
             return(tc)
           })
 
-#' Calculate a distributive ratio (DR) to test the null hypothesis that a cell is only modulated by location
+#' Calculate a directional distributive ratio (DR) to test the null hypothesis that a cell is only modulated by location
 #' and any apparent HD selectivity is due to spatial selectivity and biased directional sampling
 #' 
 #' The method assumes that the apparent influence of head direction arises from a sampling bias of different directions in some location of the maze .
@@ -2093,14 +2092,14 @@ setMethod(f="distributiveHypothesisHdHisto",
 #' @return SpatialProperties2d object with occupancy3D array, the dimensions are x, y and hd.
 #' 
 #' @docType methods
-#' @rdname distributiveRatioFromHdHisto-methods
-setGeneric(name="distributiveRatioFromHdHisto",
+#' @rdname directionalDistributiveRatioFromHdHisto-methods
+setGeneric(name="directionalDistributiveRatioFromHdHisto",
            def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
-           {standardGeneric("distributiveRatioFromHdHisto")}
+           {standardGeneric("directionalDistributiveRatioFromHdHisto")}
 )
-#' @rdname distributiveRatioFromHdHisto-methods
-#' @aliases distributiveRatioFromHdHisto,ANY,ANY-method
-setMethod(f="distributiveRatioFromHdHisto",
+#' @rdname directionalDistributiveRatioFromHdHisto-methods
+#' @aliases directionalDistributiveRatioFromHdHisto,ANY,ANY-method
+setMethod(f="directionalDistributiveRatioFromHdHisto",
           signature="SpatialProperties2d",
           definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
           {
@@ -2122,7 +2121,7 @@ setMethod(f="distributiveRatioFromHdHisto",
 
 #' Calculate a predicted firing rate map assuming the null hypothesis that a cell is only modulated by head direction.
 #' 
-#' The method assumes that the only influence of spatial selectivity arises from a sampling bias of different location in some directiontion
+#' The method assumes that the influence of spatial selectivity arises from a sampling bias of different location in some directiontion
 #' This hypothesis is called the distributive hypothesis and was introduced by 
 #' Muller, Bostock, Taube and Kubie (1994) On the directional firing properties of hippocampal place cells. J Neurosci.
 #' and used by
@@ -2137,21 +2136,19 @@ setMethod(f="distributiveRatioFromHdHisto",
 #' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
 #' @param nColMap Numeric indicating the number of columns in the map. By default the maps has the smallest size possible given the
 #' position data in the Positrack object. Use this argument to have maps of a fixed size. Needs to be as large as the minimal size of the map
-#' @param degPerBin Give the number of degrees per bin for the head-direction data
-#' @param 
 #' @return Array with the predicted HD tuning curves
 #' 
 #' @docType methods
 #' @rdname distributiveHypothesisMap-methods
 setGeneric(name="distributiveHypothesisMap",
-           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
+           def=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
            {standardGeneric("distributiveHypothesisMap")}
 )
 #' @rdname distributiveHypothesisMap-methods
 #' @aliases distributiveHypothesisMap,ANY,ANY-method
 setMethod(f="distributiveHypothesisMap",
           signature="SpatialProperties2d",
-          definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA,degPerBin=10)
+          definition=function(sp,st,pt,hd,nRowMap=NA,nColMap=NA)
           {
             if(length(pt@x)==0)
               stop(paste("pt@x has length of 0 in occupancyMap2d",st@session))
@@ -2165,27 +2162,26 @@ setMethod(f="distributiveHypothesisMap",
               if(is.na(nColMap))
                 stop("if you set nRowMap, you need to also set nColMap")
             }
-            if(degPerBin<=0)
-              stop("degPerBin should be larger than 0")
+            if(hd@degPerBin<=0)
+              stop("hd@degPerBin should be larger than 0")
             
             ## get the occupancy3D array
-            sp<-occupancyMap3d(sp,st,pt,degPerBin = degPerBin)
+            sp<-occupancyMap3d(sp,st,pt,degPerBin = hd@degPerBin)
+            ## get the hd histogram
+            hd<-headDirectionHisto(hd,st,pt)
             
-            ## get the firing rate map
-            sp<-firingRateMap2d(sp,st,pt)
-            
-            if(dim(sp@occupancy3D)[1]!=dim(sp@maps)[1]|dim(sp@occupancy3D)[1]!=dim(sp@maps)[1])  
-              stop("dimensions of occupancy3D are not the same as maps dimensions")
+            if(dim(sp@occupancy3D)[3]!=dim(hd@histo)[1])  
+              stop("dimensions of occupancy3D are not the same as hd@histo")
             
             ## in sp@occupancy3D, unvisited bins are set to 0.
             ## these bins have no influence on the distributedHypothesis tuning curves as we multiply by 0
-            
-            #function to run on one map
-            distributedHypothesisHdHistoOneCell<-function(map,occ3D){
-              apply(sp@occupancy3D,3,function(occ,map){sum(map*occ)/sum(occ)},map)## apply the function to all hd bins
+            #function to predict the firing rate in each bin of the firing map based on hd tuning curve and hd occupancy data
+            distributedHypothesisMapOneCell<-function(hdHisto,occ3D){
+              apply(sp@occupancy3D,c(1,2),function(occ3D,hdHisto){sum(hdHisto*occ3D)/sum(occ3D)},hdHisto)## apply the function to all map bin
             }
-            ## for each firing rate map, get the tuning curve
-            tc<-apply(sp@maps,3,distributedHypothesisHdHistoOneCell,sp@occupancy3D)
-            
-            return(tc)
+            ## for each hd histo, get a firing rate map of the predict firing rate
+            b<-apply(hd@histo,2,distributedHypothesisMapOneCell,sp@occupancy3D)
+            # somehow output is a matrix instead of array, need to convert to an array here
+            maps<-array(b,c(dim(sp@occupancy3D)[c(1,2)],dim(hd@histo)[2]))
+            return(maps)
           })
