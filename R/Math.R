@@ -131,6 +131,43 @@ shift <- function (v, places, dir = "right")
   return(vnew)
 }
 
+#' Calculate the autocorrelation function of a vector that is circular
+#' 
+#' The end and beginning of the vector are next to each other like on a circle
+#' 
+#' @param v A vector
+acf.circ<-function(v){
+  shift.correl<-function(places,vect){
+    s<-shift(v=vect,places = places)
+    cor(s,vect)
+  }
+  sapply(seq(0,length(v)-1),shift.correl,v)
+}
+
+#' Find valleys and peaks in a function
+#' 
+#' 
+#' @param x A vector
+#' @param partial Will detect at the beginning and end
+#' @param decreasing FALSE to detect peaks and TRUE to detect troughs
+which.peaks <- function(x,partial=TRUE,decreasing=FALSE){
+  if (decreasing){
+    if (partial){
+      which(diff(c(FALSE,diff(x)>0,TRUE))>0)
+    }else {
+      which(diff(diff(x)>0)>0)+1
+    }
+  }else {
+    if (partial){
+      which(diff(c(TRUE,diff(x)>=0,FALSE))<0)
+    }else {
+      which(diff(diff(x)>=0)<0)+1
+    }
+  }
+}
+
+
+
 #' Shift a the values of a vector by a random amount that is at least as large as the argument minMvMs
 #' 
 #' @param x A vector
