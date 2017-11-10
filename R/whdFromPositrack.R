@@ -16,11 +16,17 @@
 #' If you want a different channel for each trial, give a numeric vector with the list of channel.
 #' @param maxUpDiffRes Maximum difference between successive up for which position will be interpolated
 #' @param overwrite Logical indicating whether to recreate a whd file if one already exists
+#' @param checkUpIntegrity Logical indicating whether to check up integrity
+#' @param checkPositrackIntegrity Logical indicating whether to check positrack integrity
+#' @param minInterEventCor Minimum correlation between intervals of ttl pulses and frame capture
 whdFromPositrack<-function(rs,
                            resSamplesPerWhdSample=400,
                            ttlChannel=NA,
                            maxUpDiffRes=4000,
-                           overwrite=FALSE)
+                           overwrite=FALSE,
+                           checkUpIntegrity=TRUE,
+                           checkPositrackIntegrity=TRUE,
+                           minInterEventCor=0.8)
   {
   if(rs@session=="")
     stop(paste("whdFromPositrack, rs@session == \"\""))
@@ -71,9 +77,10 @@ whdFromPositrack<-function(rs,
                                       lastSample = rs@trialEndRes[tIndex]))
     
     up<-detectUps(x) ## detect rising times of ttl pulses
+    if(checkUpIntegrity){
     if(checkIntegrityUp(up,samplingRate=rs@samplingRate,datLengthSamples=rs@trialEndRes[tIndex]-rs@trialStartRes[tIndex])!=0)
       stop(paste("check of integrity of up failed"))
-   
+    }
     ######################################
     ## get the data from positrack file ##
     ######################################
@@ -82,9 +89,10 @@ whdFromPositrack<-function(rs,
       stop(paste("whdFromPositrack, file missing:",fn))
     print(paste("reading",fn))
     posi<-read.table(fn,header=T)  ## now assumes that there is a header
+    if(checkPositrackIntegrity){
     if(checkIntegrityPositrackData(posi)!=0)
       stop(paste("check of integrity of positrack file failed"))
-    
+    }
     #############################################
     ### compare the .dat and .positrack data  ###
     #############################################
@@ -105,7 +113,7 @@ whdFromPositrack<-function(rs,
     }
     interEventCor<-cor(diff(up),diff(posi$startProcTime))
     print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
-    if(interEventCor<0.1)#.8
+    if(interEventCor<minInterEventCor)
     {
       paste("The correlation between interUp and interPosi is below 0.8:",interEventCor)
       stop("Something is wrong with alignment")
@@ -379,7 +387,7 @@ whdAlignedTtlPositrack<-function(up,posi,ccLength=20){
   print(paste("correlation last 2000:",round(cor2,4)))
   print(paste("correlation all:",round(cor3,4)))
   print(paste("Removed up:",removedUp, "removed posi:",removedPosi))
-  if(cor1<0.98|cor2<0.98| cor3<.95){
+  if(cor1<0.95|cor2<0.95| cor3<.95){
     print(paste("alignment failed because of correlation of jitter too low"))
     return(NA)
   }
