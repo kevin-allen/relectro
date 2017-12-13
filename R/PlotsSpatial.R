@@ -330,11 +330,13 @@ firingRateMapCrossPlot <- function(m,name="",
 #' @param peak.rate.prefix Additional information to display before the peak firing rate.
 headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),
                                    axis.y.mgp=c(2.2,0.6,0),cex.x.axis=0.5,cex.y.axis=0.5,cex.lab=0.5,
-                                   xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="")
+                                   xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="",
+                                   clockwise=TRUE)
 {
   par(oma=outma,
       mar=margin,
       cex.lab=cex.lab,cex.axis=cex.x.axis,cex.lab=cex.lab)
+  
   if(class(histo)=="numeric"){
     int<-360/length(histo)
     deg<-seq(0,360-int,int)
@@ -343,7 +345,7 @@ headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0
                                   polar.pos=deg,
                                   labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
                                   #                       labels="",
-                                  clockwise=F,
+                                  clockwise=clockwise,
                                   rp.type="p",
                                   show.grid=T,show.radial.grid=T,
                                   radial.lim=c(0,radlim),show.grid.labels=0,
@@ -359,7 +361,7 @@ headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0
                                   polar.pos=histo$deg,
                                   labels=seq(0,270,90),label.pos=c(0,90,180,270),start=0,
                                   #                       labels="",
-                                  clockwise=F,
+                                  clockwise=clockwise,
                                   rp.type="p",
                                   show.grid=T,show.radial.grid=T,
                                   radial.lim=c(0,radlim),show.grid.labels=0,
