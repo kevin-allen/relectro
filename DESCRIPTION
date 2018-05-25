@@ -14,7 +14,8 @@ Imports:
     abind,
     plyr,
     methods,
-    oce
+    oce,
+    circular
 Suggests:
     knitr,
     rmarkdown,
