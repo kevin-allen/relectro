@@ -482,4 +482,3 @@ setMethod(f="copyDatabase",
                   compression="gzip")
             }
       })
-

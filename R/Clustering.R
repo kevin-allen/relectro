@@ -88,7 +88,7 @@ deleteCluster<-function(rs,clu)
   nClu<-c[1]
   c<-c[-1]
 
-  ## delete the cluster
+  ## delete the cluster, value of 1 is noise
   c[which(c==cluToTet)]<- 1
 
   ## add the new cluster number at the head of clu data
@@ -100,6 +100,12 @@ deleteCluster<-function(rs,clu)
         ncolumns = 1,
         append=F)
 }
+
+
+
+
+
+
 
 
 #' Merge tetrode specific clu and res file into a main res and clu file
@@ -165,7 +171,6 @@ mergeTetrodeSpecificResCluFiles<-function(rs,overwrite=FALSE){
         ncolumns = 1,
         append=F)
 }
-
 
 #' Read a fet file
 #'
