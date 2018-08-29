@@ -245,21 +245,24 @@ setMethod(f="loadRecSession",
 #' .par .desen .desel .px_per_cm .sampling_rate_dat .stimulation
 #' 
 #' @param rs A RecSession object
+#' @param kiloSortConfig logical indicating whether to create configuration files for KiloSort
 #'
 #' @docType methods
 #' @rdname saveRecSessionParameterFiles-methods
 setGeneric(name="saveRecSessionParameterFiles",
-           def=function(rs)
+           def=function(rs,kiloSortConfig=FALSE)
            {standardGeneric("saveRecSessionParameterFiles")}
 )
 #' @rdname saveRecSessionParameterFiles-methods
 #' @aliases saveRecSessionParameterFiles,ANY,ANY-method
 setMethod(f="saveRecSessionParameterFiles",
           signature="RecSession",
-          definition=function(rs)
+          definition=function(rs,kiloSortConfig=FALSE)
           {
             if(rs@session=="")
               stop("rs@session is empty")
+            if(class(kiloSortConfig)!="logical")
+              stop("kiloSortConfig is not a logical")
             if(!dir.exists(rs@path))
               stop(paste("saveRecSessionParameterFiles:",rs@path,"does not exist"))
             if(rs@fileBase=="")
@@ -327,6 +330,11 @@ setMethod(f="saveRecSessionParameterFiles",
                     file=paste(rs@fileBase,"environmentFamiliarity",sep="."),
                     ncolumns = 1)
             }
+            if(kiloSortConfig==TRUE)
+            {
+              print("kiloSortConfig")
+            }
+            
         }
 )
 
