@@ -189,6 +189,7 @@ setMethod(f="loadRecSession",
             if(file.exists(paste(rs@fileBase,"px_per_cm",sep="."))){
               rs@pxPerCm<-read.table(paste(rs@fileBase,"px_per_cm",sep="."))$V1
             }
+            
             ## get the number of res samples per whd sample in the tracking data
             if(file.exists(paste(rs@fileBase,"res_samples_per_whd_sample",sep="."))){
               rs@resSamplesPerWhdSample<-read.table(paste(rs@fileBase,"res_samples_per_whd_sample",sep="."))$V1
@@ -259,6 +260,8 @@ setMethod(f="saveRecSessionParameterFiles",
           signature="RecSession",
           definition=function(rs,kiloSortConfig=FALSE)
           {
+            print(paste("saveRecSessionParameterFiles",rs@session))
+            
             if(rs@session=="")
               stop("rs@session is empty")
             if(class(kiloSortConfig)!="logical")
@@ -330,11 +333,13 @@ setMethod(f="saveRecSessionParameterFiles",
                     file=paste(rs@fileBase,"environmentFamiliarity",sep="."),
                     ncolumns = 1)
             }
+            #############################################
+            ## create configuration files for KiloSort ##
+            #############################################
             if(kiloSortConfig==TRUE)
-            {
-              print("kiloSortConfig")
+            { # function located in KiloSort.R
+              writeKiloSortConfigurationFiles(rs)
             }
-            
         }
 )
 
@@ -883,6 +888,47 @@ setMethod("show", "RecSession",
             print(paste("pxPerCm:",object@pxPerCm))
             print(paste("resSamplesPerWhdSample:",object@resSamplesPerWhdSample))
           })
+
+
+
+#' Get the tetrode number of a channel
+#'
+#' @param rs A RecSession object
+#' @param channelNo Channel no of interest, can be a vector of length > 1
+#' @return integer representing the tetrode no for each channel
+#' 
+#' @docType methods
+#' @rdname getTetrodeNumberOfChannel-methods
+setGeneric(name="getTetrodeNumberOfChannel",
+           def=function(rs,channelNo)
+           {standardGeneric("getTetrodeNumberOfChannel")}
+)
+#' @rdname getTetrodeNumberOfChannel-methods
+#' @aliases getTetrodeNumberOfChannel,ANY,ANY-method
+setMethod(f="getTetrodeNumberOfChannel",
+          signature="RecSession",
+          definition=function(rs,channelNo)
+          {
+            if(sum(dim(rs@channelsTetrode))==0)
+              stop("rs@channelsTetrodes has dimension of 0 0")
+            if(any(channelNo<0) | any(channelNo>=rs@nChannels))
+              stop("channelNo is out of range")
+            return(as.integer(apply(apply(rs@channelsTetrode,1,function(x,y) y %in% x ,channelNo),1,function(x) head(which(x),n = 1))))
+          })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
