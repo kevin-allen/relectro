@@ -50,7 +50,7 @@ writeKiloSortConfigurationFiles<-function(rs,
                "ops.datatype='dat';",
                paste("ops.fbinary=",paste("'",rs@fileBase,".dat';",sep="")), # one dat file per session!
                paste("ops.fproc=",paste("'",rs@fileBase,".temp_wh.dat';",sep="")),
-               paste("ops.root=",paste("'",rs@fileBase,"';",sep="")),
+               paste("ops.root=",paste("'",rs@path,"';",sep="")),
                paste("ops.fs=",rs@samplingRate,";"),
                paste("ops.NchanTOT=",rs@nChannels,";"),
                paste("ops.Nchan=",sum(!is.na(rs@channelsTetrode)),";"),
