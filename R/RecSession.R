@@ -920,6 +920,34 @@ setMethod(f="getTetrodeNumberOfChannel",
 
 
 
+#' Merge .dat files into a single .dat file
+#'
+#' @param rs A RecSession object
+#' @param fileName File name of the merged file
+#' 
+#' @docType methods
+#' @rdname mergeDatFiles-methods
+setGeneric(name="mergeDatFiles",
+           def=function(rs,fileName)
+           {standardGeneric("mergeDatFiles")}
+)
+#' @rdname mergeDatFiles-methods
+#' @aliases mergeDatFiles,ANY,ANY-method
+setMethod(f="mergeDatFiles",
+          signature="RecSession",
+          definition=function(rs,fileName)
+          {
+            df<-new("DatFiles")
+            df<-datFilesSet(df,
+                            fileNames=paste(rs@trialNames,"dat",sep="."),
+                            path=rs@path,
+                            nChannels=rs@nChannels)
+            datFilesMerge(df,fileName)
+          })
+
+
+
+
 
 
 

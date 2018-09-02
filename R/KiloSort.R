@@ -18,6 +18,15 @@ writeKiloSortConfigurationFiles<-function(rs,
   if(!dir.exists(npyMatlabPath))
     stop(paste(npyMatlabPath,"does not exist"))
   
+  ## find out how many GB of RAM are available ##
+  if(Sys.which("free")!="")
+  {
+      RAMGB=floor(as.numeric(system("free  | grep Mem | awk '{print $2}'", intern=TRUE))/1000000)
+  } else
+  {
+    RAMGB=16
+  }
+  
   #########################
   ## masterFileKiloSort ###
   #########################
@@ -68,7 +77,7 @@ writeKiloSortConfigurationFiles<-function(rs,
                "%ops.fslow=2000;",
                "ops.ntbuff=64;",
                "ops.scaleproc=200;",
-               "ops.NT=32*1024+ops.ntbuff;", # adjust to memory 
+               paste("ops.NT=",RAMGB,"*1024+ops.ntbuff;"), # adjust to RAM size
                "ops.Th=[4 10 10];",
                "ops.lam=[5 20 20];",
                "ops.nannealpasses=4;",
@@ -122,6 +131,16 @@ writeKiloSortConfigurationFiles<-function(rs,
 #' @param rs RecSession object
 runKiloSort<-function(rs)
 {
-  
-  
+  if(!file.exists(paste(rs@path,"masterFileKiloSort.m",sep="/")))
+    stop(paste(paste(rs@path,"masterFileKiloSort.m",sep="/"), "is missing"))
+  if(!file.exists(paste(rs@path,"configKiloSort.m",sep="/")))
+    stop(paste(paste(rs@path,"configKiloSort.m",sep="/"), "is missing"))
+  if(!file.exists(paste(rs@path,"createChannelMapFile.m",sep="/")))
+    stop(paste(paste(rs@path,"createChannelMapFile.m",sep="/"), "is missing"))
+  if(Sys.which("matlab")=="")
+    stop("matlab not available to via R")
+  prevPath=getwd()
+  setwd(rs@path)
+  system("matlab -nodisplay -nosplash -nodesktop -r \"run('masterFileKiloSort.m');exit();\"")
+  setwd=prevPath
 }
