@@ -5,16 +5,16 @@
 #' Create the configurations files to run KiloSort
 #' 
 #' @param rs RecSession object
+#' @param kiloSortPath String pointing to the KiloSort repository directory on your computer
+#' @param npyMatlabPath String pointing to the npy-matlab repository directory on your computer
 writeKiloSortConfigurationFiles<-function(rs,
-                                          KiloSortPath="~/repo/KiloSort",
+                                          kiloSortPath="~/repo/KiloSort",
                                           npyMatlabPath="~/repo/npy-matlab")
 {
   if(!dir.exists(rs@path))
      stop("rs@path does not exist")
-  KiloSortPath="~/repo/KiloSort"
-  npyMatlabPath="~/repo/npy-matlab"
-  if(!dir.exists(KiloSortPath))
-    stop(paste(KiloSortPath,"does not exist"))
+  if(!dir.exists(kiloSortPath))
+    stop(paste(kiloSortPath,"does not exist"))
   if(!dir.exists(npyMatlabPath))
     stop(paste(npyMatlabPath,"does not exist"))
   
@@ -23,7 +23,7 @@ writeKiloSortConfigurationFiles<-function(rs,
   #########################
   print(paste("create",paste(rs@path,"masterFileKiloSort.m",sep = "/")))
   fileConn<-file(paste(rs@path,"masterFileKiloSort.m",sep = "/"))
-  writeLines(c(paste("addpath(genpath('",KiloSortPath, "'))",sep=""),
+  writeLines(c(paste("addpath(genpath('",kiloSortPath, "'))",sep=""),
              paste("addpath(genpath('",npyMatlabPath, "'))",sep=""),
              "configKiloSort;",
              "createChannelMapFile;",
@@ -114,3 +114,14 @@ writeKiloSortConfigurationFiles<-function(rs,
   close(fileConn)
 }
   
+
+#' Run KiloSort on a recording session
+#' 
+#' The configuration files for KiloSort needs to be generated before calling runKiloSort
+#' You can use writeKiloSortConfigurationFiles(rs) to generate the configuration files.
+#' @param rs RecSession object
+runKiloSort<-function(rs)
+{
+  
+  
+}
