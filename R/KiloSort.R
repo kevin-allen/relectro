@@ -7,16 +7,18 @@
 #' @param rs RecSession object
 #' @param kiloSortPath String pointing to the KiloSort repository directory on your computer
 #' @param npyMatlabPath String pointing to the npy-matlab repository directory on your computer
+#' @param mergedDatFileName String with the name of the merged dat file
 writeKiloSortConfigurationFiles<-function(rs,
                                           kiloSortPath="~/repo/KiloSort",
-                                          npyMatlabPath="~/repo/npy-matlab")
+                                          npyMatlabPath="~/repo/npy-matlab",
+                                          mergedDatFileName="")
 {
   if(!dir.exists(rs@path))
-     stop("rs@path does not exist")
+     stop("rs@path directory does not exist")
   if(!dir.exists(kiloSortPath))
-    stop(paste(kiloSortPath,"does not exist"))
+    stop(paste(kiloSortPath," KiloSort path does not exist"))
   if(!dir.exists(npyMatlabPath))
-    stop(paste(npyMatlabPath,"does not exist"))
+    stop(paste(npyMatlabPath,"npy-matlab does not exist"))
   
   ## find out how many GB of RAM are available ##
   if(Sys.which("free")!="")
@@ -27,6 +29,11 @@ writeKiloSortConfigurationFiles<-function(rs,
     RAMGB=16
   }
   
+  if(mergedDatFileName=="")
+  {
+    mergedDatFileName=paste("'",rs@fileBase,".dat';",sep="")
+  }
+    
   #########################
   ## masterFileKiloSort ###
   #########################
@@ -56,7 +63,7 @@ writeKiloSortConfigurationFiles<-function(rs,
                "ops.verbose= 1;",
                "ops.showfigures= 1;",
                "ops.datatype='dat';",
-               paste("ops.fbinary=",paste("'",rs@fileBase,".dat';",sep="")), # one dat file per session!
+               paste("ops.fbinary=", mergedDatFileName), # one dat file per session!
                paste("ops.fproc=",paste("'",rs@fileBase,".temp_wh.dat';",sep="")),
                paste("ops.root=",paste("'",rs@path,"';",sep="")),
                paste("ops.fs=",rs@samplingRate,";"),
