@@ -5,7 +5,8 @@
 \title{Create whd files for each trial (or .dat file) and for the recording session (all trials together).}
 \usage{
 whdFromPositrack(rs, resSamplesPerWhdSample = 400, ttlChannel = NA,
-  maxUpDiffRes = 4000, overwrite = FALSE)
+  maxUpDiffRes = 4000, overwrite = FALSE, checkUpIntegrity = TRUE,
+  checkPositrackIntegrity = TRUE, minInterEventCor = 0.8)
 }
 \arguments{
 \item{rs}{RecSession object}
@@ -18,6 +19,12 @@ If you want a different channel for each trial, give a numeric vector with the l
 \item{maxUpDiffRes}{Maximum difference between successive up for which position will be interpolated}
 
 \item{overwrite}{Logical indicating whether to recreate a whd file if one already exists}
+
+\item{checkUpIntegrity}{Logical indicating whether to check up integrity}
+
+\item{checkPositrackIntegrity}{Logical indicating whether to check positrack integrity}
+
+\item{minInterEventCor}{Minimum correlation between intervals of ttl pulses and frame capture}
 }
 \description{
 The tracking system called Positrack creates files with the extension .positrack 

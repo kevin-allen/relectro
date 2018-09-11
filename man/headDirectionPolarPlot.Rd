@@ -7,7 +7,8 @@
 headDirectionPolarPlot(histo, outma = c(0.5, 0.5, 0.5, 0.5), margin = c(0.5,
   0.3, 0.5, 0.3), axis.x.mgp = c(1, 0.3, 0), axis.y.mgp = c(2.2, 0.6, 0),
   cex.x.axis = 0.5, cex.y.axis = 0.5, cex.lab = 0.5, xlab = "",
-  ylab = "", show.xlab = TRUE, main.title = "", peak.rate.prefix = "")
+  ylab = "", show.xlab = TRUE, main.title = "", peak.rate.prefix = "",
+  clockwise = TRUE)
 }
 \arguments{
 \item{histo}{A data.frame with columns deg and rate, or a numeric vector containing rate values}
@@ -35,6 +36,8 @@ headDirectionPolarPlot(histo, outma = c(0.5, 0.5, 0.5, 0.5), margin = c(0.5,
 \item{main.title}{A title for the figure}
 
 \item{peak.rate.prefix}{Additional information to display before the peak firing rate.}
+
+\item{clockwise}{plot degrees clockwise or anticlockwise}
 }
 \description{
 Polar representation of firing rate using the polar.plot function of the plotrix package

@@ -328,6 +328,7 @@ firingRateMapCrossPlot <- function(m,name="",
 #' @param show.xlab Wether of not the xlabel is shown
 #' @param main.title A title for the figure
 #' @param peak.rate.prefix Additional information to display before the peak firing rate.
+#' @param clockwise plot degrees clockwise or anticlockwise
 headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),
                                    axis.y.mgp=c(2.2,0.6,0),cex.x.axis=0.5,cex.y.axis=0.5,cex.lab=0.5,
                                    xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="",
