@@ -285,8 +285,13 @@ setMethod(f="waveformPlot",
             if(any(is.na(axis.x.pos)))
               axis.x.pos<-min(m)
             graphics::plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
+            
+            #keep only data within xlim
+            m<-m[which(sw@wfTimePoints>=plotxlim[1]&sw@wfTimePoints<=plotxlim[2]),]
+            t<-sw@wfTimePoints[which(sw@wfTimePoints>=plotxlim[1]&sw@wfTimePoints<=plotxlim[2])]
+            
             for(i in 1:nChannels)
-              lines(sw@wfTimePoints,m[,i]+offset[i],col=i)
+              lines(t,m[,i]+offset[i],col=i)
             par(mgp=mgp.x)
             if(is.na(xaxis.at)){
               graphics::axis(side = 1, pos=axis.x.pos, tck=-0.05, cex.axis=0.6)
