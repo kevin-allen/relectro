@@ -265,6 +265,46 @@ setMethod(f="datFilesGetChannels",
             return(results)
           })
 
+
+
+#' Function to merge the dat files into a single dat file
+#' 
+#' 
+#' @param df A DatFiles object
+#' @param fileName Name of merged file
+#' @docType methods
+#' @rdname datFilesMerge-methods
+setGeneric(name="datFilesMerge",
+           def=function(df,fileName)
+           {standardGeneric("datFilesMerge")}
+)
+#' @rdname datFilesMerge-methods
+#' @aliases datFilesMerge,ANY,ANY-method
+setMethod(f="datFilesMerge",
+          signature="DatFiles",
+          definition=function(df,fileName)
+          {
+            if(any(file.exists(paste(df@path,df@fileNames,sep="/"))==FALSE)) {
+              stop(paste("This file is missing:",df@fileNames[! file.exists(df@fileNames)]," "))
+            }
+            if(length(df@fileNames)==0)
+              stop(paste("df@fileNames length = 0"))
+            myCmd<-paste("cat",  
+                         paste(paste(df@path,df@fileNames,sep="/"),collapse=" ") , 
+                         ">", 
+                         fileName)
+            print(paste("Running",myCmd))
+            system(myCmd)
+})
+
+
+
+
+
+
+
+
+
 ### show ###
 setMethod("show", "DatFiles",
           function(object){
@@ -277,3 +317,5 @@ setMethod("show", "DatFiles",
             print(paste("samples per file:"))
             print(paste(object@samples))
           })
+
+

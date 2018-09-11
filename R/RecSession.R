@@ -189,6 +189,7 @@ setMethod(f="loadRecSession",
             if(file.exists(paste(rs@fileBase,"px_per_cm",sep="."))){
               rs@pxPerCm<-read.table(paste(rs@fileBase,"px_per_cm",sep="."))$V1
             }
+            
             ## get the number of res samples per whd sample in the tracking data
             if(file.exists(paste(rs@fileBase,"res_samples_per_whd_sample",sep="."))){
               rs@resSamplesPerWhdSample<-read.table(paste(rs@fileBase,"res_samples_per_whd_sample",sep="."))$V1
@@ -245,21 +246,26 @@ setMethod(f="loadRecSession",
 #' .par .desen .desel .px_per_cm .sampling_rate_dat .stimulation
 #' 
 #' @param rs A RecSession object
+#' @param kiloSortConfig logical indicating whether to create configuration files for KiloSort
 #'
 #' @docType methods
 #' @rdname saveRecSessionParameterFiles-methods
 setGeneric(name="saveRecSessionParameterFiles",
-           def=function(rs)
+           def=function(rs,kiloSortConfig=FALSE)
            {standardGeneric("saveRecSessionParameterFiles")}
 )
 #' @rdname saveRecSessionParameterFiles-methods
 #' @aliases saveRecSessionParameterFiles,ANY,ANY-method
 setMethod(f="saveRecSessionParameterFiles",
           signature="RecSession",
-          definition=function(rs)
+          definition=function(rs,kiloSortConfig=FALSE)
           {
+            print(paste("saveRecSessionParameterFiles",rs@session))
+            
             if(rs@session=="")
               stop("rs@session is empty")
+            if(class(kiloSortConfig)!="logical")
+              stop("kiloSortConfig is not a logical")
             if(!dir.exists(rs@path))
               stop(paste("saveRecSessionParameterFiles:",rs@path,"does not exist"))
             if(rs@fileBase=="")
@@ -326,6 +332,13 @@ setMethod(f="saveRecSessionParameterFiles",
               write(x=rs@environmentFamiliarity,
                     file=paste(rs@fileBase,"environmentFamiliarity",sep="."),
                     ncolumns = 1)
+            }
+            #############################################
+            ## create configuration files for KiloSort ##
+            #############################################
+            if(kiloSortConfig==TRUE)
+            { # function located in KiloSort.R
+              writeKiloSortConfigurationFiles(rs)
             }
         }
 )
@@ -875,6 +888,75 @@ setMethod("show", "RecSession",
             print(paste("pxPerCm:",object@pxPerCm))
             print(paste("resSamplesPerWhdSample:",object@resSamplesPerWhdSample))
           })
+
+
+
+#' Get the tetrode number of a channel
+#'
+#' @param rs A RecSession object
+#' @param channelNo Channel no of interest, can be a vector of length > 1
+#' @return integer representing the tetrode no for each channel
+#' 
+#' @docType methods
+#' @rdname getTetrodeNumberOfChannel-methods
+setGeneric(name="getTetrodeNumberOfChannel",
+           def=function(rs,channelNo)
+           {standardGeneric("getTetrodeNumberOfChannel")}
+)
+#' @rdname getTetrodeNumberOfChannel-methods
+#' @aliases getTetrodeNumberOfChannel,ANY,ANY-method
+setMethod(f="getTetrodeNumberOfChannel",
+          signature="RecSession",
+          definition=function(rs,channelNo)
+          {
+            if(sum(dim(rs@channelsTetrode))==0)
+              stop("rs@channelsTetrodes has dimension of 0 0")
+            if(any(channelNo<0) | any(channelNo>=rs@nChannels))
+              stop("channelNo is out of range")
+            return(as.integer(apply(apply(rs@channelsTetrode,1,function(x,y) y %in% x ,channelNo),1,function(x) head(which(x),n = 1))))
+          })
+
+
+
+
+
+#' Merge .dat files into a single .dat file
+#'
+#' @param rs A RecSession object
+#' @param fileName File name of the merged file
+#' 
+#' @docType methods
+#' @rdname mergeDatFiles-methods
+setGeneric(name="mergeDatFiles",
+           def=function(rs,fileName)
+           {standardGeneric("mergeDatFiles")}
+)
+#' @rdname mergeDatFiles-methods
+#' @aliases mergeDatFiles,ANY,ANY-method
+setMethod(f="mergeDatFiles",
+          signature="RecSession",
+          definition=function(rs,fileName)
+          {
+            df<-new("DatFiles")
+            df<-datFilesSet(df,
+                            fileNames=paste(rs@trialNames,"dat",sep="."),
+                            path=rs@path,
+                            nChannels=rs@nChannels)
+            datFilesMerge(df,fileName)
+          })
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
