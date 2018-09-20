@@ -105,6 +105,14 @@ test_that("Sum of ifr when know spikes",{
   st<-ifr(st,windowSizeMs=50, spikeBinMs=1, kernelSdMs=50)
   expect_equal(length(st@ifr[1,]),40)
   expect_equal(sum(st@ifr[1,]/(1000/st@ifrWindowSizeMs)),2,tolerance = .000001)
+  
+  
+  ## test for time windows larger than 1 second
+  st<-new("SpikeTrain")
+  st<-setSpikeTrain(st,res=c(10000,20000,200000),clu=c(1,1,1),samplingRate=20000)
+  st<-setIntervals(st,s=c(0),e=c(300000))
+  st<-ifr(st,windowSizeMs=1001, spikeBinMs=1, kernelSdMs=50)
+  expect_equal(sum(st@ifr)/(1000/st@ifrWindowSizeMs),3,tolerance = 0.00001)
   rm(st)
 })
 

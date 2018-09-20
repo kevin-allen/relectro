@@ -138,6 +138,13 @@ setMethod(f="ifr",
                   as.integer(st@startInterval),as.integer(st@endInterval),length(st@startInterval),
                   st@samplingRate)
 
+            results<-.Call("ifr_from_spike_density",
+                           as.integer(st@res),as.integer(st@clu), as.integer(st@nSpikes),
+                           st@ifrWindowSizeMs, st@ifrKernelSdMs, st@ifrSpikeBinMs,
+                           as.integer(st@cellList), length(st@cellList),
+                           as.integer(st@startInterval),as.integer(st@endInterval),length(st@startInterval),
+                           st@samplingRate)
+            
             st@ifrTime<-results[1,]
             st@ifr<-matrix(results[-1,],nrow=st@nCells)
 

@@ -7,6 +7,7 @@ SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r,
 			    SEXP sampling_rate_r)
 {
   int window_size_res= (int)(REAL(window_size_ms_r)[0]*REAL(sampling_rate_r)[0]/1000.0);
+  
   double kernel_sd_res = REAL(kernel_sd_ms_r)[0]*REAL(sampling_rate_r)[0]/1000.0;
   int interval_lines=INTEGER_VALUE(interval_lines_r);
   int res_lines=INTEGER_VALUE(res_lines_r);
@@ -49,15 +50,13 @@ SEXP ifr_from_spike_density(SEXP res_r,SEXP clu_r, SEXP res_lines_r,
 
  number_windows=(max_tp/window_size_res)+1;
 
- //Rprintf("number_windows: %d\n",number_windows);
- //Rprintf("max_tp: %d\n",max_tp);
- 
  double* instantaneous_fr= (double*) malloc(number_windows*cell_lines*sizeof(double)); // cells x windows
  double* time_of_bin= (double*) malloc(number_windows*sizeof(double)); // windows
  double* ptr_ifr;
  int target_cell;
  for(int i = 0; i < cell_lines; i++)
  {
+ 
   target_cell=cell_list[i];
   ptr_ifr=instantaneous_fr+(number_windows*i);
   firing_rate_per_cells_time_windows(target_cell,
@@ -192,15 +191,13 @@ void  firing_rate_per_cells_time_windows(int target_cell,
 	    spike_array[res[j]/res_per_data_point_to_fft]=1;
 	}
   
-  /*
-  Rprintf("target_cell:%d\n",target_cell);
-  Rprintf("res_per_data_point_to_fft:%d\n",res_per_data_point_to_fft);
-  Rprintf("firing_rate_in_bins_lines:%d\n",firing_rate_in_bins_lines);
-  Rprintf("kernel_size:%d\n",kernel_size);
-  Rprintf("size_for_fft:%d\n",size_for_fft);
-  */
+  double sum_spike_array =0;
+  for(int i = 0; i < size_for_fft;i++)
+    sum_spike_array=sum_spike_array+spike_array[i];
   
-  
+  double sum_kernel=0;
+  for(int i = 0; i < kernel_size;i++)
+    sum_kernel=sum_kernel+kernel[i];
   
   // do the convolution of local_spike_density with padded_kernel    
   convolution_fftw3(spike_array,
@@ -208,9 +205,11 @@ void  firing_rate_per_cells_time_windows(int target_cell,
 	                  kernel,
 	                  kernel_size,
 	                  local_spike_density); // one data point each 20 res value
-      
-  // get pointers for the data of this cell
   
+  
+  double sum_density =0;
+  for(int i = 0; i < size_for_fft;i++)
+    sum_density=sum_density+local_spike_density[i];
   
   win=0;
   // loop for each interval
@@ -227,17 +226,14 @@ void  firing_rate_per_cells_time_windows(int target_cell,
 	  	  {
 	        firing_rate_in_bins[win]+=local_spike_density[k];
 		    } 
-	      firing_rate_in_bins[win]=firing_rate_in_bins[win]*(res_sampling_rate/window_size_res); // Hz
+	      firing_rate_in_bins[win]=firing_rate_in_bins[win]*((double)res_sampling_rate/window_size_res); // Hz
 	      time_of_bin[win]=(double)(start_bin+(end_bin-start_bin)/2)/res_sampling_rate; //Sec
 	      win++;
 	      start_bin=end_bin;
 	      end_bin=start_bin+window_size_res;
 	    }
 	}
- // Rprintf("target_cell: %d\n",target_cell);
-//  Rprintf("win: %d\n",win);
-//  Rprintf("firing_rate_in_bins_lines: %d\n",firing_rate_in_bins_lines);
-//  Rprintf("max fr: %lf\n",find_max_double(win,firing_rate_in_bins));
+  
   
   *num_valid_bins=win;
   free(local_spike_density);
