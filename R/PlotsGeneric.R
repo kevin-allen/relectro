@@ -209,12 +209,14 @@ spikeTimeAutocorrelationsPlot<-function(autos,timePoints,type,names,ncol=5,nrow=
 #' @param margin margin for setting par
 #' @param mgp.x mgp.x for setting par of xaxis
 #' @param mgp.y mgp.y for setting par of yaxis
+#' @param ylim ylim of the plot
 recSessionListTrialPlot<- function(sessionList,
                                    outma=c(1,1,0.5,0.5),
                                    margin=c(1.5,1.5,1,0.3),
-                                   mgp.x=c(0.4,0.2,0),
-                                   mgp.y=c(1,0.2,0)
-){
+                                   mgp.x=c(0.5,0.2,0),
+                                   mgp.y=c(0.8,0.2,0),
+                                   ylim=NA)
+{
   if(class(sessionList)!="list")
     stop("sessionList is not a list in ")
   if(class(sessionList[[1]])!="RecSession")
@@ -228,7 +230,8 @@ recSessionListTrialPlot<- function(sessionList,
   ## cumulative time of trials
   cumSumTimeList<-lapply(timeList,function(tl){c(0,cumsum(tl))})
   xlim<-c(0,length(sessionList)+1)
-  ylim<-c(0,max(sapply(timeList,function(x){sum(x)})))
+  if(any(is.na(ylim)))
+    ylim<-c(0,max(sapply(timeList,function(x){sum(x)})))
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
   graphics::plot(x=xlim,y=ylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
   ## make a rectangle for each trial in the experiment
@@ -242,7 +245,7 @@ recSessionListTrialPlot<- function(sessionList,
   graphics::axis(side = 2,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
   graphics::axis(side = 1,las=1, pos=0,tck=-0.05,cex.axis=0.6,xpd=TRUE)
   ## add a legend
-  graphics::legend(x=xlim[2]-10, y=ylim[2],legend = env,fill=c(1:length(env)),cex=0.7,bty = 'n')
+  graphics::legend(x=xlim[2]-10, y=ylim[2],legend = env,fill=c(1:length(env)),cex=0.7,bg='lightblue')
   ## add title for x and y axis
   graphics::title(xlab="Sessions",mgp=mgp.x,cex=0.6)
   graphics::title(ylab="Time (min)",mgp=mgp.y,cex=0.6)

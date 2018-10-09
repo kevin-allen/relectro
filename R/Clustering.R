@@ -35,7 +35,6 @@ clusterIsolationCheck<-function(rs){
   check<-ifelse(st@refractoryRatio>0.125|st@crossRefractoryRatio<0.15,TRUE,FALSE)
   check[which(!is.na(st@isolationDistance)&st@isolationDistance<5)]<-TRUE
 
-  ## plot the autocorrelation and crosscorrelation so we double check.
   cluster.check<-data.frame(
       session=rs@session,
       clu=cg@clu,
@@ -100,13 +99,6 @@ deleteCluster<-function(rs,clu)
         ncolumns = 1,
         append=F)
 }
-
-
-
-
-
-
-
 
 #' Merge tetrode specific clu and res file into a main res and clu file
 #'

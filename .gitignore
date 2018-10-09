@@ -7,3 +7,4 @@ inst/doc
 .Rhistory
 config.log
 config.status
+.httr-oauth
