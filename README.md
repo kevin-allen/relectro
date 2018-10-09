@@ -43,3 +43,12 @@ Please report any issues or suggestions at http://github.com/kevin-allen/relectr
 
 There is no warranty that the code is bug-free.
 The tests run on the functions can be found in the `tests` directory.
+
+
+## Parallel processing
+
+You might want to run code in parallel to speed up analysis on a list of session. To do this using several computer, first set up ssh keys.
+```
+ssh-keygen
+ssh-copy-id kevin@a230-pc49
+```
