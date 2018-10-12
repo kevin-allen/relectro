@@ -353,6 +353,8 @@ setMethod(f="runOnSessionList",
                print(paste("saving",paste(ep@resultsDirectory,n,sep="/")))
                save(list=n,file=paste(ep@resultsDirectory,n,sep="/"))
              }
+             fileNames<-paste(ep@resultsDirectory,objectNames,sep="/")
+             return(fileNames)
            }else{
              if(!is.null(list.res[[1]]))
               return(list.res)

@@ -382,8 +382,7 @@ setMethod(f="firingRateMap2d",
                             as.numeric(sp@occupancy),
                             sp@smoothRateMapSd/sp@cmPerBin)
             sp@maps<-array(data=results,dim=(c(sp@nRowMap,sp@nColMap,length(sp@cellList))))
-           
-            return(sp)
+           return(sp)
           }
 )
 

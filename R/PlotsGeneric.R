@@ -250,3 +250,69 @@ recSessionListTrialPlot<- function(sessionList,
   graphics::title(xlab="Sessions",mgp=mgp.x,cex=0.6)
   graphics::title(ylab="Time (min)",mgp=mgp.y,cex=0.6)
 }
+
+
+
+#' Plot a power spectrum
+#'
+#' @param x Numeric vectors with the x values
+#' @param y Numeric vectors with the y values
+#' @param name Character vectors containing the name of the graph
+#' @param axis.y.pos Position of the y axis
+#' @param axis.x.pos Position of the x axis
+#' @param axis.y.las Orientation of the letters for the label of the y axis
+#' @param mgp.x mgp for x axis
+#' @param mgp.y mgp for y axis
+#' @param xlab Label for the x axis
+#' @param ylab Label for the y axis
+#' @param plotxlim Limit of the x axis
+#' @param plotylim Limit of the y axis
+#' @param outma outma for setting par
+#' @param margin margin for setting par
+#' @param xaxis.at Where the tics are shown on the x axis
+#' @param yaxis.at Where the tics are shown on the y axis
+#' @param add.text Text to add to the plot
+#' @param add.text.pos Position of the text to add, format (x,y)
+#' @param ... Passed to the lines function
+powerSpectrumPlot <- function(x,y,name="",
+                              axis.y.pos=NA,axis.x.pos=0,
+                              axis.y.las=2,
+                              mgp.x=c(0.5,0.1,0.1), mgp.y=c(0.9,0.2,0.1),
+                              xlab="Frequency (Hz)", ylab="Power",
+                              plotxlim=NA,plotylim=NA,
+                              outma=c(0.5,0.5,0.5,0.5),margin=c(1.5,1.5,1,0.3),
+                              xaxis.at=NA,yaxis.at=NA,
+                              add.text="",add.text.pos=c(0,0.5),...)
+{
+  par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
+  if(any(is.na(plotxlim)))
+    plotxlim=c(min(x),max(x))
+  if(any(is.na(plotylim)))
+    plotylim=c(0,max(y))
+  if(any(is.na(axis.y.pos)))
+    axis.y.pos<-min(x)
+  if(length(x)!=length(y))
+    stop("length(x) != length(y)")
+  graphics::plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
+  lines(x,y,...)
+  par(mgp=mgp.x)
+  if(is.na(xaxis.at)){
+    graphics::axis(side = 1, pos=axis.x.pos, tck=-0.05,cex.axis=0.6)
+  }else{
+    graphics::axis(side = 1, pos=axis.x.pos, at=xaxis.at, tck=-0.05,cex.axis=0.6)
+  }
+  par(mgp=mgp.y)
+  if(is.na(yaxis.at)){
+    graphics::axis(side = 2, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
+  } else{
+    graphics::axis(side = 2, at=yaxis.at, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
+  }
+  graphics::title(xlab=xlab,mgp=mgp.x)
+  graphics::title(ylab=ylab,mgp=mgp.y)
+  if(name!=""){
+    graphics::title(main=name,cex.main=0.5)
+  }
+  if(add.text!=""){
+    graphics::text(labels=add.text,x=add.text.pos[1],y=add.text.pos[2],cex=0.6)
+  }
+}

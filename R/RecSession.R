@@ -636,16 +636,23 @@ setMethod(f="recordingDate",
           signature="RecSession",
           definition=function(rs)
           {
-            d<-unlist(strsplit(x=rs@session,split="-"))[2]
-            if(nchar(d)==8)
-            {
-              rDate<-as.Date(d, "%d%m%Y")
-            } else{
-              rDate<-NA
-            }
-            return(rDate)
+            return(sessionRecordingDate(rs@session))
 })
 
+#' @param session A session name
+#' @return Date object
+sessionRecordingDate<-function(session){
+  if(class(session)!="character")
+    stop("session is not a character vector")
+  d<-unlist(strsplit(x=session,split="-"))[2]
+  if(nchar(d)==8)
+  {
+    rDate<-as.Date(d, "%d%m%Y")
+  } else{
+    rDate<-NA
+  }
+  return(rDate)
+}
 
 #' Get the time intervals in sample values for trials in a given environment
 #'

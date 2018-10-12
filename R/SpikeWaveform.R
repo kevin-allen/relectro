@@ -319,6 +319,108 @@ setMethod(f="waveformPlot",
 
 
 
+#' Plot the mean waveform of a cluster using a spikeWaveform object
+#'
+#'
+#' @param m matrix with the spike waveform
+#' @param wfTimePoints vector with the time points for the waveforms
+#' @param offset offset between the traces in the plot
+#' @param name name for the plot
+#' @param axis.y.pos position of the y axis
+#' @param axis.x.pos position of the x axis
+#' @param axis.y.las orientation of numbers on y axis, 1 or 2
+#' @param mgp.x mgp of x axis
+#' @param mgp.y mgp of y axis
+#' @param xlab label of x axis
+#' @param ylab label of y axis
+#' @param plotxlim limits of x axis
+#' @param plotylim limits of y axis
+#' @param outma outma for graph
+#' @param margin margin of graph
+#' @param xaxis.at x axis tic location
+#' @param yaxis.at y axis tics location
+#' @param add.text text you can add on the graph
+#' @param add.text.pos position of the text you can add on the graph
+waveformPlot<-function(m,
+                       wfTimePoints,
+                       offset=250,
+                       name="",
+                       axis.y.pos=NA,
+                       axis.x.pos=NA,
+                       axis.y.las=2,
+                       mgp.x=c(0.5,0.1,0.1),
+                       mgp.y=c(1.1,0.2,0.1),
+                       xlab="Time (ms)",
+                       ylab="Voltage",
+                       plotxlim=NA,
+                       plotylim=NA,
+                       outma=c(0.5,0.5,0.5,0.5),
+                       margin=c(1.5,1.7,1,0.3),
+                       xaxis.at=NA,
+                       yaxis.at=NA,
+                       add.text="",
+                       add.text.pos=c(0,0.5))
+{
+  if(dim(m)[1]==0)
+  {
+    stop("matrix is empty in waveformPlot()")
+  }
+  if(length(wfTimePoints)==0)          
+  {
+    stop("wfTimePoints has a length of 0")
+  }
+  if(dim(m)[1]!=length(wfTimePoints))
+  {
+    stop("wfTimePoints has a length different than the waveforms")
+  }
+  
+  nChannels<-dim(m)[2]
+  offset<-offset*(0:(nChannels-1))
+  
+  par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
+  if(any(is.na(plotxlim)))
+    plotxlim=c(min(wfTimePoints),max(wfTimePoints))
+  if(any(is.na(plotylim)))
+    plotylim=c(min(m),max(m)+max(offset))
+  if(any(is.na(axis.y.pos)))
+    axis.y.pos<-min(wfTimePoints)
+  if(any(is.na(axis.x.pos)))
+    axis.x.pos<-min(m)
+  graphics::plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
+  
+  #keep only data within xlim
+  m<-m[which(wfTimePoints>=plotxlim[1]&wfTimePoints<=plotxlim[2]),]
+  t<-wfTimePoints[which(wfTimePoints>=plotxlim[1]&wfTimePoints<=plotxlim[2])]
+  
+  for(i in 1:nChannels)
+    lines(t,m[,i]+offset[i],col=i)
+  par(mgp=mgp.x)
+  if(is.na(xaxis.at)){
+    graphics::axis(side = 1, pos=axis.x.pos, tck=-0.05, cex.axis=0.6)
+  }else{
+    graphics::axis(side = 1, pos=axis.x.pos, at=xaxis.at, tck=-0.05, cex.axis=0.6)
+  }
+  par(mgp=mgp.y)
+  if(is.na(yaxis.at)){
+    graphics::axis(side = 2, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
+  } else{
+    graphics::axis(side = 2, at=yaxis.at, las=axis.y.las, pos=axis.y.pos,tck=-0.05,cex.axis=0.6)
+  }
+  graphics::title(xlab=xlab,mgp=mgp.x)
+  graphics::title(ylab=ylab,mgp=mgp.y)
+  if(name!=""){
+    graphics::title(main=name,cex.main=0.5)
+  }
+  if(add.text!=""){
+    graphics::text(labels=add.text,x=add.text.pos[1],y=add.text.pos[2],cex=0.6)
+  }
+  return()
+}
+
+
+
+
+
 
 
 
