@@ -130,6 +130,7 @@ colorScalePlot<-function(outma=c(0.2,0.2,0.2,0.2),margin=c(0,1,0,1),cex.labels=0
 #' Plot a single firing rate map
 #' 
 #' Plot a 2-dimensional representation of firing rate using the image function included in the graphics package
+#' A square red map is printed if all values in the map are invalid
 #' 
 #' @param m A data.frame or matrix containing the data of the firing rate map. If a data.frame is given as argument, it should have the column names x, y and rate
 #' @param name Character vector giving the name of the firing rate map which is displayed before the max firing rate
@@ -148,10 +149,12 @@ firingRateMapPlot <- function(m,name="",
 {
   jet.colors = colorRampPalette(c("#00007F", "blue","#007FFF",  "cyan", "#7FFF7F", "yellow", "#FF7F00","red"))
   par(oma=outma,mar=margin)
-  
+
   if(class(m)=="matrix"){
     maxRate=max(m,na.rm=T)
-    if(maxRate!=0)
+    if(maxRate==-1.0)
+      image(m,zlim=c(-2,-1), col="white",xlab='',ylab='',axes=FALSE)
+    else if (maxRate!=0)
       image(m,zlim=c(0,maxRate), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
     else
       image(m,zlim=c(0,1), col=jet.colors(200),xlab='',ylab='',axes=FALSE)
