@@ -92,7 +92,7 @@ setMethod(f="setSessionList",
 
             ep@settingTime=as.character(Sys.time())
             
-            class(loadingTime)
+            
             if(loadSessions==TRUE){
               ep<-loadSessionsInList(ep)
               }
