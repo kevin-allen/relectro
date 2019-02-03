@@ -57,7 +57,7 @@ test_that("mapPoarPlot",{
   headDirectionPolarPlot(as.numeric(hd@histo),clockwise = TRUE)
   headDirectionPolarPlot(as.numeric(hd@histo),clockwise = FALSE)
   
-  rm(HD,x,y,hd,pt,sp,st,res,DR)
+  rm(HD,x,y,hd,pt,sp,st,res)
 })
 
 

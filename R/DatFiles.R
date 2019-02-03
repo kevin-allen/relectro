@@ -15,13 +15,15 @@
 #' @slot samples Numeric vector with the number of samples in each file.
 #' @slot size Numeric vector with the size of the file in bytes
 #' @slot nChannels Number of recorded channels in the dat files
+#' @slot transposed Whether the data are transposed in the files (tdat files)
 DatFiles <- setClass(
   "DatFiles", ## name of the class
   slots=c(fileNames="character",
           path="character",
           samples="numeric",
           size="numeric",
-          nChannels="numeric"
+          nChannels="numeric",
+          transposed="logical"
           ),
   prototype = list(fileNames="",path="",nChannels=0))
 
@@ -31,11 +33,12 @@ DatFiles <- setClass(
 #' @param fileNames A character vector containing the names of the .dat files
 #' @param path A directory where the files are located. If empty the working directory is used.
 #' @param nChannels The number of channels in the dat files
+#' @param transposed Logical indicated whether the data structure of the dat file is transposed (tdat files)
 #' @return A DatFiles object with the values set.
 #' @docType methods
 #' @rdname datFilesSet-methods
 setGeneric(name="datFilesSet",
-           def=function(df,fileNames,path,nChannels)
+           def=function(df,fileNames,path,nChannels,transposed=FALSE)
            {standardGeneric("datFilesSet")}
 )
 
@@ -44,7 +47,7 @@ setGeneric(name="datFilesSet",
 #' 
 setMethod(f="datFilesSet",
           signature="DatFiles",
-          definition=function(df,fileNames="",path="",nChannels=0)
+          definition=function(df,fileNames="",path="",nChannels=0,transposed=FALSE)
           {
             if(length(fileNames)==0)
               stop("fileNames length = 0")
@@ -57,7 +60,9 @@ setMethod(f="datFilesSet",
             }
             df@fileNames=fileNames
             df@nChannels=nChannels
+            df@transposed=transposed
             df<-datFilesSamples(df)
+            
             return(df)                        
           })
 
@@ -171,14 +176,15 @@ setMethod(f="datFilesGetOneChannel",
             number.samples=sum(lastSample-firstSample+1)
             results<-numeric(length=number.samples)
             startIndex<-1
-            for(i in 1:length(firstSample)){
+           for(i in 1:length(firstSample)){
               s<-lastSample[i]-firstSample[i]+1
               results[startIndex:(startIndex+s-1)]<-.Call("group_data_file_si_get_one_channel_cwrap", 
                                                           paste(df@path,df@fileNames,sep="/"),
                                                           df@nChannels, 
                                                           channelNo,
                                                           firstSample[i], 
-                                                          lastSample[i])
+                                                          lastSample[i],
+                                                          as.integer(df@transposed))
               startIndex<-startIndex+s
             }
           return(results)
@@ -259,13 +265,12 @@ setMethod(f="datFilesGetChannels",
                       as.integer(channels), 
                       length(channels),
                       firstSample[i], 
-                      lastSample[i])
+                      lastSample[i],
+                      df@transposed)
               startIndex<-startIndex+s
             }
             return(results)
           })
-
-
 
 #' Function to merge the dat files into a single dat file
 #' 
@@ -296,13 +301,6 @@ setMethod(f="datFilesMerge",
             print(paste("Running",myCmd))
             system(myCmd)
 })
-
-
-
-
-
-
-
 
 
 ### show ###

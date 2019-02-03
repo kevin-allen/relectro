@@ -15,6 +15,7 @@
 #' @slot directory Top directory of the project
 #' @slot resultsDirectory Directory where results will be saved by default
 #' @slot nSessions Number of recording sessions in the project
+#' @slot settingTime Time at which the session list was created
 #' @slot sessionNameList Name of the recording sessions
 #' @slot sessionPathList Path to all the recording sessions
 #' @slot sessionList List of RecSession objects.
@@ -23,11 +24,11 @@ ElectroProject <- setClass(
   slots=c(directory="character",
           resultsDirectory="character",
           nSessions="numeric",
+          settingTime="character",
           sessionNameList="character",
           sessionPathList="character",
           sessionList="list"),
   prototype = list(directory=""))
-
 
 #' Create a list of RecSession objects for the ElectroProject
 #'
@@ -89,6 +90,9 @@ setMethod(f="setSessionList",
             ep@sessionNameList<-
               unlist(strsplit(ep@sessionPathList,split="/"))[seq(from=dirDepth,to=dirDepth*ep@nSessions,by=dirDepth)]
 
+            ep@settingTime=as.character(Sys.time())
+            
+            
             if(loadSessions==TRUE){
               ep<-loadSessionsInList(ep)
               }
@@ -366,6 +370,7 @@ setMethod("show", "ElectroProject",
           function(object){
             print(paste("directory:",object@directory))
             print(paste("result directory:",object@resultsDirectory))
+            print(paste("setting time:",object@settingTime))
             print(paste("nSessions:",object@nSessions))
 
             if(length(object@sessionNameList)!=0){
