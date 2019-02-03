@@ -13,7 +13,7 @@
 #' @slot wfMsPerBin Ms per bin in spike-time autocorrelation
 #' @slot wfTimePoints Time points for data points in the spike-time autocorrelation
 
-spikeWaveform <- setClass(
+SpikeWaveform <- setClass(
   "SpikeWaveform", ## name of the class
   slots=c(session="character",
           path="character",
@@ -96,7 +96,7 @@ setMethod(f="meanWaveform",
             
             for(clu in st@cellList)
             {
-              print(clu)
+              #print(clu)
               ## get the spike times
               spikeTimes<-st@res[which(st@clu==clu)]
               
@@ -218,8 +218,8 @@ setMethod(f="waveformCharacteristics",
 #' @param add.text.pos position of the text you can add on the graph
 #' 
 #' @docType methods
-#' @rdname waveformPlot-methods
-setGeneric(name="waveformPlot",
+#' @rdname spikeWaveformPlot-methods
+setGeneric(name="spikeWaveformPlot",
            def=function(sw,cluId,offset=200,
                         name="",
                         axis.y.pos=NA,
@@ -237,11 +237,11 @@ setGeneric(name="waveformPlot",
                         yaxis.at=NA,
                         add.text="",
                         add.text.pos=c(0,0.5))
-           {standardGeneric("waveformPlot")})
+           {standardGeneric("spikeWaveformPlot")})
 
-#' @rdname waveformPlot-methods
-#' @aliases waveformPlot,ANY,ANY-method
-setMethod(f="waveformPlot",
+#' @rdname spikeWaveformPlot-methods
+#' @aliases spikeWaveformPlot,ANY,ANY-method
+setMethod(f="spikeWaveformPlot",
           signature = "SpikeWaveform",
           definition=function(sw,cluId,offset=250,
                               name="",
@@ -365,7 +365,7 @@ waveformPlot<-function(m,
   {
     stop("matrix is empty in waveformPlot()")
   }
-  if(length(wfTimePoints)==0)          
+  if(length(wfTimePoints)==0)
   {
     stop("wfTimePoints has a length of 0")
   }
@@ -373,10 +373,10 @@ waveformPlot<-function(m,
   {
     stop("wfTimePoints has a length different than the waveforms")
   }
-  
+
   nChannels<-dim(m)[2]
   offset<-offset*(0:(nChannels-1))
-  
+
   par(mar=margin, oma=outma,cex.lab=0.6,cex.axis=0.6)
   if(any(is.na(plotxlim)))
     plotxlim=c(min(wfTimePoints),max(wfTimePoints))
@@ -387,11 +387,11 @@ waveformPlot<-function(m,
   if(any(is.na(axis.x.pos)))
     axis.x.pos<-min(m)
   graphics::plot(x=plotxlim,y=plotylim,type='n', axes=FALSE, pch=20,lwd=1,xlab="",ylab="")
-  
+
   #keep only data within xlim
   m<-m[which(wfTimePoints>=plotxlim[1]&wfTimePoints<=plotxlim[2]),]
   t<-wfTimePoints[which(wfTimePoints>=plotxlim[1]&wfTimePoints<=plotxlim[2])]
-  
+
   for(i in 1:nChannels)
     lines(t,m[,i]+offset[i],col=i)
   par(mgp=mgp.x)

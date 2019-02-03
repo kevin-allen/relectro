@@ -1268,7 +1268,6 @@ setGeneric(name="ifrPlot",
                         add.text="",
                         add.text.pos=c(0,0.5))
            {standardGeneric("ifrPlot")})
-
 #' @rdname ifrPlot-methods
 #' @aliases ifrPlot,ANY,ANY-method
 setMethod(f="ifrPlot",
@@ -1346,7 +1345,7 @@ setMethod(f="ifrPlot",
 
 
 
-#' Plot the ifr over time of a SpikeTrain object
+#' Plot the ifr vector over time
 #'
 #'
 #' @param ifr ifr vector
@@ -1367,7 +1366,7 @@ setMethod(f="ifrPlot",
 #' @param yaxis.at y axis tics location
 #' @param add.text text you can add on the graph
 #' @param add.text.pos position of the text you can add on the graph
-ifrPlot<-function(ifr,timePoints,
+ifrPlotVec<-function(ifr,timePoints,
                   name="",
                   axis.y.pos=NA,
                   axis.x.pos=NA,

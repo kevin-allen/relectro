@@ -14,7 +14,7 @@
 // detect up
 // detect down
 
-SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r)
+SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channel_no_r, SEXP start_index_r, SEXP end_index_r, SEXP transposed_r)
 {
   // get the name of the first file
   char* data_file_names[MAXNUMBERFILES];
@@ -24,7 +24,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   int needed_samples;
   int start_index=INTEGER_VALUE(start_index_r);
   int end_index=INTEGER_VALUE(end_index_r);
-    
+  int transposed=INTEGER_VALUE(transposed_r);
   if(start_index>=end_index){
     Rprintf("group_data_file_si_get_one_channel_cwrap, start_index>=end_index\n");
     return(R_NilValue);
@@ -76,7 +76,8 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
   					       INTEGER_VALUE(channel_no_r),
   					       ptr,
   					       (long int)start_index,
-  					       (long int)end_index))!=0)
+  					       (long int)end_index,
+  					       transposed)!=0))
     {
       Rprintf("error reading from data file\n");
       UNPROTECT(2);
@@ -92,7 +93,7 @@ SEXP group_data_file_si_get_one_channel_cwrap(SEXP file_names_r, SEXP num_channe
 }
 
 
-SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channels_r, SEXP num_channels_get_r, SEXP start_index_r, SEXP end_index_r)
+SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_channels_r, SEXP channels_r, SEXP num_channels_get_r, SEXP start_index_r, SEXP end_index_r,SEXP transposed_r)
 {
   // get the name of the first file
   char* data_file_names[MAXNUMBERFILES];
@@ -104,6 +105,7 @@ SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_cha
   int num_channels_get=INTEGER_VALUE(num_channels_get_r);
   int start_index = INTEGER_VALUE(start_index_r);
   int end_index = INTEGER_VALUE(end_index_r);
+  int transposed=INTEGER_VALUE(transposed_r);
   
   if(num_channels_get<1)
   {
@@ -159,7 +161,8 @@ SEXP group_data_file_si_get_group_channels_cwrap(SEXP file_names_r, SEXP num_cha
                                                num_channels_get,
                                                ptr, //allocated memory for the data
                                                (long int)start_index,
-                                               (long int)end_index))!=0)
+                                               (long int)end_index,
+                                               transposed))!=0)
   {
     Rprintf("error reading from data file\n");
     UNPROTECT(2);
@@ -225,7 +228,7 @@ int init_group_data_file_si(struct group_data_file_si* gdf, char** file_names,in
   return 0;
 }
 
-int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int channel_no, int* one_channel, long int start_index, long int end_index)
+int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int channel_no, int* one_channel, long int start_index, long int end_index, int transposed)
 {
   // function to get the data from one channel, intervals can cover more than one file
   // we do one read operation per file until we get all we need
@@ -284,7 +287,7 @@ int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int 
     
   //  Rprintf("reading file %d from %ld to %ld\n",file_index,within_file_start_index,within_file_start_index+to_read);
     
-    if((data_file_si_get_data_one_channel(&gdf->file_group[file_index], channel_no, ptr, within_file_start_index, within_file_start_index+to_read))!=0)
+    if((data_file_si_get_data_one_channel(&gdf->file_group[file_index], channel_no, ptr, within_file_start_index, within_file_start_index+to_read,transposed))!=0)
     {
       Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
     }
@@ -296,7 +299,7 @@ int group_data_file_si_get_data_one_channel(struct group_data_file_si * gdf,int 
 }
 
 int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,int* channels,int num_channels, 
-                                               int* data, long int start_index, long int end_index)
+                                               int* data, long int start_index, long int end_index,int transposed)
 {
 
   // function to get the data from several channels, intervals can cover more than one file
@@ -361,7 +364,7 @@ int group_data_file_si_get_data_group_channels(struct group_data_file_si* gdf,in
     }
    
     if((data_file_si_get_data_several_channels(&gdf->file_group[file_index], channels,num_channels, ptr, 
-                                               within_file_start_index, within_file_start_index+to_read))!=0)
+                                               within_file_start_index, within_file_start_index+to_read,transposed))!=0)
     {
       Rprintf("group_data_file_si_get_data_one_channel(): error reading from file %d\n",file_index);
     }
@@ -513,10 +516,13 @@ int data_file_si_load_block(struct data_file_si* df, long int start_index, long 
     }
   return 0;
 }
-int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, int* one_channel, long int start_index, long int end_index)
+int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, int* one_channel, long int start_index, long int end_index, int transposed)
 {
   /*function to read the data from one channel
     the index as parameters are in sample number
+   
+   reading differs depending on whether the data are transposed (tdat file)
+   i.e., whether all data from a channels are next to each other in the file
 */
 
   if(channel_no < 0)
@@ -550,53 +556,92 @@ int data_file_si_get_data_one_channel(struct data_file_si* df, int channel_no, i
       Rprintf("data_file_si_get_data_one_channel(): end_index > num_samples\n");
       return 1;
     }
-  int num_samples_to_read=end_index-start_index;
-  int num_complete_blocks_to_read=num_samples_to_read/df->num_samples_in_complete_block;
-  int num_blocks_to_read;
-  int num_samples_incomplete_block=num_samples_to_read%df->num_samples_in_complete_block;
-  long int i,j,index;
-  long int start_index_bytes;
-  index=0;
-  if(num_samples_incomplete_block>0)
-    num_blocks_to_read=num_complete_blocks_to_read+1;
-  else
-    num_blocks_to_read=num_complete_blocks_to_read;
   
-  for (i = 0; i < num_blocks_to_read; i++)
+  if(transposed==0)
+  {
+    /*
+     * because of the organization of dat files, we need to read a block of data
+     * containing all recorded channels 
+     */
+    int num_samples_to_read=end_index-start_index;
+    int num_complete_blocks_to_read=num_samples_to_read/df->num_samples_in_complete_block;
+    int num_blocks_to_read;
+    int num_samples_incomplete_block=num_samples_to_read%df->num_samples_in_complete_block;
+    long int i,j,index;
+    long int start_index_bytes;
+    index=0;
+    if(num_samples_incomplete_block>0)
+      num_blocks_to_read=num_complete_blocks_to_read+1;
+    else
+      num_blocks_to_read=num_complete_blocks_to_read;
+    
+    for (i = 0; i < num_blocks_to_read; i++)
     {
       start_index_bytes=(start_index*sizeof(short)*df->num_channels)+(df->block_size*i);
       if(i<num_complete_blocks_to_read) // complete block
-	{
-	  if(data_file_si_load_block(df,start_index_bytes,df->block_size)!=0)
-	    {
-	      Rprintf("data_file_si_get_data_one_channel(): problem loading block\n");
-	      Rprintf("data_file_si_load_block(file,%ld,%d)\n",start_index_bytes,df->block_size);
-	      return 1;
-	    }
-	  for (j = 0; j <  df->num_samples_in_complete_block; j++)
-	    {
-	      one_channel[index]=df->data_block[(j*df->num_channels)+(channel_no)];
-	      index++;
-	    }
-	}
+      {
+        if(data_file_si_load_block(df,start_index_bytes,df->block_size)!=0)
+        {
+          Rprintf("data_file_si_get_data_one_channel(): problem loading block\n");
+          Rprintf("data_file_si_load_block(file,%ld,%d)\n",start_index_bytes,df->block_size);
+          return 1;
+        }
+        for (j = 0; j <  df->num_samples_in_complete_block; j++)
+        {
+          one_channel[index]=df->data_block[(j*df->num_channels)+(channel_no)];
+          index++;
+        }
+      }
       if(i==num_complete_blocks_to_read) // smaller and last block
-	{
-	  if(data_file_si_load_block(df,start_index_bytes,num_samples_incomplete_block*sizeof(short)*df->num_channels))
-	    {
-	      Rprintf("data_file_si_get_data_one_channel(): problem loading last block\n");
-	      return 1;
-	    }
-	  for (j = 0; j < num_samples_incomplete_block; j++)
-	    {
-	      one_channel[index]=df->data_block[(j*df->num_channels)+(channel_no)];
-	      index++;
-	    }
-	}
+      {
+        if(data_file_si_load_block(df,start_index_bytes,num_samples_incomplete_block*sizeof(short)*df->num_channels))
+        {
+          Rprintf("data_file_si_get_data_one_channel(): problem loading last block\n");
+          return 1;
+        }
+        for (j = 0; j < num_samples_incomplete_block; j++)
+        {
+          one_channel[index]=df->data_block[(j*df->num_channels)+(channel_no)];
+          index++;
+        }
+      }
     }
+  }
+  if(transposed==1)
+  {
+    /*
+     * here we read the data from a single channel in one go!
+     */
+    int num_samples_to_read=end_index-start_index;
+    long int start_index_bytes=(start_index*sizeof(short)) + (channel_no*df->num_samples_in_file*sizeof(short));
+    long int read_size=num_samples_to_read*sizeof(short);
+    short int* transposed_one_channel_ptr;
+    
+    if((transposed_one_channel_ptr=(short *)malloc(read_size))==NULL)
+    {
+      Rprintf("data_file_si_get_data_one_channel(): problem allocating memory\n");
+    }
+      
+   // Rprintf("start_index_bytes: %ld, num_samples_to_read: %ld read_size: %ld\n",start_index_bytes,num_samples_to_read,read_size);
+    if(lseek(df->file_descriptor,start_index_bytes,SEEK_SET)==-1)
+    {
+      Rprintf("data_file_si_get_data_one_channel(): problem with lseek\n");
+      return 1;
+    }
+    if(read(df->file_descriptor,transposed_one_channel_ptr,read_size)==-1)
+    {
+      Rprintf("data_file_si_get_data_one_channel(): problem reading the file\n");
+      return 1;
+    }
+    for(int i = 0; i < num_samples_to_read;i++)
+      one_channel[i]=transposed_one_channel_ptr[i];
+    
+    free(transposed_one_channel_ptr);
+  }
   return 0;
 }
 
-int data_file_si_get_data_several_channels(struct data_file_si* df, int* channels, int num_channels, int** ptr, long int start_index, long int end_index)
+int data_file_si_get_data_several_channels(struct data_file_si* df, int* channels, int num_channels, int** ptr, long int start_index, long int end_index, int transposed)
 {
   if(num_channels<=0)
   {
@@ -638,54 +683,93 @@ int data_file_si_get_data_several_channels(struct data_file_si* df, int* channel
     return 1;
   }
   
-  int num_samples_to_read=end_index-start_index;
-  int num_complete_blocks_to_read=num_samples_to_read/df->num_samples_in_complete_block;
-  int num_blocks_to_read;
-  int num_samples_incomplete_block=num_samples_to_read%df->num_samples_in_complete_block;
-  long int i,j,k,index;
-  long int start_index_bytes;
-  index=0;
-  if(num_samples_incomplete_block>0)
-    num_blocks_to_read=num_complete_blocks_to_read+1;
-  else
-    num_blocks_to_read=num_complete_blocks_to_read;
-  
- 
-  for (i = 0; i < num_blocks_to_read; i++)
+  if(transposed==0)
   {
-    start_index_bytes=(start_index*sizeof(short)*df->num_channels)+(df->block_size*i);
-    if(i<num_complete_blocks_to_read) // complete block
+    int num_samples_to_read=end_index-start_index;
+    int num_complete_blocks_to_read=num_samples_to_read/df->num_samples_in_complete_block;
+    int num_blocks_to_read;
+    int num_samples_incomplete_block=num_samples_to_read%df->num_samples_in_complete_block;
+    long int i,j,k,index;
+    long int start_index_bytes;
+    index=0;
+    if(num_samples_incomplete_block>0)
+      num_blocks_to_read=num_complete_blocks_to_read+1;
+    else
+      num_blocks_to_read=num_complete_blocks_to_read;
+    
+    
+    for (i = 0; i < num_blocks_to_read; i++)
     {
-      
-      if(data_file_si_load_block(df,start_index_bytes,df->block_size)!=0)
+      start_index_bytes=(start_index*sizeof(short)*df->num_channels)+(df->block_size*i);
+      if(i<num_complete_blocks_to_read) // complete block
       {
-        Rprintf("data_file_si_get_data_several_channels(): problem loading block\n");
-        Rprintf("data_file_si_load_block(file,%ld,%d)\n",start_index_bytes,df->block_size);
-        return 1;
-      }
-      for (j = 0; j <  df->num_samples_in_complete_block; j++){
-        for(k = 0; k < num_channels;k++)
+        
+        if(data_file_si_load_block(df,start_index_bytes,df->block_size)!=0)
         {
-          ptr[k][index]=df->data_block[(j*df->num_channels)+(channels[k])];
+          Rprintf("data_file_si_get_data_several_channels(): problem loading block\n");
+          Rprintf("data_file_si_load_block(file,%ld,%d)\n",start_index_bytes,df->block_size);
+          return 1;
         }
-        index++;
+        for (j = 0; j <  df->num_samples_in_complete_block; j++){
+          for(k = 0; k < num_channels;k++)
+          {
+            ptr[k][index]=df->data_block[(j*df->num_channels)+(channels[k])];
+          }
+          index++;
+        }
+      }
+      if(i==num_complete_blocks_to_read) // smaller and last block
+      {
+        if(data_file_si_load_block(df,start_index_bytes,num_samples_incomplete_block*sizeof(short)*df->num_channels))
+        {
+          Rprintf("data_file_si_get_data_several_channels(): problem loading last block\n");
+          return 1;
+        }
+        for (j = 0; j < num_samples_incomplete_block; j++){
+          for(k = 0; k < num_channels;k++)
+          {
+            ptr[k][index]=df->data_block[(j*df->num_channels)+(channels[k])];
+          }
+          index++;
+        }
       }
     }
-    if(i==num_complete_blocks_to_read) // smaller and last block
+  }
+  if(transposed==1)
+  {
+    
+    /*
+     * here we read the data from a single channel in one go!
+     */
+    int num_samples_to_read=end_index-start_index;
+    long int read_size=num_samples_to_read*sizeof(short);
+    short int* transposed_one_channel_ptr;
+    if((transposed_one_channel_ptr=(short *)malloc(read_size))==NULL)
     {
-      if(data_file_si_load_block(df,start_index_bytes,num_samples_incomplete_block*sizeof(short)*df->num_channels))
+      Rprintf("data_file_si_get_data_one_channel(): problem allocating memory\n");
+    }
+    
+    
+    for(int i = 0; i < num_channels;i++)
+    {
+      long int start_index_bytes=(start_index*sizeof(short)) + (channels[i]*df->num_samples_in_file*sizeof(short));
+      long int read_size=num_samples_to_read*sizeof(short);
+    
+      //Rprintf("start_index_bytes: %ld, num_samples_to_read: %ld read_size: %ld\n",start_index_bytes,num_samples_to_read,read_size);
+      if(lseek(df->file_descriptor,start_index_bytes,SEEK_SET)==-1)
       {
-        Rprintf("data_file_si_get_data_several_channels(): problem loading last block\n");
+        Rprintf("data_file_si_get_data_several_channels(): problem with lseek\n");
         return 1;
       }
-      for (j = 0; j < num_samples_incomplete_block; j++){
-        for(k = 0; k < num_channels;k++)
-        {
-          ptr[k][index]=df->data_block[(j*df->num_channels)+(channels[k])];
-        }
-        index++;
+      if(read(df->file_descriptor,transposed_one_channel_ptr,read_size)==-1)
+      {
+        Rprintf("data_file_si_get_data_several_channels(): problem reading the file\n");
+        return 1;
       }
+      for(int j = 0; j < num_samples_to_read;j++)
+        ptr[i][j]=transposed_one_channel_ptr[j];
     }
+    free(transposed_one_channel_ptr);
   }
   return 0;
 }  
