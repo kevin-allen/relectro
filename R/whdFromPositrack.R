@@ -172,6 +172,181 @@ whdFromPositrack<-function(rs,
 
 
 
+#' Create whd files for the entire session. Used when one positrack file covers several dat files. 
+#' 
+#' The tracking system called Positrack creates files with the extension .positrack 
+#' in which the x, y position and head direction of the animal is recorded.
+#' This function create files with .whd extension with x, y, hd is given at fixed time intervals
+#' relative to the electrophysiological recording. 
+#' During recording, positrack sends ttl pulses to the recording system and the ttl pulses
+#' are used to synchronize the position and electrophysiological data. By default, the ttl
+#' pulses are on the last channel in the .dat files.
+#' This function runs on a single recording session
+#' 
+#' @param rs RecSession object
+#' @param resSamplesPerWhdSample Number of samples in the electrophysiological recording for each whd sample.
+#' @param ttlChannel Channel with the ttl signal in the .dat files. By default it is the last channel. Channel numbers start at 0.
+#' If you want a different channel for each trial, give a numeric vector with the list of channel.
+#' @param maxUpDiffRes Maximum difference between successive up for which position will be interpolated
+#' @param overwrite Logical indicating whether to recreate a whd file if one already exists
+#' @param checkUpIntegrity Logical indicating whether to check up integrity
+#' @param checkPositrackIntegrity Logical indicating whether to check positrack integrity
+#' @param minInterEventCor Minimum correlation between intervals of ttl pulses and frame capture
+#' @param positrackDatMatchFile A file that describes how many dat file there is for each positrack file. Each line represent a positrack file, with consecutive indices (_01, _02, etc.). Each line contains a number indicating how many .dat files there is for the .positrack file. By default, the name is the session filebase.positrackDatMatch
+whdFromLongPositrackFile<-function(rs,
+                           resSamplesPerWhdSample=400,
+                           ttlChannel=NA,
+                           maxUpDiffRes=4000,
+                           overwrite=FALSE,
+                           checkUpIntegrity=TRUE,
+                           checkPositrackIntegrity=TRUE,
+                           minInterEventCor=0.8,
+                           positrackDatMatchFile=NA)
+{
+  if(rs@session=="")
+    stop(paste("whdFromPositrack, rs@session == \"\""))
+  if(length(rs@trialNames)==0)
+    stop(paste("whdFromPositrack, rs@trialNames has a length of 0"))
+  if(resSamplesPerWhdSample<=0)
+    stop(paste("whdFromPositrack, resSamplesPerWhdSample <= 0", resSamplesPerWhdSample))
+  if(maxUpDiffRes<=0)
+    stop(paste("whdFromPositrack, maxUpDiffRes <= 0", maxUpDiffRes))
+  if(rs@nChannels==0)
+    stop(paste("whdFromPositrack, rs@nChannels equals 0"))
+  if(is.na(rs@samplingRate))
+    stop(paste("rs@samplingRate is NA"))
+  if(file.exists(paste(rs@fileBase,"whd",sep="."))&overwrite==FALSE)
+    return()
+
+  if(is.na(positrackDatMatchFile))
+    positrackDatMatchFile<-paste(rs@fileBase,"positrackDatMatch",sep=".")
+  if(!file.exists(positrackDatMatchFile))
+    stop(paste(positrackDatMatchFile,"does not exist"))
+  
+  df<-new("DatFiles")
+  df<-datFilesSet(df,
+                  fileNames=paste(rs@trialNames,"dat",sep="."),
+                  path=rs@path,
+                  nChannels=rs@nChannels)
+  
+  if(length(ttlChannel)!=length(rs@trialNames) & length(ttlChannel)!=1){
+    stop(paste("length of ttlChannel should be 1 or the number of trial in the session"))
+  }
+  if(length(ttlChannel)==1 & any(is.na(ttlChannel))){
+    ttlChannel=rep(rs@nChannels-1,length(rs@trialNames))
+  }
+  if(length(ttlChannel)==1 & any(!is.na(ttlChannel))){
+    ttlChannel=rep(ttlChannel,length(rs@trialNames))
+  }
+  
+  ext="whd"
+  mainUp<-vector()
+  mainPosi<-data.frame()
+  
+  
+  ## establish the matching of positrack and dat files
+  ## should be done in a file and not here
+  ## each line is a positrack file, enters the number of dat files covering the positrack file
+  numDatFilesPerPositrack<-read.table(positrackDatMatchFile)$V1
+  numDatFilesPerPositrack
+  previousDatIndex=0
+  # create the whd file for each .dat file
+  for(tIndex in 1:length(numDatFilesPerPositrack)){
+  
+    positrackFileName<-paste(paste(rs@path,rs@trialNames[tIndex],sep="/"),"positrack",sep=".")
+    firstDatIndex=previousDatIndex+1
+    lastDatIndex=previousDatIndex+numDatFilesPerPositrack[tIndex]
+    print(paste(positrackFileName, ", dat indices:",firstDatIndex,lastDatIndex))
+    
+    #################################
+    ## get the data from dat files ##
+    #################################
+    print(paste("reading sycn channel",ttlChannel[tIndex],"from",rs@trialStartRes[firstDatIndex],"to",rs@trialEndRes[lastDatIndex]))
+    x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel[tIndex],
+                                      firstSample = rs@trialStartRes[firstDatIndex],
+                                      lastSample = rs@trialEndRes[lastDatIndex]))
+    
+    up<-detectUps(x) ## detect rising times of ttl pulses
+    if(checkUpIntegrity){
+      if(checkIntegrityUp(up,samplingRate=rs@samplingRate,datLengthSamples=rs@trialEndRes[lastDatIndex]-rs@trialStartRes[firstDatIndex])!=0)
+        stop(paste("check of integrity of up failed"))
+    }
+    ######################################
+    ## get the data from positrack file ##
+    ######################################
+    
+    if(!file.exists(positrackFileName))
+      stop(paste("whdFromPositrack, file missing:",positrackFileName))
+    print(paste("reading",positrackFileName))
+    posi<-read.table(positrackFileName,header=T)  ## now assumes that there is a header
+    if(checkPositrackIntegrity){
+      if(checkIntegrityPositrackData(posi)!=0)
+        stop(paste("check of integrity of positrack file failed"))
+    }
+    #############################################
+    ### compare the .dat and .positrack data  ###
+    #############################################
+    lup<-length(up)
+    lposi<-length(posi$startProcTime)
+    print(paste("Number of ttl pulses:",lup))
+    print(paste("Number of frames in positrack file:",lposi))
+    
+    if(lup!=lposi)  
+    { # try to align the frames using jitters
+      print(paste("whdFromPositrack,",rs@trialNames[tIndex],"length of up (",lup,") and positrack (",lposi,") differs"))
+      if(!is.list(x<-whdAlignedTtlPositrack(up,posi))){
+        print(paste("alignment failed"))
+        stop()
+      }      
+      up<-x$up
+      posi<-x$posi
+    }
+    interEventCor<-cor(diff(up),diff(posi$startProcTime))
+    print(paste("correlation between interUp and interPosi:",round(interEventCor,4)))
+    if(interEventCor<minInterEventCor)
+    {
+      paste("The correlation between interUp and interPosi is below 0.8:",interEventCor)
+      stop("Something is wrong with alignment")
+    }
+    
+    ## the frame is capture before it is received by the computer
+    ## up in .dat file is frame processing and not frame capture
+    ## Therefore, we remove the capture-to-processing delay from the up values
+    delay<-(posi$startProcTime-posi$capTime)*rs@samplingRate/1000
+    ## remove the delay from the ttl pulse
+    up<- up - delay
+    
+    ### create a main up and main posi for the entire recording session
+    mainUp<-c(mainUp,up+rs@trialStartRes[tIndex])
+    mainPosi<-rbind(mainPosi,posi[,c("startProcTime","no","x","y","hd")])
+    
+    previousDatIndex=lastDatIndex
+  }
+  
+  if(length(mainUp)!=length(mainPosi$x)){
+    print(paste("whdFromPositrack,",rs@session,"length of mainUp (",length(mainUp),") and mainPosi (",length(mainPosi$x),") differs"))
+    stop()      
+  }
+  
+  ## make the main whd file
+  whd<- .Call("whd_file",
+              mainPosi$x,
+              mainPosi$y,
+              mainPosi$hd,
+              as.integer(mainUp),
+              length(mainUp),
+              rs@trialEndRes[length(rs@trialEndRes)],
+              resSamplesPerWhdSample,
+              maxUpDiffRes)
+  
+  ## save a whd file in the session directory
+  fn<-paste(paste(rs@path,rs@session,sep='/'),ext,sep='.')
+  print(paste("writing",fn))
+  write.table(x = whd,file=fn,quote = FALSE,row.names = FALSE, col.names = FALSE)
+}
+
+
+
 #' Test alignment of one dat and positrack file. 
 #' 
 #' The tracking system called Positrack creates files with the extension .positrack 
