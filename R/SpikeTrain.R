@@ -23,6 +23,7 @@
 #' The spike at the index is to be considered for analysis
 #' @slot endResIndexc Index in the spike arrays for the start of intervals. Index is for a C array with 0 indexing.
 #' The spike at the intdex is to be considered for analysis
+#' @slot intervalTime Time within the intervals
 #' @slot events Time in sample number for some events
 #' @slot cellList Cell list
 #' @slot auto Matrix holding spike-time autocorrelation
@@ -63,6 +64,7 @@ SpikeTrain <- setClass(
           nSpikesPerCell="numeric",
           startInterval="numeric",endInterval="numeric", # to limit analysis to these intervals
           startResIndexc="numeric",endResIndexc="numeric",
+          intervalTime="numeric",
           events="numeric",
           cellList="numeric",cellPairList="data.frame", # cell list to limit the analysis to these cells
           auto="matrix",
@@ -324,6 +326,7 @@ setMethod(f="loadSpikeTrain",
             st@endInterval<-max(st@res)+1 ## add one so that the last spike is within the intervals by default
             st@startResIndexc<-0
             st@endResIndexc<-length(st@res)-1
+            st@intervalTime<-sum(st@endInterval-st@startInterval)/st@samplingRate
             return(st)
           }
 )
@@ -376,6 +379,7 @@ setMethod(f="setSpikeTrain",
             st@endInterval<-max(st@res)+1 # add one so that the last spike is considered
             st@startResIndexc<-0
             st@endResIndexc<-length(st@res)-1
+            st@intervalTime<-sum(st@endInterval-st@startInterval)/st@samplingRate
             return(st)
           }
 )
@@ -813,7 +817,7 @@ setMethod(f="setIntervals",
             st@endResIndexc<-results[2,]
             st@startInterval<-st@startInterval[1:length(st@startResIndexc)]
             st@endInterval<-st@endInterval[1:length(st@endResIndexc)]
-
+            st@intervalTime<-sum(st@endInterval-st@startInterval)/st@samplingRate
             return(st)
           }
 )
@@ -1204,7 +1208,7 @@ setMethod("show", "SpikeTrain",
 
             if(length(object@startInterval)!=0){
               print(paste("nIntervals:",length(object@startInterval)))
-              print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))
+              print(paste("Interval time:", object@intervalTime,"sec"))
               if(length(object@startInterval<100)){
                 print(paste(object@startInterval,object@endInterval))
               }else{
