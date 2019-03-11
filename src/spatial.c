@@ -802,24 +802,6 @@ SEXP direction_intervals_cwrap(SEXP direction_r, SEXP whl_lines_r, SEXP res_samp
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SEXP spike_position_cwrap(SEXP x_whl_r,
 			  SEXP y_whl_r,
 			  SEXP whl_lines_r,

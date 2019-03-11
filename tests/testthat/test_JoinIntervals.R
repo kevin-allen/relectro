@@ -15,3 +15,11 @@ test_that("removeTimeOutsideIntervalsFromTimeStamps",{
   
 })
   
+
+
+test_that("equallySpacedTimePointsWithinIntervals",{
+  expect_equal(equallySpacedTimePointsWithinIntervals(min = 10,max=100,by=10,s = c(40),e=c(80)),c(40,50,60,70,80))
+  expect_equal(equallySpacedTimePointsWithinIntervals(min = 50,max=100,by=10,s = c(40),e=c(80)),c(50,60,70,80))
+  expect_equal(equallySpacedTimePointsWithinIntervals(min = 35,max=119,by=10,s = c(45,100),e=c(80,120)),c(45,55,65,75,105,115))
+  expect_equal(equallySpacedTimePointsWithinIntervals(min = 30,max=200,by=10,s = c(40,50),e=c(45,65)),c(40,55,65))
+})

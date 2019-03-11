@@ -337,6 +337,165 @@ SEXP removeTimeOutsideIntervalsTimeStamps(SEXP interval_lines_r,
 }
 
 
+SEXP equallySpacedTimePointsWithinIntervals(SEXP min_r,
+                                            SEXP max_r,
+                                            SEXP by_r,
+                                            SEXP interval_lines_r,
+                                            SEXP start_r, 
+                                            SEXP end_r)
+{
+  
+  int interval_lines = INTEGER_VALUE(interval_lines_r); ;
+  int min = INTEGER_VALUE(min_r);
+  int max = INTEGER_VALUE(max_r);
+  int by = INTEGER_VALUE(by_r);
+  
+  int* start = INTEGER_POINTER(start_r);
+  int* end = INTEGER_POINTER(end_r);
+  SEXP results;
+  
+  // calculate how many time points we have
+  int n=0;
+  int leftOver=0;
+  int timeStamp=0;
+  for(int i = 0; i < interval_lines; i++)
+  {
+    //Rprintf("interval %d, leftOver: %d,n: %d\n",i,leftOver,n);
+    if(min<end[i])
+    {// we need to add time within this interval, this will be the last interval as end is within it
+      
+      // min before the start and max before the end
+      if(min<start[i]&&max<=end[i]){
+        if(leftOver==0)
+          timeStamp=start[i];
+        else
+          timeStamp=start[i]+by-leftOver;
+        
+        while(timeStamp<=max)
+        {
+          n++;
+          timeStamp+=by;
+        }
+        // no need to calculate leftOver as it is the last interval
+      }
+      
+      // min before the start and max after the end
+      if(min<start[i]&&max>end[i]){
+        int nLocal=0; // in case there is no time stamp within this interval
+        if(leftOver==0)
+          timeStamp=start[i];
+        else
+          timeStamp=start[i]+by-leftOver;
+        while(timeStamp<=end[i])
+        {
+          n++;
+          nLocal++;
+          timeStamp+=by;
+        }
+        if(nLocal>0)
+          leftOver=end[i]-timeStamp+by;
+        else
+          leftOver+=end[i]-start[i];
+      }
+      
+      // min is after the start and max is before the end
+      if(min>=start[i]&&max<=end[i]){
+        timeStamp=min;// there is no leftOver to take care of
+        while(timeStamp<=max)
+        {
+          n++;
+          timeStamp+=by;
+        }
+        // no need to calculate leftOver as it is the last interval
+      }
+      
+      if(min>=start[i]&&max>end[i]){
+        timeStamp=min;// there is no leftOver to take care of
+        while(timeStamp<=end[i])
+        {
+          n++;
+          timeStamp+=by;
+        }
+        leftOver=end[i]-timeStamp+by;
+      }
+    }
+  }
+  //Rprintf("n:%d\n",n);
+  
+  
+  // allocate memory
+  PROTECT(results = allocVector(INTSXP,n));
+  
+  
+  // calculate the time points
+  // calculate how many time points we have
+  n=0;
+  leftOver=0;
+  for(int i = 0; i < interval_lines; i++)
+  {
+    if(min<end[i])
+    {// we need to add time within this interval, this will be the last interval as end is within it
+      
+      // min before the start and max before the end
+      if(min<start[i]&&max<=end[i]){
+        if(leftOver==0)
+          INTEGER(results)[n]=start[i];
+        else
+          INTEGER(results)[n]=start[i]+by-leftOver;
+        
+        while(INTEGER(results)[n]<=max)
+        {
+          n++;
+          INTEGER(results)[n]=INTEGER(results)[n-1]+by;
+        }
+        // no need to calculate leftOver as it is the last interval
+      }
+      
+      // min before the start and max after the end
+      if(min<start[i]&&max>end[i]){
+        int nLocal=0; // in case there is no time stamp within this interval
+        if(leftOver==0)
+          INTEGER(results)[n]=start[i];
+        else
+          INTEGER(results)[n]=start[i]+by-leftOver;
+        while(INTEGER(results)[n]<=end[i])
+        {
+          n++;
+          nLocal++;
+          INTEGER(results)[n]=INTEGER(results)[n-1]+by;
+        }
+        if(nLocal>0)
+          leftOver=end[i]-INTEGER(results)[n]+by;
+        else
+          leftOver+=end[i]-start[i];
+      }
+      
+      // min is after the start and max is before the end
+      if(min>=start[i]&&max<=end[i]){
+        INTEGER(results)[n]=min;// there is no leftOver to take care of
+        while(INTEGER(results)[n]<=max)
+        {
+          n++;
+          INTEGER(results)[n]=INTEGER(results)[n-1]+by;
+        }
+        // no need to calculate leftOver as it is the last interval
+      }
+      
+      if(min>=start[i]&&max>end[i]){
+        INTEGER(results)[n]=min;// there is no leftOver to take care of
+        while(INTEGER(results)[n]<=end[i])
+        {
+          n++;
+          INTEGER(results)[n]=INTEGER(results)[n-1]+by;
+        }
+        leftOver=end[i]-INTEGER(results)[n]+by;
+      }
+    }
+  }
+ 
+  UNPROTECT(1);
+  return(results);
+}
 
 
 
