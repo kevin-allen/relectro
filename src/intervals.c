@@ -277,6 +277,74 @@ SEXP resWithinIntervals(SEXP interval_lines_r,
 }
 
 
+SEXP removeTimeOutsideIntervalsTimeStamps(SEXP interval_lines_r,
+                                          SEXP start_r, 
+                                          SEXP end_r, 
+                                          SEXP res_lines_r, 
+                                          SEXP res_r)
+{
+  
+  int interval_lines = INTEGER_VALUE(interval_lines_r); ;
+  int res_lines = INTEGER_VALUE(res_lines_r);
+  int* start = INTEGER_POINTER(start_r);
+  int* end = INTEGER_POINTER(end_r);
+  int* res = INTEGER_POINTER(res_r);
+  SEXP results;
+  
+  //  Rprintf("res_lines: %d, interval_lines: %d\n",res_lines,interval_lines);
+  PROTECT(results = allocVector(INTSXP,res_lines));
+  
+  int outside_time=0;
+  int last_index=0;
+  for(int j = 0;j < interval_lines;j++)
+  {
+    // calculate the time outside the intervals before the current interval
+    if(j==0){ // for the first interval, this is time before current start
+      outside_time=start[j];
+      
+    }
+    else{ // for subsequent intervals, this is the previous outside time + 
+          // the time between the end of previous and beginning of current interval
+      outside_time=outside_time+(start[j]-end[j-1]);
+    }
+
+   // Rprintf("interval %d, %d-%d time outside_time: %d\n",j,start[j],end[j],outside_time);
+    // now loop for spikes    
+    int i = last_index; // start at 0 for first interval, or where we left on subsequent intervals.
+    while(i<res_lines&&res[i]<=end[j]) // while the spikes are before the end of this interval
+      {
+        INTEGER(results)[i]=res[i]-outside_time;
+       // Rprintf("spike %d from %d to %d\n",i,res[i],INTEGER(results)[i]);
+        i++;
+      }
+    
+    
+    
+    last_index=i;
+    if(j+1==interval_lines){
+      while(i<res_lines)
+      {
+        INTEGER(results)[i]=res[i]-outside_time;
+     //   Rprintf("complete spike %d from %d to %d\n",i,res[i],INTEGER(results)[i]);
+        i++;
+      }
+    }
+      
+  }
+    
+  UNPROTECT(1);
+  return(results);
+}
+
+
+
+
+
+
+
+
+
+
 
 void join_adjacent_intervals(int* start,
                              int* end,

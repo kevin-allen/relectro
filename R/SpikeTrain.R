@@ -385,6 +385,59 @@ setMethod(f="setSpikeTrain",
 )
 
 
+#' Get the spike times of one neuron
+#'
+#' This function is used to get the spike times of one neuron
+#'
+#'
+#' @param st SpikeTrain object
+#' @param cluNo Cluster id for the neuron
+#' @param ms Boolean indicating whether the time should be in milliseconds, if false it will be in recording samples
+#' @param withinIntervalsOnly Boolean indicating whether only the spikes within the intervals set in the SpikeTrain object should be returned
+#' @param removeTimeOutsideIntervals Boolean indicating whether the time outside the intervals should be remove from the spike times
+#' @return vector containing the spike times for a neurons
+#'
+#' @docType methods
+#' @rdname getSpikeTimes-methods
+setGeneric(name="getSpikeTimes",
+           def=function(st,cluNo,ms,withinIntervalsOnly,removeTimeOutsideIntervals)
+           {standardGeneric("getSpikeTimes")}
+)
+#' @rdname getSpikeTimes-methods
+#' @aliases getSpikeTimes,ANY,ANY-method
+setMethod(f="getSpikeTimes",
+          signature="SpikeTrain",
+          definition=function(st,cluNo,ms=FALSE,withinIntervalsOnly=TRUE,removeTimeOutsideIntervals=FALSE)
+          {
+            if(cluNo<1| cluNo>st@nCells)
+              stop(paste("cluNo:",cluNo, ", is smaller than 1 or larger than",st@nCells))
+            if(removeTimeOutsideIntervals==TRUE&withinIntervalsOnly==FALSE)
+              stop("removeTimeOutsideIntervals=TRUE only works with withinIntervalsOnly=TRUE")
+            
+            spikes<-st@res[which(st@clu==cluNo)]
+            length(spikes)
+            if(withinIntervalsOnly==TRUE){
+              spikes<-spikes[which(timeWithinIntervals(spikes,st@startInterval,st@endInterval))]
+            }
+            
+            if(removeTimeOutsideIntervals==TRUE){
+              spikes<-removeTimeOutsideIntervalsFromTimeStamps(spikes,st@startInterval,st@endInterval)
+            }
+            
+            
+            if(ms==TRUE)
+              spikes<-spikes/st@samplingRate
+            return(spikes)
+          }
+)
+
+
+
+
+
+
+
+
 
 #' Calculate the spike-time autocorrelation
 #'

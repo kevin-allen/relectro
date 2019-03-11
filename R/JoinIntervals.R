@@ -59,3 +59,35 @@ timeWithinIntervals<-function(x,s,e){
                           as.integer(x)))
   return(index)
 }
+
+
+#' Remove time that falls outside of intervals from time stamps
+#' 
+#' The time outside the intervals is removed from the time stamps
+#' Only the intervals before a given timestamps are considered
+#' 
+#' It assumes that all the spikes are within the intervals
+#' 
+#' @param x Integer vector representing time points
+#' @param s Integer vector representing the start of intervals
+#' @param e Integer vector representing the end of intervals
+#' @return Numeric, timestamps without the time ouside the intervals
+removeTimeOutsideIntervalsFromTimeStamps<-function(x,s,e){
+  if(length(s)!=length(e))
+    stop("unequal length of s and e")
+  if(length(x)==0)
+    stop("length of x is 0")
+  if(any(!timeWithinIntervals(x,s,e)))
+    stop("Timestamps outside intervals")
+  
+  timeStamps<-as.numeric(.Call("removeTimeOutsideIntervalsTimeStamps",
+                          length(s),
+                          as.integer(s),
+                          as.integer(e),
+                          length(x),
+                          as.integer(x)))
+  return(timeStamps)
+}
+
+
+
