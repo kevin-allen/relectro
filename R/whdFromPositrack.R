@@ -258,9 +258,16 @@ whdFromLongPositrackFile<-function(rs,
     lastDatIndex=previousDatIndex+numDatFilesPerPositrack[tIndex]
     print(paste(positrackFileName, ", dat indices:",firstDatIndex,lastDatIndex))
     
+    if(firstDatIndex>length(rs@trialEndRes))
+      stop("firstDatIndex is larger then length(rs@trialEndRes)")
+    if(lastDatIndex>length(rs@trialEndRes))
+      stop("LastDatIndex is larger then length(rs@trialEndRes)")
+    
+    
     #################################
     ## get the data from dat files ##
     #################################
+    
     print(paste("reading sycn channel",ttlChannel[tIndex],"from",rs@trialStartRes[firstDatIndex],"to",rs@trialEndRes[lastDatIndex]))
     x<-as.numeric(datFilesGetChannels(df,channels=ttlChannel[tIndex],
                                       firstSample = rs@trialStartRes[firstDatIndex],
