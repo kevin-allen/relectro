@@ -1,18 +1,26 @@
 # relectro
 
-R package to analyze electrophysiological data. It is still in development and new functionalities are added regularly. The focus is on data from tetrode recording experiments. Most of the package is written in R but some sections are written in C for speed. Analysis can easily be run in parallel with the snow package. 
+R package to analyze electrophysiological data. The focus is on data from tetrode recording experiments in behaving animals. Most of the package is written in R but some sections are written in C for speed. Analysis can easily be run in parallel with the snow package. 
 
-You will need to install the fftw3 C library to compute discrete Fourier transforms with relectro. You can install it on a linux machine.
+---
 
-* With Fedora: `dnf install -y fftw3-devel` 
-* With Ubuntu: `apt-get install libfftw3-dev`
+Here is an example of figure you can generate using relectro. You can see the mean spike waveforms, the spike-time autocorrelations, instantaneous firing rate, spatial firing rate map and head-direction polar plot.
+
+
+![Example of figures generated with the relectro package](./figures/figure_example.png)
+
 
 
 ## Install
 
 * Get the source code with the git clone command: `git clone http://github.com/kevin-allen/relectro.git`
 
-If you want to modify the code of relecto, I recommand using R studio together with the book "R Packages" by Hadley Wickham. Most of the tools used to develop relectro are presented in this book. You probably want to use the R package devtools for development.
+
+You will need to install the fftw3 C library to compute discrete Fourier transforms with relectro. You can install it on a linux machine.
+
+* With Fedora: `dnf install -y fftw3-devel` 
+* With Ubuntu: `apt-get install libfftw3-dev`
+
 
 * From R studio, click File/Open project... and select relectro.Rproj
 
@@ -34,6 +42,10 @@ You might need to add a few R packages to be able to build relectro. Here is a l
 * oce
 * plyr
 * circular
+
+
+If you want to modify the code of relecto, I recommand using R studio together with the book "R Packages" by Hadley Wickham. Most of the tools used to develop relectro are presented in this book. You probably want to use the R package devtools for development.
+
 
 ## Feedback
 
