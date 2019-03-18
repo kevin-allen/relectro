@@ -409,8 +409,8 @@ setMethod(f="getSpikeTimes",
           signature="SpikeTrain",
           definition=function(st,cluNo,ms=FALSE,withinIntervalsOnly=TRUE,removeTimeOutsideIntervals=FALSE)
           {
-            if(cluNo<1| cluNo>st@nCells)
-              stop(paste("cluNo:",cluNo, ", is smaller than 1 or larger than",st@nCells))
+            if(cluNo<2| cluNo>st@nCells+1)
+              stop(paste("cluNo:",cluNo, ", is smaller than 2 or larger than",st@nCells+1))
             if(removeTimeOutsideIntervals==TRUE&withinIntervalsOnly==FALSE)
               stop("removeTimeOutsideIntervals=TRUE only works with withinIntervalsOnly=TRUE")
             
