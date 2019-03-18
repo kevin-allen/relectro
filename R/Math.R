@@ -249,3 +249,28 @@ cor.diff <- function(r1,n1,r2,n2 ){
   cat( "Difference between ",r1,"(",n1,") and ",r2,"(",n2,")", "two-tailed p value:", p , "\n" )
 } 
 
+
+
+
+#' Calculate the direction of movement a vector of length 2
+#' 
+#' @param v vector of length 2, x and y movement.
+#' @param degree boolean indicating wheter to return the angle as degree or radian
+#' @return movement direction relative to vector 1,0
+mvDirection<-function(v,degree=TRUE){
+  if(any(is.na(v)))
+    return(NA)
+  if(length(v)!=2)
+    stop("vector should have a length of 2")
+  l<-sqrt(sum(v*v)) # get the length
+  if(l==0) # if length is 0, angle is 0
+    return(0.0)
+  v<-v/l # get a unit vector
+  i<-c(1,0) # reference unit vector
+  theta<-acos(sum(v*i)) # get angle between v and i
+  if(v[2]<0) # correct for quadrant 3 and 4
+    theta<-2*pi-theta
+  if(degree)
+    theta<-theta/pi*180
+  return(theta)
+}

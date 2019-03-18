@@ -10,6 +10,7 @@
 #' 
 #' @slot session A character vector containing the names of the recording session.
 #' @slot path The directory in which the files of the session are located.
+#' @slot trackingType The type of tracking, coming from the file .positionTrackingType
 #' @slot pxPerCm Pixels per centimeter in the x and y position data.
 #' @slot samplingRateDat Sampling rate of the .dat files in this recording session
 #' @slot resSamplesPerWhlSample Number of samples in the .dat files between each position values.
@@ -19,6 +20,7 @@
 #' @slot x x position of the animal in cm
 #' @slot y y position of the animal in cm
 #' @slot hd Head direction of the animal
+#' @slot mvHd Direction of movement
 #' @slot lin Linearized position of the animal. Used for linear track data.
 #' @slot dir Direction in the linearized position data (0 or 1)
 #' @slot speed Linear speed in cm per sec
@@ -32,6 +34,7 @@ Positrack <- setClass(
   "Positrack", ## name of the class
   slots=c(session="character",
           path="character",
+          trackingType="character",
           pxPerCm="numeric",
           samplingRateDat="numeric",
           resSamplesPerWhlSample="numeric",
@@ -41,6 +44,7 @@ Positrack <- setClass(
           x="numeric", # in cm
           y="numeric",
           hd="numeric",
+          mvHd="numeric",
           lin="numeric", # linear position
           dir="numeric", # direction in linear position
           speed="numeric",
@@ -90,6 +94,14 @@ setMethod(f="loadPositrack",
               stop("needs ",paste(pathSession,"sampling_rate_dat",sep="."))
             if(!file.exists(paste(pathSession,"px_per_cm",sep=".")))
               stop("needs ",paste(pathSession,"px_per_cm",sep="."))
+            
+            
+            if(file.exists(paste(pathSession,"positionTrackingType",sep=".")))
+            {
+              pt@trackingType<-as.character(read.table(paste(pathSession,"positionTrackingType",sep="."))$V1)
+            }
+            
+            
             ## get sampling rate
             whd<-read.table(paste(pathSession,"whd",sep="."))
             pt@xWhl<-whd$V1
@@ -172,6 +184,31 @@ setMethod(f="loadPositrack",
             pt@speed[which(pt@speed==-1.0)]<-NA
             pt@angularSpeed[which(pt@angularSpeed==-1.0)]<-NA
             pt@percentInvalidPosition<-sum(is.na(pt@x))/length(pt@x)*100
+            
+            ## get the movement, could be faster in c++
+            m<-matrix(ncol=2,nrow=length(pt@x),data = c(c(NA,diff(pt@x)),c(NA,diff(pt@y))))
+            pt@mvHd<-apply(m,1,mvDirection)
+            
+            if(pt@trackingType=="two_white_spots"){
+              # the head direction in positrack is as follows with 0,0 in the left-top corner of the video
+              # see https://github.com/kevin-allen/positrack/wiki/Coordinate-system
+              # east = 180
+              # north = 90
+              # west = 0
+              # south = 270
+              # In R, we have the 0,0 in the bottom-left of the graphs.
+              # The head direction is as follows
+              # east = 0
+              # north =90
+              # west = 180
+              # south = 270
+              # To get this, we need to add 180 to hd
+              pt@hd<-pt@hd+180
+              pt@hd[which(pt@hd>360)]<-pt@hd[which(pt@hd>360)]-360
+            }
+            
+            
+            
             
             return(pt)
           }
@@ -277,6 +314,13 @@ setMethod(f="setPositrack",
             pt@speed[which(pt@speed==-1.0)]<-NA
             pt@angularSpeed[which(pt@angularSpeed==-1.0)]<-NA
             pt@percentInvalidPosition<-sum(is.na(pt@x))/length(pt@x)*100
+            
+            ## get the movement, could be faster in c++
+            m<-matrix(ncol=2,nrow=length(pt@x),data = c(c(NA,diff(pt@x)),c(NA,diff(pt@y))))
+            pt@mvHd<-apply(m,1,mvDirection)
+            
+            
+            
             return(pt)
           }
 )
@@ -357,7 +401,7 @@ setMethod(f="smoothhd",
 
 #' Set position data to NA for which the animal speed was not between a given range
 #'
-#' The slots x, y, hd, speed are affected.
+#' The slots x, y, hd, mvHd and speed are affected.
 #' Please note that the speed array is affected. 
 #' 
 #' @param pt Positrack object
@@ -389,6 +433,7 @@ setMethod(f="speedFilter",
             pt@y[index]<- NA
             pt@hd[index]<- NA
             pt@speed[index]<- NA
+            pt@mvHd[index]<- NA
             return(pt)
           }
 )
@@ -397,7 +442,7 @@ setMethod(f="speedFilter",
 
 #' Set position data to NA if animal's direction was not the one given in arguments
 #'
-#' The slots x, y, hd, speed and lin are affected.
+#' The slots x, y, hd, hdDir, speed and lin are affected.
 #' Please note that this is not head direction but rather the direction of movement in 1D environment 
 #' 
 #' @param pt Positrack object
@@ -432,6 +477,7 @@ setMethod(f="directionFilter",
             pt@hd[index]<- NA
             pt@speed[index]<- NA
             pt@lin[index]<-NA
+            pt@mvHd[index]<-NA
             return(pt)
           }
 )
@@ -439,7 +485,7 @@ setMethod(f="directionFilter",
 
 #' Set position data outside time intervals to NA
 #'
-#' The slots x, y, hd, speed, lin and dir are affected.
+#' The slots x, y, hd, mvHd, speed, lin and dir are affected.
 #' The intervals are in sample values of the electrophysiological data 
 #' 
 #' @param pt Positrack object
@@ -496,6 +542,7 @@ setMethod(f="setInvalidOutsideInterval",
             pt@y[which(!isin)]<-NA
             pt@hd[which(!isin)]<-NA
             pt@speed[which(!isin)]<-NA
+            pt@mvHd[which(!isin)]<-NA
             pt@angularSpeed[which(!isin)]<-NA
             if(length(pt@lin)!=0) pt@lin[which(!isin)]<-NA
             if(length(pt@dir)!=0) pt@dir[which(!isin)]<-NA
@@ -1012,6 +1059,8 @@ setMethod("show", "Positrack",
               print("call loadPositrack")
               return()
             }
+            if(pt@trackingType!="")
+              print(paste("trackingType:",object@trackingType))
             print(paste("samplingRate:",object@samplingRateDat,"Hz"))
             print(paste("resSamplesPerWhlSample:",object@resSamplesPerWhlSample))
             print(paste("pxPerCm:",object@pxPerCm))

@@ -172,7 +172,7 @@ whdFromPositrack<-function(rs,
 
 
 
-#' Create whd files for the entire session. Used when one positrack file covers several dat files. 
+#' Create whd files for the entire session, when one positrack file covers several dat files. 
 #' 
 #' The tracking system called Positrack creates files with the extension .positrack 
 #' in which the x, y position and head direction of the animal is recorded.
