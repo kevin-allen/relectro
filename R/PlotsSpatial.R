@@ -332,7 +332,7 @@ firingRateMapCrossPlot <- function(m,name="",
 #' @param main.title A title for the figure
 #' @param peak.rate.prefix Additional information to display before the peak firing rate.
 #' @param clockwise plot degrees clockwise or anticlockwise
-headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),
+headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.75,0.5),margin=c(0.5,0.3,0.5,0.3),axis.x.mgp=c(1,0.3,0),
                                    axis.y.mgp=c(2.2,0.6,0),cex.x.axis=0.5,cex.y.axis=0.5,cex.lab=0.5,
                                    xlab="",ylab="",show.xlab=TRUE,main.title="",peak.rate.prefix="",
                                    clockwise=TRUE)
@@ -373,7 +373,7 @@ headDirectionPolarPlot <- function(histo,outma=c(0.5,0.5,0.5,0.5),margin=c(0.5,0
   }
   mtext(paste(peak.rate.prefix,round(radlim,digits=2),"Hz"),side=3,at=0,line=0.1,cex=0.5)  
   if(main.title!="")
-    mtext(main.title,side=3,at=0,line=0.3,cex=0.5)
+    mtext(main.title,side=3,at=-0.5,line=0.3,cex=0.5)
   par(oldpar)
 }
 

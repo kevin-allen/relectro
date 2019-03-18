@@ -237,8 +237,6 @@ setMethod(f="datFilesGetChannels",
             if(any(nchar(df@fileNames)>255)) # from c code
               stop(paste("max file name size is 255",df@fileNames[1]))
             
-            df<-datFilesSamples(df)
-            
             if(any(firstSample<0))
               stop(paste("firstSample<0",df@fileNames[1]))
             if(any(lastSample<0))
@@ -247,6 +245,8 @@ setMethod(f="datFilesGetChannels",
               stop(paste("firstSample > lastSample",df@fileNames[1]))
             if(any(firstSample>(sum(df@samples)-1)))
               stop(paste("firstSample(",firstSample,") is larger or equal than total number of samples:",sum(df@samples),df@fileNames[1]))
+            
+            
             if(any(lastSample> (sum(df@samples)-1)))
               stop(paste("lastSample(",lastSample,") is larger or equal than total number of samples",sum(df@samples),df@fileNames[1]))
             

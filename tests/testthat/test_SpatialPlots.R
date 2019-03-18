@@ -1,71 +1,64 @@
 library(relectro)
 library(testthat)
 context("test the way maps and polar plots are display")
-test_that("mapPoarPlot",{
-  ### animal is at all location only once, from 1 to 50 in a 2d matrix
-  pt<-new("Positrack")
-  sp<-new("SpatialProperties2d")
-  st<-new("SpikeTrain")
-  hd<-new("HeadDirection")
 
-  hd@degPerBin=10
-  nHdBins=as.integer(ceiling(360/hd@degPerBin))
-  ##
-  x<-(rep(sin(seq(0,2*pi,0.05)),10)+1)*20
-  y<-(rep(sin(seq(0,2*pi,0.05)+pi/2),10)+1)*20
-  HD<-(rep(sin(seq(0,2*pi,0.05)),10)+1)*180
-  
-  
-  pt@defaultXYSmoothing=0
-  pt<-setPositrack(pt, pxX=x, pxY=y, hd=HD,
-                   resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
-    ## set the spike trains in the object
-  res<-seq(401+(13*400),400*length(x),by=400*length(x)/10)
-  
-  results<-.Call("spike_position_cwrap",
-                 x,y,length(x),
-                 as.integer(res),length(res),
-                 as.integer(400),
-                 as.integer(0), # begin interval 1
-                 as.integer(4000000), # end interval 1
-                 as.integer(1)) # number intervals
-  
-  resultsHD<-.Call("spike_head_direction_cwrap",
-                     HD,
-                     length(HD),
-                     as.integer(res),
-                     length(res),
-                    as.integer(400),
-                   as.integer(0), # begin interval 1
-                   as.integer(4000000), # end interval 1
-                   as.integer(1)) # number intervals
-  
-  
-  st<-setSpikeTrain(st=st,res=res,clu=rep(1,length(res)),samplingRate=20000)
-  ## get the hd histo
-  hd@smoothOccupancySd=0
-  hd@smoothRateHistoSd=0
-  hd<-headDirectionHisto(hd,st,pt) # observed histo
-  
-  ## get the firing rate maps
-  sp@smoothOccupancySd=0
-  sp@smoothRateMapSd=0
-  sp<-firingRateMap2d(sp,st,pt)
-  plot(hd@histo,type='l')
-  
-  firingRateMapPlot(sp@maps[,,1])
-  headDirectionPolarPlot(as.numeric(hd@histo),clockwise = TRUE)
-  headDirectionPolarPlot(as.numeric(hd@histo),clockwise = FALSE)
-  
-  rm(HD,x,y,hd,pt,sp,st,res)
-})
-
-
-
-
-
-
-
+# test_that("mapPoarPlot",{
+#   ### animal is at all location only once, from 1 to 50 in a 2d matrix
+#   pt<-new("Positrack")
+#   sp<-new("SpatialProperties2d")
+#   st<-new("SpikeTrain")
+#   hd<-new("HeadDirection")
+# 
+#   hd@degPerBin=10
+#   nHdBins=as.integer(ceiling(360/hd@degPerBin))
+#   ##
+#   x<-(rep(sin(seq(0,2*pi,0.05)),10)+1)*20
+#   y<-(rep(sin(seq(0,2*pi,0.05)+pi/2),10)+1)*20
+#   HD<-(rep(sin(seq(0,2*pi,0.05)),10)+1)*180
+#   
+#   
+#   pt@defaultXYSmoothing=0
+#   pt<-setPositrack(pt, pxX=x, pxY=y, hd=HD,
+#                    resSamplesPerWhlSample=400,samplingRateDat = 20000,pxPerCm = 1)
+#     ## set the spike trains in the object
+#   res<-seq(401+(13*400),400*length(x),by=400*length(x)/10)
+#   
+#   results<-.Call("spike_position_cwrap",
+#                  x,y,length(x),
+#                  as.integer(res),length(res),
+#                  as.integer(400),
+#                  as.integer(0), # begin interval 1
+#                  as.integer(4000000), # end interval 1
+#                  as.integer(1)) # number intervals
+#   
+#   resultsHD<-.Call("spike_head_direction_cwrap",
+#                      HD,
+#                      length(HD),
+#                      as.integer(res),
+#                      length(res),
+#                     as.integer(400),
+#                    as.integer(0), # begin interval 1
+#                    as.integer(4000000), # end interval 1
+#                    as.integer(1)) # number intervals
+#   
+#   
+#   st<-setSpikeTrain(st=st,res=res,clu=rep(1,length(res)),samplingRate=20000)
+#   ## get the hd histo
+#   hd@smoothOccupancySd=0
+#   hd@smoothRateHistoSd=0
+#   hd<-headDirectionHisto(hd,st,pt) # observed histo
+#   
+#   ## get the firing rate maps
+#   sp@smoothOccupancySd=0
+#   sp@smoothRateMapSd=0
+#   sp<-firingRateMap2d(sp,st,pt)
+# 
+#   firingRateMapPlot(sp@maps[,,1])
+#   headDirectionPolarPlot(as.numeric(hd@histo),clockwise = TRUE)
+#   headDirectionPolarPlot(as.numeric(hd@histo),clockwise = FALSE)
+#   
+#   rm(HD,x,y,hd,pt,sp,st,res)
+# })
 
 
 

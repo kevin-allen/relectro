@@ -23,6 +23,7 @@
 #' The spike at the index is to be considered for analysis
 #' @slot endResIndexc Index in the spike arrays for the start of intervals. Index is for a C array with 0 indexing.
 #' The spike at the intdex is to be considered for analysis
+#' @slot intervalTime Time within the intervals
 #' @slot events Time in sample number for some events
 #' @slot cellList Cell list
 #' @slot auto Matrix holding spike-time autocorrelation
@@ -63,6 +64,7 @@ SpikeTrain <- setClass(
           nSpikesPerCell="numeric",
           startInterval="numeric",endInterval="numeric", # to limit analysis to these intervals
           startResIndexc="numeric",endResIndexc="numeric",
+          intervalTime="numeric",
           events="numeric",
           cellList="numeric",cellPairList="data.frame", # cell list to limit the analysis to these cells
           auto="matrix",
@@ -324,6 +326,7 @@ setMethod(f="loadSpikeTrain",
             st@endInterval<-max(st@res)+1 ## add one so that the last spike is within the intervals by default
             st@startResIndexc<-0
             st@endResIndexc<-length(st@res)-1
+            st@intervalTime<-sum(st@endInterval-st@startInterval)/st@samplingRate
             return(st)
           }
 )
@@ -376,9 +379,63 @@ setMethod(f="setSpikeTrain",
             st@endInterval<-max(st@res)+1 # add one so that the last spike is considered
             st@startResIndexc<-0
             st@endResIndexc<-length(st@res)-1
+            st@intervalTime<-sum(st@endInterval-st@startInterval)/st@samplingRate
             return(st)
           }
 )
+
+
+#' Get the spike times of one neuron
+#'
+#' This function is used to get the spike times of one neuron
+#'
+#'
+#' @param st SpikeTrain object
+#' @param cluNo Cluster id for the neuron
+#' @param ms Boolean indicating whether the time should be in milliseconds, if false it will be in recording samples
+#' @param withinIntervalsOnly Boolean indicating whether only the spikes within the intervals set in the SpikeTrain object should be returned
+#' @param removeTimeOutsideIntervals Boolean indicating whether the time outside the intervals should be remove from the spike times
+#' @return vector containing the spike times for a neurons
+#'
+#' @docType methods
+#' @rdname getSpikeTimes-methods
+setGeneric(name="getSpikeTimes",
+           def=function(st,cluNo,ms,withinIntervalsOnly,removeTimeOutsideIntervals)
+           {standardGeneric("getSpikeTimes")}
+)
+#' @rdname getSpikeTimes-methods
+#' @aliases getSpikeTimes,ANY,ANY-method
+setMethod(f="getSpikeTimes",
+          signature="SpikeTrain",
+          definition=function(st,cluNo,ms=FALSE,withinIntervalsOnly=TRUE,removeTimeOutsideIntervals=FALSE)
+          {
+            if(cluNo<1| cluNo>st@nCells)
+              stop(paste("cluNo:",cluNo, ", is smaller than 1 or larger than",st@nCells))
+            if(removeTimeOutsideIntervals==TRUE&withinIntervalsOnly==FALSE)
+              stop("removeTimeOutsideIntervals=TRUE only works with withinIntervalsOnly=TRUE")
+            
+            spikes<-st@res[which(st@clu==cluNo)]
+            length(spikes)
+            if(withinIntervalsOnly==TRUE){
+              spikes<-spikes[which(timeWithinIntervals(spikes,st@startInterval,st@endInterval))]
+            }
+            
+            if(removeTimeOutsideIntervals==TRUE){
+              spikes<-removeTimeOutsideIntervalsFromTimeStamps(spikes,st@startInterval,st@endInterval)
+            }
+            
+            
+            if(ms==TRUE)
+              spikes<-spikes/st@samplingRate
+            return(spikes)
+          }
+)
+
+
+
+
+
+
 
 
 
@@ -813,7 +870,7 @@ setMethod(f="setIntervals",
             st@endResIndexc<-results[2,]
             st@startInterval<-st@startInterval[1:length(st@startResIndexc)]
             st@endInterval<-st@endInterval[1:length(st@endResIndexc)]
-
+            st@intervalTime<-sum(st@endInterval-st@startInterval)/st@samplingRate
             return(st)
           }
 )
@@ -1204,7 +1261,7 @@ setMethod("show", "SpikeTrain",
 
             if(length(object@startInterval)!=0){
               print(paste("nIntervals:",length(object@startInterval)))
-              print(paste("Interval time:", sum(object@endInterval-object@startInterval)/object@samplingRate,"sec"))
+              print(paste("Interval time:", object@intervalTime,"sec"))
               if(length(object@startInterval<100)){
                 print(paste(object@startInterval,object@endInterval))
               }else{

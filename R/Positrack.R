@@ -504,7 +504,7 @@ setMethod(f="setInvalidOutsideInterval",
 )
 
 
-#' Get time intervals at which the speed of the animal was withing a specified ranged
+#' Get time intervals at which the speed of the animal was within a specified ranged
 #'
 #' The intervals are in sample values of the electrophysiological data 
 #' 
@@ -688,6 +688,73 @@ setMethod(f="getSpeedAtResValues",
 )
 
 
+#' Get the x, y and hd of the animal at given time points
+#' 
+#' The time points are in sample values of the electrophysiological data
+#' 
+#' @param pt Positrack object
+#' @param res Time values in electrophysiological samples.
+#' @return Dataframe with the x, y and hd at the different time points
+#' 
+#' @docType methods
+#' @rdname getXYHDAtResValues-methods
+setGeneric(name="getXYHDAtResValues",
+           def=function(pt,res)
+           {standardGeneric("getXYHDAtResValues")}
+)
+#' @rdname getXYHDAtResValues-methods
+#' @aliases getXYHDAtResValues,ANY,ANY-method
+setMethod(f="getXYHDAtResValues",
+          signature="Positrack",
+          definition=function(pt,res)
+          {
+            if(pt@session=="")
+              stop("pt@session is empty")
+            if(length(pt@x)==0)
+              stop("pt@x has length of 0")
+            
+            if(any(res<0))
+              stop("some res<0")
+            
+            x<-.Call("speed_at_res_values_cwrap", 
+                             pt@x,
+                             length(pt@x),
+                             as.integer(res),
+                             length(res),
+                             as.integer(pt@resSamplesPerWhlSample))
+            y<-.Call("speed_at_res_values_cwrap", 
+                     pt@y,
+                     length(pt@y),
+                     as.integer(res),
+                     length(res),
+                     as.integer(pt@resSamplesPerWhlSample))
+            
+            hd<-.Call("spike_head_direction_cwrap",
+                      pt@hd,
+                      length(pt@hd),
+                      as.integer(res),
+                      length(res),
+                      as.integer(pt@resSamplesPerWhlSample),
+                      as.integer(0),
+                      as.integer(tail(res,n = 1)+1),
+                      as.integer(1))
+            
+          return(data.frame(x=x,y=y,hd=hd))
+      }
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #' Shift the position of the animal of a random amount larger than the value of minShiftMs
 #' 
@@ -833,7 +900,6 @@ setMethod(f="shiftLinRandom",
             return(pt)
           }
 )
-
 
 
 #' Linearize the position data
