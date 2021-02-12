@@ -2771,54 +2771,84 @@ double gridness_score(double* one_auto_map,
 	}
     }
 
+   //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
   // to make the ring that will be rotated
-  min_radius=radius[0]/pixels_per_bin; 
-  if (min_radius >= auto_num_bins_x/4 || min_radius >= auto_num_bins_y/4) // this check needs to be relative to the largest distance of valid bin from center... see below.
-    {
-      min_radius=min_radius/2;
-    }
-  max_radius=0;
+  // min_radius=radius[0]/pixels_per_bin; 
+  
+  min_radius=0;
   for (int i = 1 ; i < num_fields; i++)
+  {
+    if (x_field[i] != -1)
     {
-      if (x_field[i] != -1)
-	{
-	  if ((distance_to_mid[i]+radius[i])/pixels_per_bin > max_radius)
-	    {
-	      max_radius=(distance_to_mid[i]+radius[i])/pixels_per_bin;
-	    }
-	}
+      //if ((distance_to_mid[i]+radius[i])/pixels_per_bin < min_radius)
+      if ((distance_to_mid[i]*0.75)/pixels_per_bin < min_radius)
+      {
+        min_radius=(distance_to_mid[i]*0.75)/pixels_per_bin;
+      }
     }
-
+  }
+  
+  if (min_radius >= auto_num_bins_x/4 || min_radius >= auto_num_bins_y/4) // this check needs to be relative to the largest distance of valid bin from center... see below.
+  {
+    min_radius=min_radius/2;
+  }
+  
+  max_radius=99999;
+  for (int i = 1 ; i < num_fields; i++)
+  {
+    if (x_field[i] != -1)
+    {
+      //if ((distance_to_mid[i]+radius[i])/pixels_per_bin > max_radius)
+      if ((distance_to_mid[i]*1.25)/pixels_per_bin < max_radius)
+      {
+        //max_radius=(distance_to_mid[i]+radius[i])/pixels_per_bin;
+        max_radius=(distance_to_mid[i]*1.25)/pixels_per_bin;
+      }
+    }
+  }
+  
   if(max_radius==0)
-    {
-      max_radius=auto_num_bins_x/4;
-    }
+  {
+    max_radius=auto_num_bins_x/4;
+  }
   
   if(max_radius<=min_radius)
-    {
-     // Rprintf("max_radius: %lf, min_radius: %lf, min_radius adjusted to %lf\n", max_radius, min_radius, max_radius/2);
-      min_radius=max_radius/2;
-    }
-
+  {
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Rprintf("max_radius: %lf, min_radius: %lf, min_radius adjusted to %lf\n", max_radius, min_radius, max_radius/2);
+    min_radius=max_radius/2;
+  }
+  
   // set the value outside the ring to invalid
   for (int i = 0 ; i < num_bins ; i++)
+  {
+    if (original_map[i] != invalid)
     {
-      if (original_map[i] != invalid)
-	{
-	  // check the distance between that bin and the center of the map
-	  get_x_and_y_bin_from_index(auto_num_bins_x,
-				     auto_num_bins_y,
-				     i,
-				     &x,
-				     &y);
-	  d=(int)distance(mid_x,mid_y,x,y);
-	  if (d<min_radius|| d>max_radius)
-	    {
-	      original_map[i] = invalid;
-	    }
-	}
+      //////////////////////////////////////////////////////////////////////////////////////////////////////
+      // check the distance between that bin and the center of the map
+      get_x_and_y_bin_from_index(auto_num_bins_x,
+                                 auto_num_bins_y,
+                                 i,
+                                 &x,
+                                 &y);
+                                 d=(int)distance(mid_x,mid_y,x,y);
+                                 if (d<min_radius|| d>max_radius)
+                                 {
+                                   original_map[i] = invalid;
+                                 }
     }
+  }
   
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////  
+ 
   // do the 5 correlations for the gridness score
   for (int j = 0; j < num_bins; j++)
     {
